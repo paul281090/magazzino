@@ -71,9 +71,18 @@ th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white
 th{background:var(--bg);color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
 tbody tr:hover{background:var(--bg);}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;background:var(--amber);color:#2A2011;font-size:.72rem;font-weight:700;}
+.badge.badge-pegno{background:#C0392B;color:#fff;}
+.badge.badge-bio{background:#3C8A54;color:#fff;}
+.badge.badge-grigio{background:#8A8578;color:#fff;}
+.hl-credem{color:#2E7D46;font-weight:700;}
+.hl-agricole{color:#1B7FB8;font-weight:700;}
 .empty-row td{color:var(--muted);text-align:center;padding:26px;}
 .count{color:var(--muted);font-size:.82rem;margin:10px 2px 0;}
 .del-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;}
+.edit-btn{background:none;border:none;color:var(--green);cursor:pointer;font-size:.9rem;margin-right:8px;}
+.editing-banner{background:var(--amber);color:#2A2011;padding:8px 12px;border-radius:8px;font-size:.85rem;font-weight:600;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:10px;}
+.editing-banner.show{display:flex;}
+.editing-banner button{background:none;border:1px solid #2A2011;border-radius:6px;padding:4px 10px;color:#2A2011;cursor:pointer;font-size:.78rem;}
 
 .table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
 .table-toolbar input{flex:1;min-width:180px;}
@@ -112,16 +121,20 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <!-- CARICO -->
   <div class="panel active" id="panel-carico">
     <h2>Carica nuova merce in inventario</h2>
+    <div class="editing-banner" id="edit-banner">
+      <span>✏️ Stai modificando una riga esistente</span>
+      <button onclick="annullaModifica()">Annulla modifica</button>
+    </div>
     <div class="grid">
       <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
       <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
-      <div><label>Mese/Anno</label><input id="c-mese" type="month"></div>
+      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="MM/AA es. 09/24" maxlength="5"></div>
       <div><label>Forme</label><input id="c-forme" type="number" min="0" placeholder="es. 30"></div>
       <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="c-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="tip-list"></datalist>
-    <button class="btn" onclick="caricaMerce()">Carica in inventario</button>
+    <button class="btn" id="c-submit-btn" onclick="caricaMerce()">Carica in inventario</button>
     <div class="msg" id="c-msg"></div>
   </div>
 
@@ -129,7 +142,13 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <div class="panel" id="panel-scarico">
     <h2>Scarica merce dall'inventario (anche parziale)</h2>
     <div class="grid">
-      <div style="grid-column:1/-1"><label>Riga da scaricare</label><select id="s-select"></select></div>
+      <div><label>Ordina elenco per</label>
+        <select id="s-order" onchange="populateScaricoSelect()">
+          <option value="matricola">Matricola</option>
+          <option value="scalera">Scalera</option>
+        </select>
+      </div>
+      <div style="grid-column:span 2"><label>Riga da scaricare</label><select id="s-select"></select></div>
       <div><label>Forme da scaricare</label><input id="s-forme" type="number" min="1" placeholder="quantità"></div>
     </div>
     <button class="btn" onclick="scaricaMerce()">Scarica quantità indicata</button>
@@ -144,8 +163,8 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
       <div><label>Scalera</label><input id="f-scalera" type="number" oninput="applyFilters()"></div>
       <div><label>Matricola</label><input id="f-matricola" type="number" oninput="applyFilters()"></div>
       <div><label>Tipologia</label><select id="f-tipologia" onchange="applyFilters()"><option value="">Tutte</option></select></div>
-      <div><label>Mese/Anno da</label><input id="f-mese-da" type="month" oninput="applyFilters()"></div>
-      <div><label>Mese/Anno a</label><input id="f-mese-a" type="month" oninput="applyFilters()"></div>
+      <div><label>Mese/Anno da</label><input id="f-mese-da" type="text" placeholder="MM/AA" maxlength="5"></div>
+      <div><label>Mese/Anno a</label><input id="f-mese-a" type="text" placeholder="MM/AA" maxlength="5"></div>
       <div><label>Testo (note)</label><input id="f-testo" type="text" oninput="applyFilters()" placeholder="cerca nelle note"></div>
     </div>
     <button class="btn ghost" onclick="resetFilters()">Azzera filtri</button>
@@ -153,7 +172,10 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
 
   <div class="table-toolbar">
     <input id="q-search" type="text" placeholder="Cerca un valore in tutta la tabella…" oninput="applyFilters()">
+    <button class="print-btn" onclick="exportData()">⬇️ Esporta dati</button>
+    <button class="print-btn" onclick="document.getElementById('import-file').click()">⬆️ Importa dati</button>
     <button class="print-btn" onclick="window.print()">🖨️ Stampa tabella</button>
+    <input type="file" id="import-file" accept="application/json,.json" style="display:none">
   </div>
   <div class="table-wrap">
     <table>
@@ -193,42 +215,114 @@ function fmtMese(v){
   return m+'/'+y;
 }
 
+function parseMese(str){
+  if(!str) return null;
+  const m=str.trim().match(/^(\d{1,2})\/(\d{2})$/);
+  if(!m) return null;
+  const month=parseInt(m[1],10);
+  if(month<1||month>12) return null;
+  const year=2000+parseInt(m[2],10);
+  return year+'-'+String(month).padStart(2,'0');
+}
+
+function fmtMeseInput(iso){
+  if(!iso) return '';
+  const [y,m]=iso.split('-');
+  return m+'/'+y.slice(2);
+}
+
+function attachMeseAutoFormat(id, onDone){
+  const el=document.getElementById(id);
+  el.addEventListener('input',()=>{
+    let v=el.value.replace(/[^\d]/g,'').slice(0,4);
+    if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
+    el.value=v;
+    if(onDone) onDone();
+  });
+}
+attachMeseAutoFormat('c-mese');
+attachMeseAutoFormat('f-mese-da', applyFilters);
+attachMeseAutoFormat('f-mese-a', applyFilters);
+
+let editingId=null;
+
+function annullaModifica(){
+  editingId=null;
+  document.getElementById('edit-banner').classList.remove('show');
+  document.getElementById('c-submit-btn').textContent='Carica in inventario';
+  ['c-scalera','c-matricola','c-mese','c-forme','c-tipologia','c-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-msg').textContent='';
+}
+
+function editRow(id){
+  const rec=DATA.find(r=>r.id===id);
+  if(!rec) return;
+  editingId=id;
+  document.getElementById('c-scalera').value=rec.scalera;
+  document.getElementById('c-matricola').value=rec.matricola;
+  document.getElementById('c-mese').value=fmtMeseInput(rec.mese);
+  document.getElementById('c-forme').value=rec.forme;
+  document.getElementById('c-tipologia').value=rec.tipologia||'';
+  document.getElementById('c-note').value=rec.note||'';
+  document.getElementById('edit-banner').classList.add('show');
+  document.getElementById('c-submit-btn').textContent='Salva modifiche';
+  document.getElementById('c-msg').textContent='';
+  switchTab('carico');
+}
+
 function caricaMerce(){
   const scalera=document.getElementById('c-scalera').value;
   const matricola=document.getElementById('c-matricola').value;
-  const mese=document.getElementById('c-mese').value;
+  const meseStr=document.getElementById('c-mese').value;
+  const mese=parseMese(meseStr);
   const forme=parseFloat(document.getElementById('c-forme').value);
   const tipologia=document.getElementById('c-tipologia').value.trim();
   const note=document.getElementById('c-note').value.trim();
   const msg=document.getElementById('c-msg');
 
-  if(!scalera || !matricola || !mese || !forme || forme<=0){
+  if(!scalera || !matricola || !meseStr || !forme || forme<=0){
     msg.textContent='Compila scalera, matricola, mese/anno e un numero di forme valido.';
     msg.className='msg err'; return;
   }
-  DATA.push({
-    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
-    scalera:Number(scalera), matricola:Number(matricola), mese, forme:Number(forme), tipologia, note
-  });
+  if(!mese){
+    msg.textContent='Formato Mese/Anno non valido. Usa MM/AA, es. 09/24.';
+    msg.className='msg err'; return;
+  }
+  if(editingId){
+    const rec=DATA.find(r=>r.id===editingId);
+    if(rec){
+      rec.scalera=Number(scalera); rec.matricola=Number(matricola); rec.mese=mese;
+      rec.forme=Number(forme); rec.tipologia=tipologia; rec.note=note;
+    }
+    msg.textContent='Riga modificata.'; msg.className='msg ok';
+    annullaModifica();
+  }else{
+    DATA.push({
+      id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+      scalera:Number(scalera), matricola:Number(matricola), mese, forme:Number(forme), tipologia, note
+    });
+    msg.textContent='Merce caricata in inventario.'; msg.className='msg ok';
+    document.getElementById('c-scalera').value='';
+    document.getElementById('c-matricola').value='';
+    document.getElementById('c-mese').value='';
+    document.getElementById('c-forme').value='';
+    document.getElementById('c-tipologia').value='';
+    document.getElementById('c-note').value='';
+  }
   save();
-  msg.textContent='Merce caricata in inventario.'; msg.className='msg ok';
-  document.getElementById('c-scalera').value='';
-  document.getElementById('c-matricola').value='';
-  document.getElementById('c-mese').value='';
-  document.getElementById('c-forme').value='';
-  document.getElementById('c-tipologia').value='';
-  document.getElementById('c-note').value='';
   refreshAll();
 }
 
 function populateScaricoSelect(){
   const sel=document.getElementById('s-select');
+  const orderBy=document.getElementById('s-order').value;
   sel.innerHTML='';
   if(DATA.length===0){
     sel.innerHTML='<option value="">Nessuna riga in inventario</option>';
     return;
   }
-  DATA.forEach(r=>{
+  const sorted=[...DATA].sort((a,b)=>Number(a[orderBy])-Number(b[orderBy]));
+  sorted.forEach(r=>{
     const opt=document.createElement('option');
     opt.value=r.id;
     opt.textContent=`Scalera ${r.scalera} · Matricola ${r.matricola} · ${fmtMese(r.mese)} · ${r.forme} forme${r.tipologia?' · '+r.tipologia:''}`;
@@ -317,8 +411,8 @@ function applyFilters(){
   const scalera=document.getElementById('f-scalera').value;
   const matricola=document.getElementById('f-matricola').value;
   const tipologia=document.getElementById('f-tipologia').value;
-  const meseDa=document.getElementById('f-mese-da').value;
-  const meseA=document.getElementById('f-mese-a').value;
+  const meseDa=parseMese(document.getElementById('f-mese-da').value);
+  const meseA=parseMese(document.getElementById('f-mese-a').value);
   const testo=document.getElementById('f-testo').value.trim().toLowerCase();
   const quick=document.getElementById('q-search').value.trim().toLowerCase();
 
@@ -338,6 +432,28 @@ function applyFilters(){
   renderTable(sortRows(filtered));
 }
 
+function escapeHtml(s){
+  return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+const GREY_TIPOLOGIE=['GRAN BON','SBIANCATO','RETINATO'];
+function badgeClass(tip){
+  if(!tip) return '';
+  const t=tip.trim().toUpperCase();
+  if(t==='PEGNO') return 'badge-pegno';
+  if(t==='BIO') return 'badge-bio';
+  if(GREY_TIPOLOGIE.includes(t)) return 'badge-grigio';
+  return '';
+}
+
+function highlightNote(note){
+  if(!note) return '—';
+  let text=escapeHtml(note);
+  text=text.replace(/CREDEM/gi, m=>`<span class="hl-credem">${m}</span>`);
+  text=text.replace(/AGRICOLE/gi, m=>`<span class="hl-agricole">${m}</span>`);
+  return text;
+}
+
 function renderTable(rows){
   const tbody=document.getElementById('tbody');
   const count=document.getElementById('count');
@@ -350,9 +466,9 @@ function renderTable(rows){
         <td>${r.matricola}</td>
         <td>${fmtMese(r.mese)}</td>
         <td>${r.forme}</td>
-        <td>${r.tipologia?`<span class="badge">${r.tipologia}</span>`:'—'}</td>
-        <td>${r.note?r.note:'—'}</td>
-        <td><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
+        <td>${r.tipologia?`<span class="badge ${badgeClass(r.tipologia)}">${escapeHtml(r.tipologia)}</span>`:'—'}</td>
+        <td>${highlightNote(r.note)}</td>
+        <td><button class="edit-btn" onclick="editRow('${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
       </tr>`).join('');
   }
   const totForme=rows.reduce((s,r)=>s+r.forme,0);
@@ -363,6 +479,41 @@ function refreshAll(){
   populateTipologiaOptions();
   applyFilters();
 }
+
+async function exportData(){
+  const filename='magazzino-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  try{
+    const downloads=await claude.use('downloads');
+    if(!downloads){ alert('Esportazione non disponibile in questa vista.'); return; }
+    await downloads.save({filename, data: JSON.stringify(DATA, null, 2)});
+  }catch(e){
+    if(e && e.code==='declined') return;
+    alert('Esportazione non riuscita: '+((e&&e.message)||'errore sconosciuto'));
+  }
+}
+
+document.getElementById('import-file').addEventListener('change', function(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('formato non valido');
+      let added=0;
+      imported.forEach(rec=>{
+        if(rec && rec.id && !DATA.some(r=>r.id===rec.id)){ DATA.push(rec); added++; }
+      });
+      save();
+      refreshAll();
+      alert(`Importazione completata: ${added} righe aggiunte (le righe già presenti sono state ignorate).`);
+    }catch(err){
+      alert('File non valido: assicurati di selezionare un backup esportato da questa app.');
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
 
 refreshAll();
 </script>
