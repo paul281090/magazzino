@@ -129,7 +129,6 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <div class="tabs">
     <button class="tab-btn active" data-tab="carico">＋ Carico merce</button>
     <button class="tab-btn" data-tab="scarico">－ Scarico merce</button>
-    <button class="tab-btn" data-tab="filtri">🔍 Filtri di ricerca</button>
   </div>
 
   <!-- CARICO -->
@@ -151,34 +150,24 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
 
   <!-- SCARICO -->
   <div class="panel" id="panel-scarico">
-    <h2>Scarica merce dall'inventario (anche parziale)</h2>
+    <h2>Scarica merce dall'inventario</h2>
     <div class="grid">
       <div><label>Ordina elenco per</label>
-        <select id="s-order" onchange="populateScaricoSelect()">
+        <select id="s-order" onchange="renderScaricoList()">
           <option value="matricola">Matricola</option>
           <option value="scalera">Scalera</option>
         </select>
       </div>
-      <div style="grid-column:span 2"><label>Riga da scaricare</label><select id="s-select"></select></div>
-      <div><label>Forme da scaricare</label><input id="s-forme" type="number" min="1" placeholder="quantità"></div>
     </div>
-    <button class="btn" onclick="scaricaMerce()">Scarica quantità indicata</button>
-    <button class="btn ghost" onclick="scaricaTutto()">Scarica tutto (rimuovi riga)</button>
     <div class="msg" id="s-msg"></div>
-  </div>
-
-  <!-- FILTRI -->
-  <div class="panel" id="panel-filtri">
-    <h2>Filtri di ricerca</h2>
-    <div class="grid">
-      <div><label>Scalera</label><input id="f-scalera" type="number" oninput="applyFilters()"></div>
-      <div><label>Matricola</label><input id="f-matricola" type="number" oninput="applyFilters()"></div>
-      <div><label>Tipologia</label><select id="f-tipologia" onchange="applyFilters()"><option value="">Tutte</option></select></div>
-      <div><label>Mese/Anno da</label><input id="f-mese-da" type="text" placeholder="MM/AA" maxlength="5"></div>
-      <div><label>Mese/Anno a</label><input id="f-mese-a" type="text" placeholder="MM/AA" maxlength="5"></div>
-      <div><label>Testo (note)</label><input id="f-testo" type="text" oninput="applyFilters()" placeholder="cerca nelle note"></div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table>
+        <thead><tr>
+          <th>Scalera</th><th>Matricola</th><th>Mese/Anno</th><th>Forme</th><th>Tipologia</th><th>Forme da togliere</th><th></th>
+        </tr></thead>
+        <tbody id="scarico-tbody"></tbody>
+      </table>
     </div>
-    <button class="btn ghost" onclick="resetFilters()">Azzera filtri</button>
   </div>
 
   <div class="table-toolbar">
@@ -218,7 +207,7 @@ function save(){
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
-  if(tab==='scarico') populateScaricoSelect();
+  if(tab==='scarico') renderScaricoList();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
@@ -261,8 +250,6 @@ function attachMeseAutoFormat(id, onDone){
   });
 }
 attachMeseAutoFormat('c-mese');
-attachMeseAutoFormat('f-mese-da', applyFilters);
-attachMeseAutoFormat('f-mese-a', applyFilters);
 
 function attachUppercase(id){
   const el=document.getElementById(id);
@@ -378,49 +365,55 @@ function saveInlineEdit(id){
   refreshAll();
 }
 
-function populateScaricoSelect(){
-  const sel=document.getElementById('s-select');
+function renderScaricoList(){
+  const tbody=document.getElementById('scarico-tbody');
+  if(!tbody) return;
   const orderBy=document.getElementById('s-order').value;
-  sel.innerHTML='';
   if(DATA.length===0){
-    sel.innerHTML='<option value="">Nessuna riga in inventario</option>';
+    tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga in inventario.</td></tr>';
     return;
   }
   const sorted=[...DATA].sort((a,b)=>(Number(a[orderBy])||0)-(Number(b[orderBy])||0));
-  sorted.forEach(r=>{
-    const opt=document.createElement('option');
-    opt.value=r.id;
-    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? r.matricola : '—';
-    opt.textContent=`Scalera ${r.scalera} · Matricola ${matricolaTxt} · ${fmtMese(r.mese)} · ${fmtNum(r.forme)} forme${r.tipologia?' · '+r.tipologia:''}`;
-    sel.appendChild(opt);
-  });
+  tbody.innerHTML=sorted.map(r=>{
+    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
+    const tipologiaUp=up(r.tipologia);
+    return `<tr>
+      <td>${fmtNum(r.scalera)}</td>
+      <td>${matricolaTxt}</td>
+      <td>${fmtMese(r.mese)}</td>
+      <td>${fmtNum(r.forme)}</td>
+      <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
+      <td><input type="number" min="1" id="sc-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+      <td><button class="edit-btn" onclick="scaricoSalva('${r.id}')" title="Salva scarico">💾</button><button class="del-btn" onclick="scaricoElimina('${r.id}')" title="Elimina riga">✕</button></td>
+    </tr>`;
+  }).join('');
 }
 
-function scaricaMerce(){
-  const id=document.getElementById('s-select').value;
-  const qty=parseFloat(document.getElementById('s-forme').value);
-  const msg=document.getElementById('s-msg');
+function scaricoSalva(id){
   const rec=DATA.find(r=>r.id===id);
-  if(!rec){ msg.textContent='Seleziona una riga valida.'; msg.className='msg err'; return; }
+  const msg=document.getElementById('s-msg');
+  if(!rec) return;
+  const input=document.getElementById('sc-qty-'+id);
+  const qty=parseFloat(input.value);
   if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
-  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme disponibili (${rec.forme}).`; msg.className='msg err'; return; }
-  rec.forme -= qty;
-  if(rec.forme===0) DATA=DATA.filter(r=>r.id!==id);
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme disponibili (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  rec.forme-=qty;
+  if(rec.forme<=0){
+    DATA=DATA.filter(r=>r.id!==id);
+    msg.textContent='Scarico registrato: riga esaurita e rimossa dall\'inventario.';
+  }else{
+    msg.textContent=`Scarico registrato: nuova quantità ${fmtNum(rec.forme)} forme.`;
+  }
+  msg.className='msg ok';
   save();
-  msg.textContent='Scarico registrato.'; msg.className='msg ok';
-  document.getElementById('s-forme').value='';
-  populateScaricoSelect();
   refreshAll();
 }
 
-function scaricaTutto(){
-  const id=document.getElementById('s-select').value;
-  if(!id) return;
+function scaricoElimina(id){
   DATA=DATA.filter(r=>r.id!==id);
   save();
   document.getElementById('s-msg').textContent='Riga rimossa dall\'inventario.';
   document.getElementById('s-msg').className='msg ok';
-  populateScaricoSelect();
   refreshAll();
 }
 
@@ -431,18 +424,13 @@ function deleteRow(id){
 }
 
 function populateTipologiaOptions(){
-  const sel=document.getElementById('f-tipologia');
   const dl=document.getElementById('tip-list');
-  const current=sel.value;
   const types=[...new Set(DATA.map(r=>up(r.tipologia)).filter(Boolean))].sort();
-  sel.innerHTML='<option value="">Tutte</option>'+types.map(t=>`<option value="${t}">${t}</option>`).join('');
-  sel.value=current;
   dl.innerHTML=types.map(t=>`<option value="${t}">`).join('');
 }
 
 function resetFilters(){
-  ['f-scalera','f-matricola','f-mese-da','f-mese-a','f-testo'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-tipologia').value='';
+  document.getElementById('q-search').value='';
   applyFilters();
 }
 
@@ -474,21 +462,8 @@ function sortRows(rows){
 }
 
 function applyFilters(){
-  const scalera=document.getElementById('f-scalera').value;
-  const matricola=document.getElementById('f-matricola').value;
-  const tipologia=document.getElementById('f-tipologia').value;
-  const meseDa=parseMese(document.getElementById('f-mese-da').value);
-  const meseA=parseMese(document.getElementById('f-mese-a').value);
-  const testo=document.getElementById('f-testo').value.trim().toLowerCase();
   const quick=document.getElementById('q-search').value.trim().toLowerCase();
-
   let filtered=DATA.filter(r=>{
-    if(scalera && String(r.scalera)!==String(scalera)) return false;
-    if(matricola && String(r.matricola)!==String(matricola)) return false;
-    if(tipologia && up(r.tipologia)!==tipologia) return false;
-    if(meseDa && r.mese && r.mese<meseDa) return false;
-    if(meseA && r.mese && r.mese>meseA) return false;
-    if(testo && !(r.note||'').toLowerCase().includes(testo)) return false;
     if(quick){
       const hay=[r.scalera,r.matricola,fmtMese(r.mese),r.forme,r.tipologia,r.note].join(' ').toLowerCase();
       if(!hay.includes(quick)) return false;
@@ -566,6 +541,7 @@ function renderTable(rows){
 function refreshAll(){
   populateTipologiaOptions();
   applyFilters();
+  renderScaricoList();
 }
 
 function exportData(){
