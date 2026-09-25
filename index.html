@@ -567,14 +567,18 @@ function refreshAll(){
   applyFilters();
 }
 
-async function exportData(){
-  const filename='magazzino-backup-'+new Date().toISOString().slice(0,10)+'.json';
+function exportData(){
   try{
-    const downloads=await claude.use('downloads');
-    if(!downloads){ alert('Esportazione non disponibile in questa vista.'); return; }
-    await downloads.save({filename, data: JSON.stringify(DATA, null, 2)});
+    const blob=new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='magazzino-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }catch(e){
-    if(e && e.code==='declined') return;
     alert('Esportazione non riuscita: '+((e&&e.message)||'errore sconosciuto'));
   }
 }
