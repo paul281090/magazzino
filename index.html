@@ -96,9 +96,22 @@ th.sortable:hover{color:var(--ink);}
 th.sortable .arrow{opacity:.35;margin-left:4px;font-size:.7em;}
 th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--green);}
 
+.editing-row td{padding:5px 6px;}
+.editing-row input{padding:6px 7px;font-size:.85rem;min-width:64px;}
+.hint{font-size:.75rem;color:var(--muted);margin-top:8px;}
+
+.back-to-top{
+  position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  width:46px;height:46px;border-radius:50%;background:var(--green);color:#fff;border:none;
+  font-size:1.3rem;cursor:pointer;display:none;align-items:center;justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.28);z-index:50;
+}
+.back-to-top.show{display:flex;}
+.back-to-top:hover{background:var(--green-dark);}
+
 @media print{
   body{background:#fff;}
-  header,.tabs,.panel,.table-toolbar,.count,.del-btn,.print-btn{display:none !important;}
+  header,.tabs,.panel,.table-toolbar,.count,.del-btn,.edit-btn,.print-btn,.back-to-top{display:none !important;}
   .wrap{max-width:100%;padding:0;}
   .table-wrap{border:none;}
   th,td{white-space:normal;}
@@ -121,18 +134,15 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <!-- CARICO -->
   <div class="panel active" id="panel-carico">
     <h2>Carica nuova merce in inventario</h2>
-    <div class="editing-banner" id="edit-banner">
-      <span>✏️ Stai modificando una riga esistente</span>
-      <button onclick="annullaModifica()">Annulla modifica</button>
-    </div>
     <div class="grid">
       <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
       <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
-      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="MM/AA es. 09/24" maxlength="5"></div>
+      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="M/AA o MM/AA es. 9/24" maxlength="5"></div>
       <div><label>Forme</label><input id="c-forme" type="number" min="0" placeholder="es. 30"></div>
       <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="c-note" type="text" placeholder="facoltativo"></div>
     </div>
+    <p class="hint">Matricola facoltativa per GRAN BON, SBIANCATO e RETINATO. Mese/Anno facoltativo per SBIANCATO e RETINATO.</p>
     <datalist id="tip-list"></datalist>
     <button class="btn" id="c-submit-btn" onclick="caricaMerce()">Carica in inventario</button>
     <div class="msg" id="c-msg"></div>
@@ -194,6 +204,8 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <div class="count" id="count"></div>
 </div>
 
+<button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Torna all'inizio della pagina">↑</button>
+
 <script>
 let DATA = [];
 try{ DATA = JSON.parse(localStorage.getItem('magazzino_data') || '[]'); }catch(e){ DATA = []; }
@@ -234,9 +246,16 @@ function fmtMeseInput(iso){
 function attachMeseAutoFormat(id, onDone){
   const el=document.getElementById(id);
   el.addEventListener('input',()=>{
-    let v=el.value.replace(/[^\d]/g,'').slice(0,4);
-    if(v.length>=3) v=v.slice(0,2)+'/'+v.slice(2);
-    el.value=v;
+    let raw=el.value.replace(/[^0-9/]/g,'');
+    const firstSlash=raw.indexOf('/');
+    if(firstSlash!==-1){
+      raw=raw.slice(0,firstSlash+1)+raw.slice(firstSlash+1).replace(/\//g,'');
+    }
+    if(firstSlash===-1 && raw.length>2){
+      raw=raw.slice(0,2)+'/'+raw.slice(2);
+    }
+    raw=raw.slice(0,5);
+    el.value=raw;
     if(onDone) onDone();
   });
 }
@@ -244,72 +263,117 @@ attachMeseAutoFormat('c-mese');
 attachMeseAutoFormat('f-mese-da', applyFilters);
 attachMeseAutoFormat('f-mese-a', applyFilters);
 
-let editingId=null;
-
-function annullaModifica(){
-  editingId=null;
-  document.getElementById('edit-banner').classList.remove('show');
-  document.getElementById('c-submit-btn').textContent='Carica in inventario';
-  ['c-scalera','c-matricola','c-mese','c-forme','c-tipologia','c-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('c-msg').textContent='';
+function attachUppercase(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',()=>{
+    const pos=el.selectionStart;
+    el.value=el.value.toUpperCase();
+    if(pos!==null) el.setSelectionRange(pos,pos);
+  });
 }
+attachUppercase('c-tipologia');
+attachUppercase('c-note');
 
-function editRow(id){
-  const rec=DATA.find(r=>r.id===id);
-  if(!rec) return;
-  editingId=id;
-  document.getElementById('c-scalera').value=rec.scalera;
-  document.getElementById('c-matricola').value=rec.matricola;
-  document.getElementById('c-mese').value=fmtMeseInput(rec.mese);
-  document.getElementById('c-forme').value=rec.forme;
-  document.getElementById('c-tipologia').value=rec.tipologia||'';
-  document.getElementById('c-note').value=rec.note||'';
-  document.getElementById('edit-banner').classList.add('show');
-  document.getElementById('c-submit-btn').textContent='Salva modifiche';
-  document.getElementById('c-msg').textContent='';
-  switchTab('carico');
-}
+function up(s){ return (s||'').toString().toUpperCase(); }
+function fmtNum(n){ return Number(n||0).toLocaleString('it-IT'); }
+
+const MATRICOLA_OPTIONAL=['GRAN BON','SBIANCATO','RETINATO'];
+const MESE_OPTIONAL=['SBIANCATO','RETINATO'];
+
+let inlineEditId=null;
 
 function caricaMerce(){
   const scalera=document.getElementById('c-scalera').value;
   const matricola=document.getElementById('c-matricola').value;
   const meseStr=document.getElementById('c-mese').value;
-  const mese=parseMese(meseStr);
   const forme=parseFloat(document.getElementById('c-forme').value);
-  const tipologia=document.getElementById('c-tipologia').value.trim();
-  const note=document.getElementById('c-note').value.trim();
+  const tipologia=up(document.getElementById('c-tipologia').value.trim());
+  const note=up(document.getElementById('c-note').value.trim());
   const msg=document.getElementById('c-msg');
 
-  if(!scalera || !matricola || !meseStr || !forme || forme<=0){
-    msg.textContent='Compila scalera, matricola, mese/anno e un numero di forme valido.';
+  const matricolaOpt=MATRICOLA_OPTIONAL.includes(tipologia);
+  const meseOpt=MESE_OPTIONAL.includes(tipologia);
+
+  if(!scalera || !forme || forme<=0){
+    msg.textContent='Compila scalera e un numero di forme valido.';
     msg.className='msg err'; return;
   }
-  if(!mese){
-    msg.textContent='Formato Mese/Anno non valido. Usa MM/AA, es. 09/24.';
+  if(!matricolaOpt && !matricola){
+    msg.textContent='La matricola è obbligatoria per questa tipologia.';
     msg.className='msg err'; return;
   }
-  if(editingId){
-    const rec=DATA.find(r=>r.id===editingId);
-    if(rec){
-      rec.scalera=Number(scalera); rec.matricola=Number(matricola); rec.mese=mese;
-      rec.forme=Number(forme); rec.tipologia=tipologia; rec.note=note;
+  if(!meseOpt && !meseStr){
+    msg.textContent='Il mese/anno è obbligatorio per questa tipologia.';
+    msg.className='msg err'; return;
+  }
+  let mese=null;
+  if(meseStr){
+    mese=parseMese(meseStr);
+    if(!mese){
+      msg.textContent='Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.';
+      msg.className='msg err'; return;
     }
-    msg.textContent='Riga modificata.'; msg.className='msg ok';
-    annullaModifica();
-  }else{
-    DATA.push({
-      id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
-      scalera:Number(scalera), matricola:Number(matricola), mese, forme:Number(forme), tipologia, note
-    });
-    msg.textContent='Merce caricata in inventario.'; msg.className='msg ok';
-    document.getElementById('c-scalera').value='';
-    document.getElementById('c-matricola').value='';
-    document.getElementById('c-mese').value='';
-    document.getElementById('c-forme').value='';
-    document.getElementById('c-tipologia').value='';
-    document.getElementById('c-note').value='';
   }
+  DATA.push({
+    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+    scalera:Number(scalera), matricola: matricola?Number(matricola):null,
+    mese, forme:Number(forme), tipologia, note
+  });
   save();
+  const matricolaDisplay=matricola?matricola:'—';
+  const meseDisplay=mese?fmtMeseInput(mese):'—';
+  msg.textContent=`Merce caricata in inventario: Matricola ${matricolaDisplay}, Mese/Anno ${meseDisplay}, ${fmtNum(forme)} forme.`;
+  msg.className='msg ok';
+  document.getElementById('c-scalera').value='';
+  document.getElementById('c-matricola').value='';
+  document.getElementById('c-mese').value='';
+  document.getElementById('c-forme').value='';
+  document.getElementById('c-tipologia').value='';
+  document.getElementById('c-note').value='';
+  refreshAll();
+  document.getElementById('c-scalera').focus();
+}
+
+function startInlineEdit(id){
+  inlineEditId=id;
+  applyFilters();
+}
+
+function cancelInlineEdit(){
+  inlineEditId=null;
+  applyFilters();
+}
+
+function saveInlineEdit(id){
+  const rec=DATA.find(r=>r.id===id);
+  if(!rec) return;
+  const scalera=document.getElementById('ir-scalera-'+id).value;
+  const matricola=document.getElementById('ir-matricola-'+id).value;
+  const meseStr=document.getElementById('ir-mese-'+id).value;
+  const forme=parseFloat(document.getElementById('ir-forme-'+id).value);
+  const tipologia=up(document.getElementById('ir-tipologia-'+id).value.trim());
+  const note=up(document.getElementById('ir-note-'+id).value.trim());
+
+  const matricolaOpt=MATRICOLA_OPTIONAL.includes(tipologia);
+  const meseOpt=MESE_OPTIONAL.includes(tipologia);
+
+  if(!scalera || !forme || forme<=0){ alert('Compila scalera e un numero di forme valido.'); return; }
+  if(!matricolaOpt && !matricola){ alert('La matricola è obbligatoria per questa tipologia.'); return; }
+  if(!meseOpt && !meseStr){ alert('Il mese/anno è obbligatorio per questa tipologia.'); return; }
+  let mese=null;
+  if(meseStr){
+    mese=parseMese(meseStr);
+    if(!mese){ alert('Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.'); return; }
+  }
+  rec.scalera=Number(scalera);
+  rec.matricola=matricola?Number(matricola):null;
+  rec.mese=mese;
+  rec.forme=Number(forme);
+  rec.tipologia=tipologia;
+  rec.note=note;
+  save();
+  inlineEditId=null;
   refreshAll();
 }
 
@@ -321,11 +385,12 @@ function populateScaricoSelect(){
     sel.innerHTML='<option value="">Nessuna riga in inventario</option>';
     return;
   }
-  const sorted=[...DATA].sort((a,b)=>Number(a[orderBy])-Number(b[orderBy]));
+  const sorted=[...DATA].sort((a,b)=>(Number(a[orderBy])||0)-(Number(b[orderBy])||0));
   sorted.forEach(r=>{
     const opt=document.createElement('option');
     opt.value=r.id;
-    opt.textContent=`Scalera ${r.scalera} · Matricola ${r.matricola} · ${fmtMese(r.mese)} · ${r.forme} forme${r.tipologia?' · '+r.tipologia:''}`;
+    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? r.matricola : '—';
+    opt.textContent=`Scalera ${r.scalera} · Matricola ${matricolaTxt} · ${fmtMese(r.mese)} · ${fmtNum(r.forme)} forme${r.tipologia?' · '+r.tipologia:''}`;
     sel.appendChild(opt);
   });
 }
@@ -368,7 +433,7 @@ function populateTipologiaOptions(){
   const sel=document.getElementById('f-tipologia');
   const dl=document.getElementById('tip-list');
   const current=sel.value;
-  const types=[...new Set(DATA.map(r=>r.tipologia).filter(Boolean))].sort();
+  const types=[...new Set(DATA.map(r=>up(r.tipologia)).filter(Boolean))].sort();
   sel.innerHTML='<option value="">Tutte</option>'+types.map(t=>`<option value="${t}">${t}</option>`).join('');
   sel.value=current;
   dl.innerHTML=types.map(t=>`<option value="${t}">`).join('');
@@ -419,7 +484,7 @@ function applyFilters(){
   let filtered=DATA.filter(r=>{
     if(scalera && String(r.scalera)!==String(scalera)) return false;
     if(matricola && String(r.matricola)!==String(matricola)) return false;
-    if(tipologia && r.tipologia!==tipologia) return false;
+    if(tipologia && up(r.tipologia)!==tipologia) return false;
     if(meseDa && r.mese && r.mese<meseDa) return false;
     if(meseA && r.mese && r.mese>meseA) return false;
     if(testo && !(r.note||'').toLowerCase().includes(testo)) return false;
@@ -439,7 +504,7 @@ function escapeHtml(s){
 const GREY_TIPOLOGIE=['GRAN BON','SBIANCATO','RETINATO'];
 function badgeClass(tip){
   if(!tip) return '';
-  const t=tip.trim().toUpperCase();
+  const t=up(tip).trim();
   if(t==='PEGNO') return 'badge-pegno';
   if(t==='BIO') return 'badge-bio';
   if(GREY_TIPOLOGIE.includes(t)) return 'badge-grigio';
@@ -448,10 +513,36 @@ function badgeClass(tip){
 
 function highlightNote(note){
   if(!note) return '—';
-  let text=escapeHtml(note);
-  text=text.replace(/CREDEM/gi, m=>`<span class="hl-credem">${m}</span>`);
-  text=text.replace(/AGRICOLE/gi, m=>`<span class="hl-agricole">${m}</span>`);
+  let text=escapeHtml(up(note));
+  text=text.replace(/CREDEM/g, m=>`<span class="hl-credem">${m}</span>`);
+  text=text.replace(/AGRICOLE/g, m=>`<span class="hl-agricole">${m}</span>`);
   return text;
+}
+
+function renderRow(r){
+  const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
+  const tipologiaUp=up(r.tipologia);
+  return `<tr>
+    <td>${fmtNum(r.scalera)}</td>
+    <td>${matricolaTxt}</td>
+    <td>${fmtMese(r.mese)}</td>
+    <td>${fmtNum(r.forme)}</td>
+    <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
+    <td>${highlightNote(r.note)}</td>
+    <td><button class="edit-btn" onclick="startInlineEdit('${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
+  </tr>`;
+}
+
+function renderEditableRow(r){
+  return `<tr class="editing-row">
+    <td><input type="number" id="ir-scalera-${r.id}" value="${r.scalera}"></td>
+    <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
+    <td><input type="text" id="ir-mese-${r.id}" value="${fmtMeseInput(r.mese)}" placeholder="M/AA"></td>
+    <td><input type="number" id="ir-forme-${r.id}" value="${r.forme}"></td>
+    <td><input type="text" id="ir-tipologia-${r.id}" value="${escapeHtml(up(r.tipologia))}" list="tip-list"></td>
+    <td><input type="text" id="ir-note-${r.id}" value="${escapeHtml(up(r.note))}"></td>
+    <td><button class="edit-btn" onclick="saveInlineEdit('${r.id}')" title="Salva">💾</button><button class="del-btn" onclick="cancelInlineEdit()" title="Annulla">✕</button></td>
+  </tr>`;
 }
 
 function renderTable(rows){
@@ -460,19 +551,15 @@ function renderTable(rows){
   if(rows.length===0){
     tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga in inventario. Usa "Carico merce" per aggiungerne una.</td></tr>';
   }else{
-    tbody.innerHTML=rows.map(r=>`
-      <tr>
-        <td>${r.scalera}</td>
-        <td>${r.matricola}</td>
-        <td>${fmtMese(r.mese)}</td>
-        <td>${r.forme}</td>
-        <td>${r.tipologia?`<span class="badge ${badgeClass(r.tipologia)}">${escapeHtml(r.tipologia)}</span>`:'—'}</td>
-        <td>${highlightNote(r.note)}</td>
-        <td><button class="edit-btn" onclick="editRow('${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
-      </tr>`).join('');
+    tbody.innerHTML=rows.map(r=> r.id===inlineEditId ? renderEditableRow(r) : renderRow(r)).join('');
+    if(inlineEditId){
+      attachUppercase('ir-tipologia-'+inlineEditId);
+      attachUppercase('ir-note-'+inlineEditId);
+      attachMeseAutoFormat('ir-mese-'+inlineEditId);
+    }
   }
   const totForme=rows.reduce((s,r)=>s+r.forme,0);
-  count.textContent=`${rows.length} righe · ${totForme} forme totali`;
+  count.textContent=`${rows.length} righe · ${fmtNum(totForme)} forme totali`;
 }
 
 function refreshAll(){
@@ -516,6 +603,12 @@ document.getElementById('import-file').addEventListener('change', function(e){
 });
 
 refreshAll();
+
+window.addEventListener('scroll', ()=>{
+  const btn=document.getElementById('back-to-top');
+  if(window.scrollY>300) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
 </script>
 </body>
 </html>
