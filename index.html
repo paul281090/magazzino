@@ -395,7 +395,9 @@ function renderScaricoList(){
     tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga trovata.</td></tr>';
     return;
   }
-  const sorted=[...list].sort((a,b)=>(Number(a[orderBy])||0)-(Number(b[orderBy])||0));
+  const sorted=[...list].sort((a,b)=> orderBy==='matricola'
+    ? compareMatricolaAware(a.matricola, b.matricola, 1)
+    : (Number(a[orderBy])||0)-(Number(b[orderBy])||0));
   tbody.innerHTML=sorted.map(r=>{
     const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
     const tipologiaUp=up(r.tipologia);
@@ -469,11 +471,21 @@ function toggleSort(col){
 }
 document.querySelectorAll('th.sortable').forEach(th=>th.addEventListener('click',()=>toggleSort(th.dataset.col)));
 
+function compareMatricolaAware(va, vb, dir){
+  const aNull=(va===null||va===undefined||va==='');
+  const bNull=(vb===null||vb===undefined||vb==='');
+  if(aNull && bNull) return 0;
+  if(aNull) return 1;
+  if(bNull) return -1;
+  return (Number(va)-Number(vb))*dir;
+}
+
 function sortRows(rows){
   if(!sortState.col) return rows;
   const col=sortState.col, dir=sortState.dir;
   const numeric=(col==='scalera'||col==='matricola'||col==='forme');
   return [...rows].sort((a,b)=>{
+    if(col==='matricola') return compareMatricolaAware(a.matricola, b.matricola, dir);
     let va=a[col], vb=b[col];
     if(numeric){ va=Number(va)||0; vb=Number(vb)||0; }
     else{ va=(va||'').toString().toLowerCase(); vb=(vb||'').toString().toLowerCase(); }
