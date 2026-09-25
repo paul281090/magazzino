@@ -158,7 +158,11 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
           <option value="scalera">Scalera</option>
         </select>
       </div>
+      <div><label>Cerca per Scalera</label><input id="sc-search-scalera" type="number" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="number" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderScaricoList()"></div>
     </div>
+    <button class="btn ghost" onclick="scaricoResetRicerca()">Azzera ricerca</button>
     <div class="msg" id="s-msg"></div>
     <div class="table-wrap" style="margin-top:14px;">
       <table>
@@ -365,15 +369,33 @@ function saveInlineEdit(id){
   refreshAll();
 }
 
+function scaricoResetRicerca(){
+  document.getElementById('sc-search-scalera').value='';
+  document.getElementById('sc-search-matricola').value='';
+  document.getElementById('sc-search-mese').value='';
+  renderScaricoList();
+}
+
 function renderScaricoList(){
   const tbody=document.getElementById('scarico-tbody');
   if(!tbody) return;
   const orderBy=document.getElementById('s-order').value;
-  if(DATA.length===0){
-    tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga in inventario.</td></tr>';
+  const fScalera=document.getElementById('sc-search-scalera').value;
+  const fMatricola=document.getElementById('sc-search-matricola').value;
+  const fMese=document.getElementById('sc-search-mese').value.trim().toLowerCase();
+
+  let list=DATA.filter(r=>{
+    if(fScalera && String(r.scalera)!==String(fScalera)) return false;
+    if(fMatricola && String(r.matricola)!==String(fMatricola)) return false;
+    if(fMese && !fmtMese(r.mese).toLowerCase().includes(fMese)) return false;
+    return true;
+  });
+
+  if(list.length===0){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga trovata.</td></tr>';
     return;
   }
-  const sorted=[...DATA].sort((a,b)=>(Number(a[orderBy])||0)-(Number(b[orderBy])||0));
+  const sorted=[...list].sort((a,b)=>(Number(a[orderBy])||0)-(Number(b[orderBy])||0));
   tbody.innerHTML=sorted.map(r=>{
     const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
     const tipologiaUp=up(r.tipologia);
