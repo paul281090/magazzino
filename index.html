@@ -116,15 +116,55 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   .wrap{max-width:100%;padding:0;}
   .table-wrap{border:none;}
   th,td{white-space:normal;}
+  .sync-bar,.migrate-banner,.overlay{display:none !important;}
 }
+
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.show{display:flex;}
+.login-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;width:100%;max-width:340px;}
+.login-card h2{margin:0 0 6px;font-size:1.2rem;}
+.login-card p{margin:0 0 16px;color:var(--muted);font-size:.85rem;}
+.sync-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:14px;flex-wrap:wrap;}
+.sync-bar .err{color:var(--danger);font-weight:600;}
+.sync-actions{display:flex;gap:8px;}
+.sync-actions .print-btn{padding:6px 12px;font-size:.8rem;}
+.migrate-banner{background:var(--amber);color:#2A2011;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.migrate-banner button{background:none;border:1px solid #2A2011;border-radius:6px;padding:5px 12px;color:#2A2011;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
 </style>
 </head>
 <body>
+<div class="overlay" id="login-overlay">
+  <form class="login-card" onsubmit="doLogin(event)">
+    <h2>Gestione Magazzino</h2>
+    <p>Inserisci la password per accedere all'inventario.</p>
+    <label for="login-pw">Password</label>
+    <input type="password" id="login-pw" autocomplete="current-password" required>
+    <button class="btn" type="submit" style="width:100%">Accedi</button>
+    <div class="msg err" id="login-msg"></div>
+  </form>
+</div>
+
 <div class="wrap">
   <header>
     <h1>Gestione Magazzino</h1>
     <p>Carico, scarico e ricerca delle forme — colonne: Scalera, Matricola, Mese/Anno, Forme, Note, Tipologia</p>
   </header>
+
+  <div class="sync-bar">
+    <span id="sync-status">Non connesso</span>
+    <span class="sync-actions">
+      <button class="print-btn" onclick="loadData()">🔄 Aggiorna</button>
+      <button class="print-btn" onclick="doLogout()">Esci</button>
+    </span>
+  </div>
+
+  <div class="migrate-banner" id="migrate-banner">
+    <span>Su questo browser ci sono <b id="migrate-count">0</b> righe salvate in locale. Vuoi caricarle online?</span>
+    <span>
+      <button onclick="migrateLocal()">Carica online</button>
+      <button onclick="dismissMigrate()">Non ora</button>
+    </span>
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="carico">＋ Carico merce</button>
@@ -200,12 +240,155 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
 
 <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Torna all'inizio della pagina">↑</button>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-let DATA = [];
-try{ DATA = JSON.parse(localStorage.getItem('magazzino_data') || '[]'); }catch(e){ DATA = []; }
+// ====== CONFIGURAZIONE SUPABASE: sostituisci questi 3 valori ======
+const SUPABASE_URL = 'https://jeyaymdllslsssqnovdj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_T3tpl8qpQuMrXoWMj1L1yg_6O-1vJgJ';
+const SHARED_EMAIL = 'magazzino@example.com';
+// ==================================================================
 
-function save(){
-  try{ localStorage.setItem('magazzino_data', JSON.stringify(DATA)); }catch(e){}
+const TABLE = 'inventario';
+const CONFIGURED = !SUPABASE_URL.startsWith('INCOLLA') && !SUPABASE_ANON_KEY.startsWith('INCOLLA');
+const sb = (CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let DATA = [];
+
+function setStatus(text, isErr){
+  const el=document.getElementById('sync-status');
+  el.textContent=text;
+  el.className=isErr?'err':'';
+}
+
+function showLogin(message){
+  document.getElementById('login-overlay').classList.add('show');
+  document.getElementById('login-msg').textContent=message||'';
+}
+function hideLogin(){ document.getElementById('login-overlay').classList.remove('show'); }
+
+async function loadData(){
+  if(!sb) return false;
+  setStatus('Sincronizzazione…');
+  try{
+    const all=[]; let from=0; const step=1000;
+    while(true){
+      const {data,error}=await sb.from(TABLE).select('*')
+        .order('created_at',{ascending:true}).order('id',{ascending:true})
+        .range(from,from+step-1);
+      if(error) throw error;
+      all.push(...data);
+      if(data.length<step) break;
+      from+=step;
+    }
+    DATA=all;
+    refreshAll();
+    setStatus('Dati aggiornati alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
+    return true;
+  }catch(e){
+    setStatus('Errore di connessione: '+(e.message||e), true);
+    return false;
+  }
+}
+
+async function doLogin(ev){
+  ev.preventDefault();
+  if(!sb) return;
+  const msg=document.getElementById('login-msg');
+  msg.textContent='';
+  const pw=document.getElementById('login-pw').value;
+  const {error}=await sb.auth.signInWithPassword({email:SHARED_EMAIL, password:pw});
+  if(error){
+    msg.textContent=/invalid/i.test(error.message) ? 'Password non corretta.' : 'Accesso non riuscito: '+error.message;
+    return;
+  }
+  document.getElementById('login-pw').value='';
+  hideLogin();
+  await startApp();
+}
+
+async function doLogout(){
+  if(sb) await sb.auth.signOut();
+  DATA=[];
+  refreshAll();
+  setStatus('Non connesso');
+  showLogin();
+}
+
+let autoRefreshSet=false;
+function canAutoRefresh(){
+  const a=document.activeElement;
+  const typing=a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');
+  return !typing && !inlineEditId && !document.hidden;
+}
+function setupAutoRefresh(){
+  if(autoRefreshSet) return;
+  autoRefreshSet=true;
+  setInterval(()=>{ if(canAutoRefresh()) loadData(); }, 60000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden && canAutoRefresh()) loadData(); });
+}
+
+async function startApp(){
+  checkLocalMigration();
+  await loadData();
+  setupAutoRefresh();
+}
+
+function normalizeRow(r){
+  return {
+    id: r.id ? String(r.id) : crypto.randomUUID(),
+    scalera: Number(r.scalera),
+    matricola: (r.matricola===null||r.matricola===undefined||r.matricola==='') ? null : Number(r.matricola),
+    mese: r.mese || null,
+    forme: Number(r.forme),
+    tipologia: (r.tipologia||'').toString().toUpperCase(),
+    note: (r.note||'').toString().toUpperCase()
+  };
+}
+
+// Carica righe online ignorando quelle già presenti (stesso id). Restituisce quante ne ha aggiunte.
+async function uploadRows(rows){
+  let inserted=0;
+  for(let i=0;i<rows.length;i+=500){
+    const chunk=rows.slice(i,i+500).map(normalizeRow);
+    const {data,error}=await sb.from(TABLE).upsert(chunk,{onConflict:'id',ignoreDuplicates:true}).select('id');
+    if(error) throw error;
+    inserted+=data.length;
+  }
+  return inserted;
+}
+
+function localRows(){
+  try{
+    const a=JSON.parse(localStorage.getItem('magazzino_data')||'[]');
+    return Array.isArray(a)?a:[];
+  }catch(e){ return []; }
+}
+function checkLocalMigration(){
+  const banner=document.getElementById('migrate-banner');
+  let done=false;
+  try{ done=localStorage.getItem('magazzino_migrato')==='1'; }catch(e){}
+  const rows=localRows();
+  if(rows.length>0 && !done){
+    document.getElementById('migrate-count').textContent=rows.length.toLocaleString('it-IT');
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+}
+async function migrateLocal(){
+  const rows=localRows();
+  try{
+    const n=await uploadRows(rows);
+    try{ localStorage.setItem('magazzino_migrato','1'); }catch(e){}
+    alert(`Caricamento completato: ${n} righe aggiunte online (su ${rows.length} presenti in questo browser; le altre erano già online).`);
+    checkLocalMigration();
+    await loadData();
+  }catch(e){
+    alert('Caricamento non riuscito: '+(e.message||e));
+  }
+}
+function dismissMigrate(){
+  try{ localStorage.setItem('magazzino_migrato','1'); }catch(e){}
+  checkLocalMigration();
 }
 
 function switchTab(tab){
@@ -275,7 +458,7 @@ const MESE_OPTIONAL=['SBIANCATO','RETINATO'];
 
 let inlineEditId=null;
 
-function caricaMerce(){
+async function caricaMerce(){
   const scalera=document.getElementById('c-scalera').value;
   const matricola=document.getElementById('c-matricola').value;
   const meseStr=document.getElementById('c-mese').value;
@@ -307,12 +490,17 @@ function caricaMerce(){
       msg.className='msg err'; return;
     }
   }
-  DATA.push({
-    id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
+  const btn=document.getElementById('c-submit-btn');
+  btn.disabled=true;
+  const {error}=await sb.from(TABLE).insert({
     scalera:Number(scalera), matricola: matricola?Number(matricola):null,
     mese, forme:Number(forme), tipologia, note
   });
-  save();
+  btn.disabled=false;
+  if(error){
+    msg.textContent='Salvataggio non riuscito: '+error.message;
+    msg.className='msg err'; return;
+  }
   const matricolaDisplay=matricola?matricola:'—';
   const meseDisplay=mese?fmtMeseInput(mese):'—';
   msg.textContent=`Merce caricata in inventario: Matricola ${matricolaDisplay}, Mese/Anno ${meseDisplay}, ${fmtNum(forme)} forme.`;
@@ -323,8 +511,8 @@ function caricaMerce(){
   document.getElementById('c-forme').value='';
   document.getElementById('c-tipologia').value='';
   document.getElementById('c-note').value='';
-  refreshAll();
   document.getElementById('c-scalera').focus();
+  await loadData();
 }
 
 function startInlineEdit(id){
@@ -337,7 +525,7 @@ function cancelInlineEdit(){
   applyFilters();
 }
 
-function saveInlineEdit(id){
+async function saveInlineEdit(id){
   const rec=DATA.find(r=>r.id===id);
   if(!rec) return;
   const scalera=document.getElementById('ir-scalera-'+id).value;
@@ -358,15 +546,13 @@ function saveInlineEdit(id){
     mese=parseMese(meseStr);
     if(!mese){ alert('Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.'); return; }
   }
-  rec.scalera=Number(scalera);
-  rec.matricola=matricola?Number(matricola):null;
-  rec.mese=mese;
-  rec.forme=Number(forme);
-  rec.tipologia=tipologia;
-  rec.note=note;
-  save();
+  const {error}=await sb.from(TABLE).update({
+    scalera:Number(scalera), matricola:matricola?Number(matricola):null, mese,
+    forme:Number(forme), tipologia, note
+  }).eq('id',id);
+  if(error){ alert('Salvataggio non riuscito: '+error.message); return; }
   inlineEditId=null;
-  refreshAll();
+  await loadData();
 }
 
 function scaricoResetRicerca(){
@@ -413,7 +599,7 @@ function renderScaricoList(){
   }).join('');
 }
 
-function scaricoSalva(id){
+async function scaricoSalva(id){
   const rec=DATA.find(r=>r.id===id);
   const msg=document.getElementById('s-msg');
   if(!rec) return;
@@ -421,30 +607,39 @@ function scaricoSalva(id){
   const qty=parseFloat(input.value);
   if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
   if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme disponibili (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
-  rec.forme-=qty;
-  if(rec.forme<=0){
-    DATA=DATA.filter(r=>r.id!==id);
-    msg.textContent='Scarico registrato: riga esaurita e rimossa dall\'inventario.';
-  }else{
-    msg.textContent=`Scarico registrato: nuova quantità ${fmtNum(rec.forme)} forme.`;
+  const rimanenti=rec.forme-qty;
+  // Si agisce solo se la riga online ha ancora le forme che vedo: protegge da scarichi simultanei di altri utenti
+  const query = rimanenti<=0
+    ? sb.from(TABLE).delete().eq('id',id).eq('forme',rec.forme)
+    : sb.from(TABLE).update({forme:rimanenti}).eq('id',id).eq('forme',rec.forme);
+  const {data,error}=await query.select();
+  if(error){ msg.textContent='Scarico non riuscito: '+error.message; msg.className='msg err'; return; }
+  if(!data || data.length===0){
+    msg.textContent='Questa riga è stata modificata da un altro utente nel frattempo: ho ricaricato i dati, ricontrolla e riprova.';
+    msg.className='msg err';
+    await loadData();
+    return;
   }
+  msg.textContent = rimanenti<=0
+    ? 'Scarico registrato: riga esaurita e rimossa dall\'inventario.'
+    : `Scarico registrato: nuova quantità ${fmtNum(rimanenti)} forme.`;
   msg.className='msg ok';
-  save();
-  refreshAll();
+  await loadData();
 }
 
-function scaricoElimina(id){
-  DATA=DATA.filter(r=>r.id!==id);
-  save();
-  document.getElementById('s-msg').textContent='Riga rimossa dall\'inventario.';
-  document.getElementById('s-msg').className='msg ok';
-  refreshAll();
+async function scaricoElimina(id){
+  const {error}=await sb.from(TABLE).delete().eq('id',id);
+  const msg=document.getElementById('s-msg');
+  if(error){ msg.textContent='Eliminazione non riuscita: '+error.message; msg.className='msg err'; return; }
+  msg.textContent='Riga rimossa dall\'inventario.';
+  msg.className='msg ok';
+  await loadData();
 }
 
-function deleteRow(id){
-  DATA=DATA.filter(r=>r.id!==id);
-  save();
-  refreshAll();
+async function deleteRow(id){
+  const {error}=await sb.from(TABLE).delete().eq('id',id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadData();
 }
 
 function populateTipologiaOptions(){
@@ -598,26 +793,39 @@ document.getElementById('import-file').addEventListener('change', function(e){
   const file=e.target.files[0];
   if(!file) return;
   const reader=new FileReader();
-  reader.onload=function(ev){
+  reader.onload=async function(ev){
+    let imported;
     try{
-      const imported=JSON.parse(ev.target.result);
+      imported=JSON.parse(ev.target.result);
       if(!Array.isArray(imported)) throw new Error('formato non valido');
-      let added=0;
-      imported.forEach(rec=>{
-        if(rec && rec.id && !DATA.some(r=>r.id===rec.id)){ DATA.push(rec); added++; }
-      });
-      save();
-      refreshAll();
-      alert(`Importazione completata: ${added} righe aggiunte (le righe già presenti sono state ignorate).`);
     }catch(err){
-      alert('File non valido: assicurati di selezionare un backup esportato da questa app.');
+      alert('File non valido: assicurati di selezionare un file di importazione o un backup esportato da questa app.');
+      e.target.value='';
+      return;
+    }
+    try{
+      const added=await uploadRows(imported);
+      await loadData();
+      alert(`Importazione completata: ${added} righe aggiunte online (le righe già presenti sono state ignorate).`);
+    }catch(err){
+      alert('Importazione non riuscita: '+(err.message||err));
     }
     e.target.value='';
   };
   reader.readAsText(file);
 });
 
-refreshAll();
+async function init(){
+  refreshAll();
+  if(!sb){
+    showLogin('Configurazione mancante: compila SUPABASE_URL e SUPABASE_ANON_KEY all\'inizio dello script.');
+    return;
+  }
+  const {data}=await sb.auth.getSession();
+  if(data.session){ hideLogin(); await startApp(); }
+  else showLogin();
+}
+init();
 
 window.addEventListener('scroll', ()=>{
   const btn=document.getElementById('back-to-top');
