@@ -130,6 +130,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
 .sync-actions .print-btn{padding:6px 12px;font-size:.8rem;}
 .migrate-banner{background:var(--amber);color:#2A2011;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .migrate-banner button{background:none;border:1px solid #2A2011;border-radius:6px;padding:5px 12px;color:#2A2011;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
+.panel h3{margin:24px 0 4px;font-size:.95rem;}
 </style>
 </head>
 <body>
@@ -169,6 +170,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <div class="tabs">
     <button class="tab-btn active" data-tab="carico">＋ Carico merce</button>
     <button class="tab-btn" data-tab="scarico">－ Scarico merce</button>
+    <button class="tab-btn" data-tab="pegno">🔒 Pegno</button>
   </div>
 
   <!-- CARICO -->
@@ -192,12 +194,6 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   <div class="panel" id="panel-scarico">
     <h2>Scarica merce dall'inventario</h2>
     <div class="grid">
-      <div><label>Ordina elenco per</label>
-        <select id="s-order" onchange="renderScaricoList()">
-          <option value="matricola">Matricola</option>
-          <option value="scalera">Scalera</option>
-        </select>
-      </div>
       <div><label>Cerca per Scalera</label><input id="sc-search-scalera" type="number" oninput="renderScaricoList()"></div>
       <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="number" oninput="renderScaricoList()"></div>
       <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderScaricoList()"></div>
@@ -207,9 +203,64 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
     <div class="table-wrap" style="margin-top:14px;">
       <table>
         <thead><tr>
-          <th>Scalera</th><th>Matricola</th><th>Mese/Anno</th><th>Forme</th><th>Tipologia</th><th>Forme da togliere</th><th></th>
+          <th class="sortable" data-st="sc" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
+          <th>Forme da togliere</th><th></th>
         </tr></thead>
         <tbody id="scarico-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PEGNO -->
+  <div class="panel" id="panel-pegno">
+    <h2>Pegno</h2>
+    <div class="grid">
+      <div><label>Cerca per Scalera</label><input id="pg-search-scalera" type="number" oninput="renderPegno()"></div>
+      <div><label>Cerca per Matricola</label><input id="pg-search-matricola" type="number" oninput="renderPegno()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="pg-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderPegno()"></div>
+    </div>
+    <button class="btn ghost" onclick="pegnoResetRicerca()">Azzera ricerca</button>
+    <div class="msg" id="pg-msg"></div>
+
+    <h3>Scarico dal pegno</h3>
+    <p class="hint">Le forme scaricate non spariscono: tornano in inventario libero, senza la dicitura PEGNO.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="sortable" data-st="pg" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="forme">Forme in pegno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="note">Banca / Note<span class="arrow">▲▼</span></th>
+          <th>Forme da scaricare</th><th></th>
+        </tr></thead>
+        <tbody id="pegno-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="pg-count"></div>
+
+    <h3>Carico in pegno</h3>
+    <p class="hint">Scegli la banca, poi indica per ogni riga libera quante forme mettere in pegno. Si possono mettere in pegno solo righe senza tipologia.</p>
+    <div class="grid" style="max-width:240px;margin-bottom:12px;">
+      <div><label>Banca</label>
+        <select id="pl-banca"><option value="CREDEM">CREDEM</option><option value="AGRICOLE">AGRICOLE</option></select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="sortable" data-st="pl" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="forme">Forme libere<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="note">Note<span class="arrow">▲▼</span></th>
+          <th>Forme da mettere in pegno</th><th></th>
+        </tr></thead>
+        <tbody id="pegno-libero-tbody"></tbody>
       </table>
     </div>
   </div>
@@ -395,6 +446,7 @@ function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
   if(tab==='scarico') renderScaricoList();
+  if(tab==='pegno') renderPegno();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
@@ -402,6 +454,13 @@ function fmtMese(v){
   if(!v) return '—';
   const [y,m]=v.split('-');
   return m+'/'+y;
+}
+
+const MESI_BREVI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function fmtMeseTesto(v){
+  if(!v) return '—';
+  const [y,m]=v.split('-');
+  return (MESI_BREVI[parseInt(m,10)-1]||m)+'-'+y;
 }
 
 function parseMese(str){
@@ -565,7 +624,7 @@ function scaricoResetRicerca(){
 function renderScaricoList(){
   const tbody=document.getElementById('scarico-tbody');
   if(!tbody) return;
-  const orderBy=document.getElementById('s-order').value;
+  const qtyBackup=captureQty('sc-qty-');
   const fScalera=document.getElementById('sc-search-scalera').value;
   const fMatricola=document.getElementById('sc-search-matricola').value;
   const fMese=document.getElementById('sc-search-mese').value.trim().toLowerCase();
@@ -581,9 +640,7 @@ function renderScaricoList(){
     tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga trovata.</td></tr>';
     return;
   }
-  const sorted=[...list].sort((a,b)=> orderBy==='matricola'
-    ? compareMatricolaAware(a.matricola, b.matricola, 1)
-    : (Number(a[orderBy])||0)-(Number(b[orderBy])||0));
+  const sorted=sortRows(list, SORTS.sc);
   tbody.innerHTML=sorted.map(r=>{
     const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
     const tipologiaUp=up(r.tipologia);
@@ -597,6 +654,7 @@ function renderScaricoList(){
       <td><button class="edit-btn" onclick="scaricoSalva('${r.id}')" title="Salva scarico">💾</button><button class="del-btn" onclick="scaricoElimina('${r.id}')" title="Elimina riga">✕</button></td>
     </tr>`;
   }).join('');
+  restoreQty(qtyBackup);
 }
 
 async function scaricoSalva(id){
@@ -624,6 +682,7 @@ async function scaricoSalva(id){
     ? 'Scarico registrato: riga esaurita e rimossa dall\'inventario.'
     : `Scarico registrato: nuova quantità ${fmtNum(rimanenti)} forme.`;
   msg.className='msg ok';
+  input.value='';
   await loadData();
 }
 
@@ -658,13 +717,13 @@ let sortState={col:null, dir:1};
 function toggleSort(col){
   if(sortState.col===col){ sortState.dir*=-1; }
   else{ sortState.col=col; sortState.dir=1; }
-  document.querySelectorAll('th.sortable').forEach(th=>{
+  document.querySelectorAll('th.sortable:not([data-st])').forEach(th=>{
     th.classList.remove('sort-asc','sort-desc');
     if(th.dataset.col===sortState.col) th.classList.add(sortState.dir===1?'sort-asc':'sort-desc');
   });
   applyFilters();
 }
-document.querySelectorAll('th.sortable').forEach(th=>th.addEventListener('click',()=>toggleSort(th.dataset.col)));
+document.querySelectorAll('th.sortable:not([data-st])').forEach(th=>th.addEventListener('click',()=>toggleSort(th.dataset.col)));
 
 function compareMatricolaAware(va, vb, dir){
   const aNull=(va===null||va===undefined||va==='');
@@ -675,12 +734,20 @@ function compareMatricolaAware(va, vb, dir){
   return (Number(va)-Number(vb))*dir;
 }
 
-function sortRows(rows){
-  if(!sortState.col) return rows;
-  const col=sortState.col, dir=sortState.dir;
+function sortRows(rows, st){
+  st=st||sortState;
+  if(!st.col) return rows;
+  const col=st.col, dir=st.dir;
   const numeric=(col==='scalera'||col==='matricola'||col==='forme');
   return [...rows].sort((a,b)=>{
     if(col==='matricola') return compareMatricolaAware(a.matricola, b.matricola, dir);
+    if(col==='mese'){
+      const x=a.mese||'', y=b.mese||'';
+      if(!x && !y) return 0;
+      if(!x) return 1;
+      if(!y) return -1;
+      return (x<y?-1:x>y?1:0)*dir;
+    }
     let va=a[col], vb=b[col];
     if(numeric){ va=Number(va)||0; vb=Number(vb)||0; }
     else{ va=(va||'').toString().toLowerCase(); vb=(vb||'').toString().toLowerCase(); }
@@ -694,7 +761,7 @@ function applyFilters(){
   const quick=document.getElementById('q-search').value.trim().toLowerCase();
   let filtered=DATA.filter(r=>{
     if(quick){
-      const hay=[r.scalera,r.matricola,fmtMese(r.mese),r.forme,r.tipologia,r.note].join(' ').toLowerCase();
+      const hay=[r.scalera,r.matricola,fmtMese(r.mese),fmtMeseTesto(r.mese),r.forme,r.tipologia,r.note].join(' ').toLowerCase();
       if(!hay.includes(quick)) return false;
     }
     return true;
@@ -730,7 +797,7 @@ function renderRow(r){
   return `<tr>
     <td>${fmtNum(r.scalera)}</td>
     <td>${matricolaTxt}</td>
-    <td>${fmtMese(r.mese)}</td>
+    <td>${fmtMeseTesto(r.mese)}</td>
     <td>${fmtNum(r.forme)}</td>
     <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
     <td>${highlightNote(r.note)}</td>
@@ -771,6 +838,7 @@ function refreshAll(){
   populateTipologiaOptions();
   applyFilters();
   renderScaricoList();
+  renderPegno();
 }
 
 function exportData(){
@@ -815,7 +883,139 @@ document.getElementById('import-file').addEventListener('change', function(e){
   reader.readAsText(file);
 });
 
+// ====== Ordinamento per colonna nelle liste di scarico e pegno ======
+const SORTS={
+  sc:{col:'matricola',dir:1},
+  pg:{col:'matricola',dir:1},
+  pl:{col:'matricola',dir:1}
+};
+function paintSortHeaders(key){
+  document.querySelectorAll('th.sortable[data-st="'+key+'"]').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col===SORTS[key].col) th.classList.add(SORTS[key].dir===1?'sort-asc':'sort-desc');
+  });
+}
+function toggleSortFor(key,col){
+  const s=SORTS[key];
+  if(s.col===col){ s.dir*=-1; } else { s.col=col; s.dir=1; }
+  paintSortHeaders(key);
+  if(key==='sc') renderScaricoList(); else renderPegno();
+}
+document.querySelectorAll('th.sortable[data-st]').forEach(th=>th.addEventListener('click',()=>toggleSortFor(th.dataset.st, th.dataset.col)));
+
+// Conserva le quantità già scritte nelle caselle quando la lista viene ridisegnata (ordinamento, aggiornamento)
+function captureQty(prefix){
+  const m={};
+  document.querySelectorAll('input[id^="'+prefix+'"]').forEach(i=>{ if(i.value) m[i.id]=i.value; });
+  return m;
+}
+function restoreQty(m){
+  Object.keys(m).forEach(k=>{ const el=document.getElementById(k); if(el) el.value=m[k]; });
+}
+
+// ====== Pegno ======
+function isPegno(r){ return up(r.tipologia)==='PEGNO'; }
+
+function rpcErrorText(e){
+  const m=(e&&e.message)||String(e);
+  if(/could not find the function|schema cache/i.test(m)){
+    return 'manca la configurazione del pegno su Supabase: esegui lo script SQL del pegno (SQL Editor) e riprova.';
+  }
+  return m;
+}
+
+function pegnoResetRicerca(){
+  ['pg-search-scalera','pg-search-matricola','pg-search-mese'].forEach(id=>document.getElementById(id).value='');
+  renderPegno();
+}
+
+function renderPegno(){
+  const tb1=document.getElementById('pegno-tbody');
+  const tb2=document.getElementById('pegno-libero-tbody');
+  if(!tb1||!tb2) return;
+  const fS=document.getElementById('pg-search-scalera').value;
+  const fM=document.getElementById('pg-search-matricola').value;
+  const fP=document.getElementById('pg-search-mese').value.trim().toLowerCase();
+  const match=r=>{
+    if(fS && String(r.scalera)!==String(fS)) return false;
+    if(fM && String(r.matricola)!==String(fM)) return false;
+    if(fP && !fmtMese(r.mese).toLowerCase().includes(fP)) return false;
+    return true;
+  };
+  const q1=captureQty('pg-qty-'), q2=captureQty('pl-qty-');
+  const mat=r=> (r.matricola!=null && r.matricola!=='') ? fmtNum(r.matricola) : '—';
+
+  const tuttiPegno=DATA.filter(isPegno);
+  const inPegno=sortRows(tuttiPegno.filter(match), SORTS.pg);
+  const libere=sortRows(DATA.filter(r=>!up(r.tipologia) && match(r)), SORTS.pl);
+
+  tb1.innerHTML = inPegno.length===0
+    ? '<tr class="empty-row"><td colspan="7">Nessuna merce in pegno.</td></tr>'
+    : inPegno.map(r=>`<tr>
+        <td>${fmtNum(r.scalera)}</td>
+        <td>${mat(r)}</td>
+        <td>${fmtMese(r.mese)}</td>
+        <td>${fmtNum(r.forme)}</td>
+        <td>${highlightNote(r.note)}</td>
+        <td><input type="number" min="1" id="pg-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><button class="edit-btn" onclick="pegnoScarica('${r.id}')" title="Scarica dal pegno">💾</button></td>
+      </tr>`).join('');
+
+  tb2.innerHTML = libere.length===0
+    ? '<tr class="empty-row"><td colspan="7">Nessuna riga libera trovata.</td></tr>'
+    : libere.map(r=>`<tr>
+        <td>${fmtNum(r.scalera)}</td>
+        <td>${mat(r)}</td>
+        <td>${fmtMese(r.mese)}</td>
+        <td>${fmtNum(r.forme)}</td>
+        <td>${highlightNote(r.note)}</td>
+        <td><input type="number" min="1" id="pl-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><button class="edit-btn" onclick="pegnoCarica('${r.id}')" title="Metti in pegno">💾</button></td>
+      </tr>`).join('');
+
+  restoreQty(q1); restoreQty(q2);
+  const totForme=tuttiPegno.reduce((s,r)=>s+r.forme,0);
+  document.getElementById('pg-count').textContent=`${tuttiPegno.length} righe in pegno · ${fmtNum(totForme)} forme in pegno`;
+}
+
+async function pegnoScarica(id){
+  const rec=DATA.find(r=>r.id===id);
+  const msg=document.getElementById('pg-msg');
+  if(!rec) return;
+  const input=document.getElementById('pg-qty-'+id);
+  const qty=parseFloat(input.value);
+  if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme in pegno (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  const {error}=await sb.rpc('rilascia_pegno',{p_id:id, p_qty:qty});
+  if(error){ msg.textContent='Operazione non riuscita: '+rpcErrorText(error); msg.className='msg err'; return; }
+  input.value='';
+  const restano=rec.forme-qty;
+  msg.textContent = restano<=0
+    ? `${fmtNum(qty)} forme scaricate dal pegno e tornate in inventario libero: la partita non è più in pegno.`
+    : `${fmtNum(qty)} forme scaricate dal pegno e tornate in inventario libero; in pegno ne restano ${fmtNum(restano)}.`;
+  msg.className='msg ok';
+  await loadData();
+}
+
+async function pegnoCarica(id){
+  const rec=DATA.find(r=>r.id===id);
+  const msg=document.getElementById('pg-msg');
+  if(!rec) return;
+  const input=document.getElementById('pl-qty-'+id);
+  const qty=parseFloat(input.value);
+  const banca=document.getElementById('pl-banca').value;
+  if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme libere (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  const {error}=await sb.rpc('metti_in_pegno',{p_id:id, p_qty:qty, p_banca:banca});
+  if(error){ msg.textContent='Operazione non riuscita: '+rpcErrorText(error); msg.className='msg err'; return; }
+  input.value='';
+  msg.textContent=`${fmtNum(qty)} forme messe in pegno (${banca}).`;
+  msg.className='msg ok';
+  await loadData();
+}
+
 async function init(){
+  ['sc','pg','pl'].forEach(paintSortHeaders);
   refreshAll();
   if(!sb){
     showLogin('Configurazione mancante: compila SUPABASE_URL e SUPABASE_ANON_KEY all\'inizio dello script.');
