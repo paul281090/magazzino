@@ -320,6 +320,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
   <div class="col-right">
   <div class="table-toolbar">
     <input id="q-search" type="text" placeholder="Cerca un valore in tutta la tabella…" oninput="applyFilters()">
+    <button class="print-btn" onclick="exportExcel()" title="Scarica la tabella come file Excel, con l'ordine e i filtri attuali">📊 Scarica Excel</button>
     <button class="print-btn" onclick="exportData()">⬇️ Esporta dati</button>
     <button class="print-btn" onclick="document.getElementById('import-file').click()">⬆️ Importa dati</button>
     <button class="print-btn" onclick="window.print()">🖨️ Stampa tabella</button>
@@ -349,6 +350,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Torna all'inizio della pagina">↑</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // ====== CONFIGURAZIONE SUPABASE: sostituisci questi 3 valori ======
 const SUPABASE_URL = 'https://jeyaymdllslsssqnovdj.supabase.co';
@@ -888,7 +890,9 @@ function renderEditableRow(r){
   </tr>`;
 }
 
+let lastRows=[];
 function renderTable(rows){
+  lastRows=rows;
   const tbody=document.getElementById('tbody');
   const count=document.getElementById('count');
   if(rows.length===0){
@@ -918,6 +922,39 @@ function refreshAll(){
   applyFilters();
   renderScaricoList();
   renderPegno();
+}
+
+function exportExcel(){
+  const rows=lastRows.length||!DATA.length ? lastRows : DATA;
+  if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
+  const head=['Scalera','Matricola','Mese/Anno','Stagionatura (mesi)','Forme','Tipologia','Note'];
+  const body=rows.map(r=>[
+    Number(r.scalera),
+    (r.matricola!=null && r.matricola!=='') ? Number(r.matricola) : '',
+    r.mese ? fmtMese(r.mese) : '',
+    r.mese ? stagionatura(r.mese) : '',
+    Number(r.forme)||0,
+    up(r.tipologia),
+    up(r.note)
+  ]);
+  const oggi=new Date().toISOString().slice(0,10);
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const ws=XLSX.utils.aoa_to_sheet([head,...body]);
+    // la colonna Mese/Anno resta testo (es. 10/2024) per non essere trasformata in data
+    ws['!cols']=[{wch:9},{wch:10},{wch:11},{wch:19},{wch:8},{wch:12},{wch:24}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+    XLSX.writeFile(wb,'inventario-'+oggi+'.xlsx');
+  }catch(e){
+    // piano B: CSV con separatore ; (si apre direttamente in Excel italiano)
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='\uFEFF'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='inventario-'+oggi+'.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
 }
 
 function exportData(){
