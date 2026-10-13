@@ -4,133 +4,174 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gestione Magazzino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F6F3EC; --panel:#FFFFFF; --ink:#242220; --muted:#7A7468;
-  --line:#DED6C4; --green:#3C5B45; --green-dark:#2B4232; --amber:#C08A3E;
-  --danger:#A6412F; --radius:10px;
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#17212B; --muted:#566574;
+  --line:#D8DEE4; --green:#1C2630; --green-dark:#2F3F50; --amber:#E3B23C;
+  --danger:#B3261E; --link:#2F5D8A; --head:#F6F8FA; --pegno-bg:#FBEEEC;
+  --side:#1C2630; --radius:8px;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#1C1B18; --panel:#252420; --ink:#EDE8DD; --muted:#A79E8C;
-    --line:#3A362E; --green:#6E9A79; --green-dark:#88B393; --amber:#D9A65C;
+    --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
+    --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
+    --head:#222E3A; --pegno-bg:#2A1A20; --side:#0B1117; --danger:#FF7A80;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#1C1B18; --panel:#252420; --ink:#EDE8DD; --muted:#A79E8C;
-  --line:#3A362E; --green:#6E9A79; --green-dark:#88B393; --amber:#D9A65C;
+  --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
+  --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
+  --head:#222E3A; --pegno-bg:#2A1A20; --side:#0B1117; --danger:#FF7A80;
 }
 *{box-sizing:border-box;}
 html{scroll-padding-top:env(safe-area-inset-top,0px);}
 body{
   margin:0; background:var(--bg); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-family:"Barlow","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   min-height:100%;
 }
-.wrap{max-width:980px;margin:0 auto;padding:28px 18px 60px;}
-header{margin-bottom:22px;border-bottom:2px solid var(--green);padding-bottom:14px;}
-header h1{font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em;}
-header p{margin:0;color:var(--muted);font-size:.92rem;}
 
-.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
-.tab-btn{
-  flex:1;min-width:140px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--line);
-  background:var(--panel);color:var(--ink);font-size:.95rem;font-weight:600;cursor:pointer;
-  transition:background .15s,color .15s,border-color .15s;
+/* ===== Struttura: barra laterale + area principale ===== */
+.app{display:flex;min-height:100vh;}
+.side{
+  flex:0 0 220px;background:var(--side);color:#DCE3EA;padding:28px 16px;
+  display:flex;flex-direction:column;gap:26px;
+  position:sticky;top:0;height:100vh;align-self:flex-start;
 }
-.tab-btn.active{background:var(--green);border-color:var(--green);color:#fff;}
-.tab-btn:not(.active):hover{border-color:var(--green);}
+.side h1{font-size:1.75rem;margin:0;line-height:1.1;color:#fff;font-weight:600;letter-spacing:-.01em;}
+.side .sub{margin:5px 0 0;font-size:.82rem;color:#A9B8C6;}
+.tabs{display:flex;flex-direction:column;gap:4px;}
+.tab-btn{
+  text-align:left;padding:11px 14px;border-radius:6px;border:0;background:none;color:#DCE3EA;
+  font-size:1rem;font-weight:500;cursor:pointer;transition:background .15s,color .15s;
+}
+.tab-btn:hover{background:rgba(255,255,255,.08);}
+.tab-btn.active{background:var(--amber);color:#1C2630;font-weight:700;}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;font-size:.8rem;color:#A9B8C6;}
+.side-foot .err{color:#FF9A9F;font-weight:600;}
+.side-foot .sync-actions{display:flex;gap:8px;}
+.side-foot .print-btn{background:none;border:1px solid #4A5A69;color:#DCE3EA;padding:7px 14px;font-size:.8rem;border-radius:6px;font-weight:500;cursor:pointer;}
+.side-foot .print-btn:hover{border-color:var(--amber);color:var(--amber);}
 
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:22px;display:none;}
+.main-area{flex:1 1 auto;min-width:0;padding:28px 28px 60px;}
+.kpis{display:flex;flex-wrap:wrap;row-gap:12px;margin:0 0 24px;}
+.kpi{padding-right:30px;margin-right:30px;border-right:1px solid var(--line);}
+.kpi:last-child{border-right:0;}
+.kpi b{display:block;font-size:1.9rem;line-height:1;font-weight:600;font-variant-numeric:tabular-nums;}
+.kpi span{display:block;font-size:.8rem;color:var(--muted);margin-top:4px;}
+.kpi.pg b{color:var(--danger);}
+
+.layout{display:block;}
+.panel{background:var(--panel);border-radius:var(--radius);padding:20px 22px;margin-bottom:26px;display:none;}
 .panel.active{display:block;}
-.panel h2{margin:0 0 14px;font-size:1.05rem;}
+.panel h2{margin:0 0 14px;font-size:1.1rem;font-weight:600;}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
-label{display:block;font-size:.78rem;color:var(--muted);margin-bottom:4px;}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
 input,select{
-  width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;
-  background:var(--bg);color:var(--ink);font-size:.92rem;
+  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel);color:var(--ink);font-size:.95rem;font-family:inherit;
 }
-input:focus,select:focus{outline:2px solid var(--green);outline-offset:1px;}
+input:focus,select:focus{outline:2px solid var(--link);outline-offset:1px;}
 
 .btn{
-  margin-top:14px;padding:10px 18px;border:none;border-radius:8px;background:var(--green);
-  color:#fff;font-weight:600;font-size:.9rem;cursor:pointer;
+  margin-top:16px;padding:11px 22px;border:none;border-radius:6px;background:var(--green);
+  color:#fff;font-weight:600;font-size:.95rem;cursor:pointer;font-family:inherit;
 }
 .btn:hover{background:var(--green-dark);}
 .btn.danger{background:var(--danger);}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
-.msg{margin-top:10px;font-size:.85rem;}
-.msg.ok{color:var(--green);}
+.msg{margin-top:10px;font-size:.88rem;}
+.msg.ok{color:#1E7A47;}
 .msg.err{color:var(--danger);}
 
-.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);}
-table{border-collapse:collapse;width:100%;min-width:640px;font-size:.87rem;}
-th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
-th{background:var(--bg);color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
-tbody tr:hover{background:var(--bg);}
+.table-wrap{overflow-x:auto;background:var(--panel);border-radius:var(--radius);}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:.95rem;font-variant-numeric:tabular-nums;}
+th,td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
+th{background:var(--head);color:var(--muted);font-weight:600;font-size:.8rem;}
+tbody tr:hover{background:var(--head);}
+tbody tr.row-pegno,tbody tr.row-pegno:hover{background:var(--pegno-bg);}
 td:nth-child(2), td:nth-child(4){font-weight:700;}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;background:var(--amber);color:#2A2011;font-size:.72rem;font-weight:700;}
-.badge.badge-pegno{background:#C0392B;color:#fff;}
-.badge.badge-bio{background:#3C8A54;color:#fff;}
-.badge.badge-grigio{background:#8A8578;color:#fff;}
-.hl-credem{color:#2E7D46;font-weight:700;}
-.hl-agricole{color:#1B7FB8;font-weight:700;}
-.empty-row td{color:var(--muted);text-align:center;padding:26px;}
-.count{color:var(--muted);font-size:.82rem;margin:10px 2px 0;}
-.del-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;}
-.edit-btn{background:none;border:none;color:var(--green);cursor:pointer;font-size:.9rem;margin-right:8px;}
-.editing-banner{background:var(--amber);color:#2A2011;padding:8px 12px;border-radius:8px;font-size:.85rem;font-weight:600;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:10px;}
-.editing-banner.show{display:flex;}
-.editing-banner button{background:none;border:1px solid #2A2011;border-radius:6px;padding:4px 10px;color:#2A2011;cursor:pointer;font-size:.78rem;}
-
-.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
-.table-toolbar input{flex:1;min-width:180px;}
-.print-btn{
-  padding:9px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);
-  color:var(--ink);font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap;
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;background:var(--amber);color:#1C2630;font-size:.75rem;font-weight:700;}
+.badge.badge-pegno{background:#B3261E;color:#fff;}
+.badge.badge-bio{background:#1E7A47;color:#fff;}
+.badge.badge-grigio{background:#667483;color:#fff;}
+.hl-credem{color:#1B6B40;font-weight:700;}
+.hl-agricole{color:#0B63A0;font-weight:700;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hl-credem{color:#4ADE80;}
+  :root:not([data-theme="light"]) .hl-agricole{color:#5CC8FF;}
+  :root:not([data-theme="light"]) .msg.ok{color:#4ADE80;}
 }
-.print-btn:hover{border-color:var(--green);color:var(--green);}
+.empty-row td{color:var(--muted);text-align:center;padding:26px;}
+.count{color:var(--muted);font-size:.85rem;margin:10px 2px 0;}
+.del-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.95rem;}
+.edit-btn{background:none;border:none;color:var(--link);cursor:pointer;font-size:.95rem;margin-right:8px;}
+.editing-banner{background:var(--amber);color:#1C2630;padding:8px 12px;border-radius:6px;font-size:.85rem;font-weight:600;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:10px;}
+.editing-banner.show{display:flex;}
+.editing-banner button{background:none;border:1px solid #1C2630;border-radius:6px;padding:4px 10px;color:#1C2630;cursor:pointer;font-size:.78rem;}
+
+.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.table-toolbar input{flex:1;min-width:200px;padding:10px 13px;}
+.print-btn{
+  padding:10px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel);
+  color:var(--ink);font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;
+}
+.print-btn:hover{border-color:var(--link);color:var(--link);}
 th.sortable{cursor:pointer;user-select:none;}
 th.sortable:hover{color:var(--ink);}
 th.sortable .arrow{opacity:.35;margin-left:4px;font-size:.7em;}
-th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--green);}
+th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--link);}
+.stag,.fo{font-weight:700;}
+.mm{font-weight:400;color:var(--muted);font-size:.75rem;}
 
-.editing-row td{padding:5px 6px;}
-.editing-row input{padding:6px 7px;font-size:.85rem;min-width:64px;}
-.hint{font-size:.75rem;color:var(--muted);margin-top:8px;}
+.editing-row td{padding:6px 7px;}
+.editing-row input{padding:6px 7px;font-size:.88rem;min-width:64px;}
+.hint{font-size:.78rem;color:var(--muted);margin-top:8px;}
 
 .back-to-top{
   position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));
-  width:46px;height:46px;border-radius:50%;background:var(--green);color:#fff;border:none;
+  width:46px;height:46px;border-radius:50%;background:var(--side);color:#fff;border:none;
   font-size:1.3rem;cursor:pointer;display:none;align-items:center;justify-content:center;
   box-shadow:0 2px 10px rgba(0,0,0,.28);z-index:50;
 }
 .back-to-top.show{display:flex;}
 .back-to-top:hover{background:var(--green-dark);}
 
-@media print{
-  body{background:#fff;}
-  header,.tabs,.panel,.table-toolbar,.count,.del-btn,.edit-btn,.print-btn,.back-to-top{display:none !important;}
-  .wrap{max-width:100%;padding:0;}
-  .table-wrap{border:none;}
-  th,td{white-space:normal;}
-  .sync-bar,.migrate-banner,.overlay{display:none !important;}
-}
-
 .overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
 .overlay.show{display:flex;}
 .login-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;width:100%;max-width:340px;}
 .login-card h2{margin:0 0 6px;font-size:1.2rem;}
 .login-card p{margin:0 0 16px;color:var(--muted);font-size:.85rem;}
-.sync-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:14px;flex-wrap:wrap;}
-.sync-bar .err{color:var(--danger);font-weight:600;}
-.sync-actions{display:flex;gap:8px;}
-.sync-actions .print-btn{padding:6px 12px;font-size:.8rem;}
-.migrate-banner{background:var(--amber);color:#2A2011;padding:10px 14px;border-radius:8px;font-size:.85rem;margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-.migrate-banner button{background:none;border:1px solid #2A2011;border-radius:6px;padding:5px 12px;color:#2A2011;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
-.panel h3{margin:24px 0 4px;font-size:.95rem;}
+.migrate-banner{background:var(--amber);color:#1C2630;padding:10px 14px;border-radius:6px;font-size:.88rem;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.migrate-banner button{background:none;border:1px solid #1C2630;border-radius:6px;padding:5px 12px;color:#1C2630;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
+.panel h3{margin:24px 0 4px;font-size:1rem;font-weight:600;}
+
+/* ===== Contenuto su un'unica colonna, larghezza limitata ===== */
+.kpis,.layout,.migrate-banner{max-width:1100px;margin-left:auto;margin-right:auto;}
+.col-left .panel{margin-bottom:22px;}
+
+/* ===== Schermi stretti: la barra laterale diventa una testata ===== */
+@media (max-width:899px){
+  .app{flex-direction:column;}
+  .side{position:static;height:auto;flex:none;padding:18px 16px;gap:14px;}
+  .tabs{flex-direction:row;flex-wrap:wrap;}
+  .tab-btn{flex:1;text-align:center;}
+  .side-foot{margin-top:0;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .main-area{padding:20px 14px 60px;}
+}
+
+@media print{
+  body{background:#fff;}
+  .side,.kpis,.panel,.col-left,.table-toolbar,.count,.del-btn,.edit-btn,.print-btn,.back-to-top,.migrate-banner,.overlay{display:none !important;}
+  .app,.layout{display:block;}
+  .main-area{padding:0;}
+  .table-wrap{border:none;}
+  th,td{white-space:normal;}
+}
 </style>
 </head>
 <body>
@@ -145,20 +186,27 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
   </form>
 </div>
 
-<div class="wrap">
-  <header>
-    <h1>Gestione Magazzino</h1>
-    <p>Carico, scarico e ricerca delle forme — colonne: Scalera, Matricola, Mese/Anno, Forme, Note, Tipologia</p>
-  </header>
+<div class="app">
+  <aside class="side">
+    <div>
+      <h1>Magazzino</h1>
+      <p class="sub">Forme in stagionatura</p>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="carico">Carico merce</button>
+      <button class="tab-btn" data-tab="scarico">Scarico merce</button>
+      <button class="tab-btn" data-tab="pegno">Pegno</button>
+    </nav>
+    <div class="side-foot">
+      <span id="sync-status">Non connesso</span>
+      <span class="sync-actions">
+        <button class="print-btn" onclick="loadData()">Aggiorna</button>
+        <button class="print-btn" onclick="doLogout()">Esci</button>
+      </span>
+    </div>
+  </aside>
 
-  <div class="sync-bar">
-    <span id="sync-status">Non connesso</span>
-    <span class="sync-actions">
-      <button class="print-btn" onclick="loadData()">🔄 Aggiorna</button>
-      <button class="print-btn" onclick="doLogout()">Esci</button>
-    </span>
-  </div>
-
+<div class="main-area">
   <div class="migrate-banner" id="migrate-banner">
     <span>Su questo browser ci sono <b id="migrate-count">0</b> righe salvate in locale. Vuoi caricarle online?</span>
     <span>
@@ -167,11 +215,14 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
     </span>
   </div>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="carico">＋ Carico merce</button>
-    <button class="tab-btn" data-tab="scarico">－ Scarico merce</button>
-    <button class="tab-btn" data-tab="pegno">🔒 Pegno</button>
+  <div class="kpis">
+    <div class="kpi"><b id="kpi-righe">0</b><span>righe</span></div>
+    <div class="kpi"><b id="kpi-forme">0</b><span>forme totali</span></div>
+    <div class="kpi pg"><b id="kpi-pegno">0</b><span>forme in pegno</span></div>
   </div>
+
+  <div class="layout">
+  <div class="col-left">
 
   <!-- CARICO -->
   <div class="panel active" id="panel-carico">
@@ -265,6 +316,8 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
     </div>
   </div>
 
+  </div><!-- /col-left -->
+  <div class="col-right">
   <div class="table-toolbar">
     <input id="q-search" type="text" placeholder="Cerca un valore in tutta la tabella…" oninput="applyFilters()">
     <button class="print-btn" onclick="exportData()">⬇️ Esporta dati</button>
@@ -278,6 +331,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
         <th class="sortable" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
         <th class="sortable" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
         <th class="sortable" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="stag" title="Mesi compiuti dalla produzione (un mese è compiuto al termine del mese stesso)">Stagionatura<span class="arrow">▲▼</span></th>
         <th class="sortable" data-col="forme">Forme<span class="arrow">▲▼</span></th>
         <th class="sortable" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
         <th class="sortable" data-col="note">Note<span class="arrow">▲▼</span></th>
@@ -287,7 +341,10 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--g
     </table>
   </div>
   <div class="count" id="count"></div>
-</div>
+  </div><!-- /col-right -->
+  </div><!-- /layout -->
+</div><!-- /main-area -->
+</div><!-- /app -->
 
 <button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Torna all'inizio della pagina">↑</button>
 
@@ -449,6 +506,17 @@ function switchTab(tab){
   if(tab==='pegno') renderPegno();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+// Stagionatura: mesi compiuti. Un mese si considera compiuto al termine del mese stesso
+// (produzione set-2024 -> 24 mesi il 1 ottobre 2026).
+function stagionatura(v, oggi){
+  if(!v) return null;
+  const [y,m]=v.split('-').map(Number);
+  oggi=oggi||new Date();
+  const n=(oggi.getFullYear()-y)*12+(oggi.getMonth()+1-m)-1;
+  return n<0?0:n;
+}
+function fmtStag(v){ const n=stagionatura(v); return n===null?'—':String(n); }
 
 function fmtMese(v){
   if(!v) return '—';
@@ -642,7 +710,7 @@ function renderScaricoList(){
   }
   const sorted=sortRows(list, SORTS.sc);
   tbody.innerHTML=sorted.map(r=>{
-    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
+    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? String(r.matricola) : '—';
     const tipologiaUp=up(r.tipologia);
     return `<tr>
       <td>${fmtNum(r.scalera)}</td>
@@ -741,12 +809,13 @@ function sortRows(rows, st){
   const numeric=(col==='scalera'||col==='matricola'||col==='forme');
   return [...rows].sort((a,b)=>{
     if(col==='matricola') return compareMatricolaAware(a.matricola, b.matricola, dir);
-    if(col==='mese'){
+    if(col==='mese' || col==='stag'){
       const x=a.mese||'', y=b.mese||'';
       if(!x && !y) return 0;
       if(!x) return 1;
       if(!y) return -1;
-      return (x<y?-1:x>y?1:0)*dir;
+      const d=(col==='stag')?-dir:dir;   // più mesi = produzione più vecchia
+      return (x<y?-1:x>y?1:0)*d;
     }
     let va=a[col], vb=b[col];
     if(numeric){ va=Number(va)||0; vb=Number(vb)||0; }
@@ -761,7 +830,7 @@ function applyFilters(){
   const quick=document.getElementById('q-search').value.trim().toLowerCase();
   let filtered=DATA.filter(r=>{
     if(quick){
-      const hay=[r.scalera,r.matricola,fmtMese(r.mese),fmtMeseTesto(r.mese),r.forme,r.tipologia,r.note].join(' ').toLowerCase();
+      const hay=[r.scalera,r.matricola,fmtMese(r.mese),fmtMeseTesto(r.mese),r.mese?stagionatura(r.mese)+' mesi':'',r.forme,r.tipologia,r.note].join(' ').toLowerCase();
       if(!hay.includes(quick)) return false;
     }
     return true;
@@ -792,13 +861,14 @@ function highlightNote(note){
 }
 
 function renderRow(r){
-  const matricolaTxt=r.matricola!=null && r.matricola!=='' ? fmtNum(r.matricola) : '—';
+  const matricolaTxt=r.matricola!=null && r.matricola!=='' ? String(r.matricola) : '—';
   const tipologiaUp=up(r.tipologia);
-  return `<tr>
+  return `<tr class="${isPegno(r)?'row-pegno':''}">
     <td>${fmtNum(r.scalera)}</td>
     <td>${matricolaTxt}</td>
     <td>${fmtMeseTesto(r.mese)}</td>
-    <td>${fmtNum(r.forme)}</td>
+    <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
+    <td class="fo">${fmtNum(r.forme)}</td>
     <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
     <td>${highlightNote(r.note)}</td>
     <td><button class="edit-btn" onclick="startInlineEdit('${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
@@ -810,6 +880,7 @@ function renderEditableRow(r){
     <td><input type="number" id="ir-scalera-${r.id}" value="${r.scalera}"></td>
     <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
     <td><input type="text" id="ir-mese-${r.id}" value="${fmtMeseInput(r.mese)}" placeholder="M/AA"></td>
+    <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
     <td><input type="number" id="ir-forme-${r.id}" value="${r.forme}"></td>
     <td><input type="text" id="ir-tipologia-${r.id}" value="${escapeHtml(up(r.tipologia))}" list="tip-list"></td>
     <td><input type="text" id="ir-note-${r.id}" value="${escapeHtml(up(r.note))}"></td>
@@ -821,7 +892,7 @@ function renderTable(rows){
   const tbody=document.getElementById('tbody');
   const count=document.getElementById('count');
   if(rows.length===0){
-    tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga in inventario. Usa "Carico merce" per aggiungerne una.</td></tr>';
+    tbody.innerHTML='<tr class="empty-row"><td colspan="8">Nessuna riga in inventario. Usa "Carico merce" per aggiungerne una.</td></tr>';
   }else{
     tbody.innerHTML=rows.map(r=> r.id===inlineEditId ? renderEditableRow(r) : renderRow(r)).join('');
     if(inlineEditId){
@@ -834,7 +905,15 @@ function renderTable(rows){
   count.textContent=`${rows.length} righe · ${fmtNum(totForme)} forme totali`;
 }
 
+function updateKpi(){
+  const el=id=>document.getElementById(id);
+  el('kpi-righe').textContent=fmtNum(DATA.length);
+  el('kpi-forme').textContent=fmtNum(DATA.reduce((t,r)=>t+(Number(r.forme)||0),0));
+  el('kpi-pegno').textContent=fmtNum(DATA.filter(isPegno).reduce((t,r)=>t+(Number(r.forme)||0),0));
+}
+
 function refreshAll(){
+  updateKpi();
   populateTipologiaOptions();
   applyFilters();
   renderScaricoList();
@@ -943,7 +1022,7 @@ function renderPegno(){
     return true;
   };
   const q1=captureQty('pg-qty-'), q2=captureQty('pl-qty-');
-  const mat=r=> (r.matricola!=null && r.matricola!=='') ? fmtNum(r.matricola) : '—';
+  const mat=r=> (r.matricola!=null && r.matricola!=='') ? String(r.matricola) : '—';
 
   const tuttiPegno=DATA.filter(isPegno);
   const inPegno=sortRows(tuttiPegno.filter(match), SORTS.pg);
