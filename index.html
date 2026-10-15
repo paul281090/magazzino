@@ -1,220 +1,1153 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="utf-8">
-<meta name="theme-color" content="#087cf0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Golf GTI">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="apple-touch-icon" href="https://www.google.com/s2/favicons?domain=volkswagen.com&sz=128">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>Gestione Magazzino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--blue:#087cf0;--navy:#102c53;--ink:#10203b;--muted:#6b7890;--bg:#f2f6fb;--line:#e3eaf3;--green:#159447;--amber:#ed9b00}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;color:var(--ink);padding-bottom:calc(82px + env(safe-area-inset-bottom))}
-button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app-header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);padding:calc(10px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid #dbe6f2;display:grid;place-items:center;font-size:22px;box-shadow:0 3px 10px #102c5314}.brand-name{font-size:21px;font-weight:800;letter-spacing:-.4px}.brand-sub{font-size:12px;color:var(--muted);margin-top:2px}.gear{margin-left:auto;background:#f0f5fb;border-radius:13px;padding:10px;font-size:18px}
-.tabs{display:flex;gap:6px;background:#e9eff7;border-radius:15px;padding:4px;margin-top:14px}.tab{flex:1;padding:10px 5px;border-radius:11px;background:transparent;color:#43536e;font-size:13px;font-weight:650}.tab.active{background:var(--blue);color:white;box-shadow:0 3px 8px #087cf033}
-main{max-width:780px;margin:0 auto;padding:18px 15px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.section-head h2{font-size:21px;margin:0;letter-spacing:-.5px}.muted{color:var(--muted)}.btn{background:var(--blue);color:white;border-radius:13px;padding:12px 15px;font-weight:700;box-shadow:0 5px 12px #087cf025}.btn.secondary{background:#e6f1ff;color:#0969cf;box-shadow:none}.btn.ghost{background:#eef2f7;color:#34445e;box-shadow:none}.btn.danger{background:#fff0f0;color:#b42318;box-shadow:none}
-.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 4px 12px #12284c06}.stat .label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}.stat .value{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-top:8px;overflow-wrap:anywhere}.stat .foot{font-size:11px;color:var(--muted);margin-top:5px}
-.record-list{display:flex;flex-direction:column;gap:9px}.record{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px 13px;display:flex;gap:11px;align-items:center;box-shadow:0 3px 10px #102c5306}.fuel-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#e7f8ed;color:var(--green);display:grid;place-items:center;font-size:19px}.record-main{min-width:0;flex:1}.record-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.record-date{font-size:14px;font-weight:750}.record-amount{font-size:15px;font-weight:800;white-space:nowrap}.record-meta{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}.record-right{text-align:right}.pill{font-size:10px;font-weight:700;border-radius:7px;padding:4px 6px;background:#fff2d6;color:#8d5a00;display:inline-block;margin-top:4px}
-.fab{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:5;width:58px;height:58px;border-radius:20px;background:var(--blue);color:white;font-size:31px;box-shadow:0 9px 22px #087cf044}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around}.nav-item{background:transparent;color:#748198;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;min-width:55px}.nav-item .nav-icon{font-size:21px}.nav-item.active{color:var(--blue);font-weight:800}
-.card{background:white;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px #12284c06}.card h3{margin:0 0 13px;font-size:16px}.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:750;color:#53627a;margin-bottom:7px}.field input,.field select,.field textarea{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;border:1px solid #dce5f0;background:#fbfdff;border-radius:12px;padding:13px;color:var(--ink);outline:none}.field input[type='datetime-local']{min-width:0;width:100%;max-width:100%;font-size:16px;padding-left:10px;padding-right:10px;-webkit-appearance:none;appearance:none}.field input[type='datetime-local']{min-width:0;width:100%;max-width:100%;font-size:16px;padding-left:10px;padding-right:10px;-webkit-appearance:none;appearance:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#80baff;box-shadow:0 0 0 3px #087cf018}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.money-input{font-size:24px!important;font-weight:800;text-align:right}.hint{font-size:11px;color:var(--muted);margin-top:6px}.toggle-line{display:flex;align-items:center;justify-content:space-between;padding:12px 0}.switch{width:48px;height:28px;border-radius:99px;background:#dce3ed;position:relative}.switch:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0002;transition:.15s}.switch.on{background:var(--blue)}.switch.on:after{left:23px}
-.key.wide{grid-column:span 2}.form-actions{display:flex;gap:8px;margin-top:16px}.form-actions button{flex:1}
-.chart-wrap{height:230px;position:relative}.chart-filters{display:flex;gap:6px;margin-bottom:13px}.filter{flex:1;background:#eff3f8;color:#50607a;border-radius:10px;padding:9px 3px;font-size:12px}.filter.active{background:var(--blue);color:white}
-.empty{text-align:center;background:white;border:1px dashed #cbd8e8;border-radius:18px;padding:35px 20px;color:var(--muted)}.empty .big{font-size:32px;margin-bottom:10px}.hidden{display:none!important}.file-picker{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;display:block!important}.notice{border-radius:13px;padding:12px 14px;background:#e9f5ff;color:#165a9c;font-size:12px;line-height:1.5;margin-bottom:13px}.toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:15px;right:15px;z-index:10;background:#12325a;color:white;padding:13px 16px;border-radius:13px;box-shadow:0 6px 20px #0002;text-align:center;font-size:13px}
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#17212B; --muted:#566574;
+  --line:#D8DEE4; --green:#1C2630; --green-dark:#2F3F50; --amber:#E3B23C;
+  --danger:#B3261E; --link:#2F5D8A; --head:#F6F8FA; --pegno-bg:#FBEEEC;
+  --side:#1C2630; --radius:8px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
+    --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
+    --head:#222E3A; --pegno-bg:#2A1A20; --side:#0B1117; --danger:#FF7A80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
+  --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
+  --head:#222E3A; --pegno-bg:#2A1A20; --side:#0B1117; --danger:#FF7A80;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Barlow","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+}
 
-/* Dark Sport theme */
-:root{--blue:#ef233c;--navy:#090b0f;--ink:#f4f5f7;--muted:#a5acb8;--bg:#0b0d11;--line:#2a2e36;--green:#35c979;--amber:#ffbf3c}
-body{background:#0b0d11;color:#f4f5f7}
-.app-header,.bottom-nav{background:rgba(13,15,20,.97);border-color:#2a2e36}
-.logo{background:#11151b;color:#f4f5f7;border-color:#343943;box-shadow:0 3px 12px #0008}
-.brand-name{color:#f7f7f9}.gear{background:#20252e;color:#f4f5f7}
-.tabs{background:#191d24}.tab{color:#c4cad4}.tab.active{background:#e91f38;color:#fff;box-shadow:0 4px 12px #ef233c35}
-.stat,.record,.card,.empty{background:#15181e;border-color:#2a2e36;box-shadow:0 4px 14px #0003}
-.record-date,.record-amount,.section-head h2,.card h3,.stat .value{color:#f4f5f7}
-.field label{color:#c2c8d2}.field input,.field select,.field textarea{background:#101318;color:#f4f5f7;border-color:#343a45}
-.field input::placeholder,.field textarea::placeholder{color:#737d8d}
-.btn{background:#e91f38;color:#fff;box-shadow:0 5px 14px #ef233c25}
-.btn.secondary{background:#2a1b20;color:#ff6375;box-shadow:none}.btn.ghost{background:#222730;color:#e1e5ec;box-shadow:none}
-.fuel-icon{background:#172d24;color:#35c979}.nav-item{color:#9aa3b2}.nav-item.active{color:#ff334b}
-.record-meta,.stat .foot,.muted,.hint{color:#a5acb8}.notice{background:#191f2a;color:#a9cfff}
-.pill{background:#3a2b12;color:#ffca68}.switch{background:#3a414d}.switch.on{background:#e91f38}
-.filter{background:#222730;color:#c1c8d4}.filter.active{background:#e91f38;color:white}
-.key{background:#222730;border-color:#353b46;color:#f1f3f7}.empty{color:#a5acb8}
+/* ===== Struttura: barra laterale + area principale ===== */
+.app{display:flex;min-height:100vh;}
+.side{
+  flex:0 0 220px;background:var(--side);color:#DCE3EA;padding:28px 16px;
+  display:flex;flex-direction:column;gap:26px;
+  position:sticky;top:0;height:100vh;align-self:flex-start;
+}
+.side h1{font-size:1.75rem;margin:0;line-height:1.1;color:#fff;font-weight:600;letter-spacing:-.01em;}
+.side .sub{margin:5px 0 0;font-size:.82rem;color:#A9B8C6;}
+.tabs{display:flex;flex-direction:column;gap:4px;}
+.tab-btn{
+  text-align:left;padding:11px 14px;border-radius:6px;border:0;background:none;color:#DCE3EA;
+  font-size:1rem;font-weight:500;cursor:pointer;transition:background .15s,color .15s;
+}
+.tab-btn:hover{background:rgba(255,255,255,.08);}
+.tab-btn.active{background:var(--amber);color:#1C2630;font-weight:700;}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;font-size:.8rem;color:#A9B8C6;}
+.side-foot .err{color:#FF9A9F;font-weight:600;}
+.side-foot .sync-actions{display:flex;gap:8px;}
+.side-foot .print-btn{background:none;border:1px solid #4A5A69;color:#DCE3EA;padding:7px 14px;font-size:.8rem;border-radius:6px;font-weight:500;cursor:pointer;}
+.side-foot .print-btn:hover{border-color:var(--amber);color:var(--amber);}
 
-@media(min-width:600px){main{padding:24px}.summary-grid{grid-template-columns:repeat(3,1fr)}.record{padding:16px}.fab{right:calc((100vw - 740px)/2 + 20px)}}
+.main-area{flex:1 1 auto;min-width:0;padding:28px 28px 60px;}
+.kpis{display:flex;flex-wrap:wrap;row-gap:12px;margin:0 0 24px;}
+.kpi{padding-right:30px;margin-right:30px;border-right:1px solid var(--line);}
+.kpi:last-child{border-right:0;}
+.kpi b{display:block;font-size:1.9rem;line-height:1;font-weight:600;font-variant-numeric:tabular-nums;}
+.kpi span{display:block;font-size:.8rem;color:var(--muted);margin-top:4px;}
+.kpi.pg b{color:var(--danger);}
 
-/* Final approved light theme with GTI red accents */
-:root{--blue:#e91f38;--navy:#173052;--ink:#17243b;--muted:#748198;--bg:#f2f6fb;--line:#e3eaf3;--green:#159447;--amber:#ed9b00}
-body{background:#f2f6fb;color:#17243b;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif}
-.app-header,.bottom-nav{background:rgba(255,255,255,.96);border-color:#e3eaf3}
-.logo{background:#fff;color:#17243b;border-color:#dbe6f2;box-shadow:0 3px 10px #102c5312}
-.brand-name{color:#17243b}.gear{background:#f0f5fb;color:#34445e}
-.tabs{display:none!important}
-.stat,.record,.card,.empty{background:#fff;border-color:#e3eaf3;box-shadow:0 4px 14px #102c5308}
-.record-date,.record-amount,.section-head h2,.card h3,.stat .value{color:#17243b}
-.field label{color:#59677f}
-.field input,.field select,.field textarea{background:#fbfdff;color:#17243b;border-color:#dce5f0}
-.field input::placeholder,.field textarea::placeholder{color:#a0a8b5}
-.btn{background:#e91f38;color:#fff;box-shadow:0 5px 14px #e91f3825}
-.btn.secondary{background:#e6f1ff;color:#0969cf;box-shadow:none}
-.btn.ghost{background:#eef2f7;color:#34445e;box-shadow:none}
-.fuel-icon{background:#e7f8ed;color:#159447}
-.nav-item{color:#748198}.nav-item.active{color:#e91f38}
-.record-meta,.stat .foot,.muted,.hint{color:#748198}
-.notice{background:#e9f5ff;color:#165a9c}
-.pill{background:#fff2d6;color:#8d5a00}
-.switch{background:#dce3ed}.switch.on{background:#e91f38}
-.filter{background:#f0f5fb;color:#50607a}.filter.active{background:#e91f38;color:white}
-.key{background:#f0f5fb;border-color:#e1e9f3;color:#253653}
-.empty{color:#748198}
+.layout{display:block;}
+.panel{background:var(--panel);border-radius:var(--radius);padding:20px 22px;margin-bottom:26px;display:none;}
+.panel.active{display:block;}
+.panel h2{margin:0 0 14px;font-size:1.1rem;font-weight:600;}
 
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
+input,select{
+  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;
+  background:var(--panel);color:var(--ink);font-size:.95rem;font-family:inherit;
+}
+input:focus,select:focus{outline:2px solid var(--link);outline-offset:1px;}
+
+.btn{
+  margin-top:16px;padding:11px 22px;border:none;border-radius:6px;background:var(--green);
+  color:#fff;font-weight:600;font-size:.95rem;cursor:pointer;font-family:inherit;
+}
+.btn:hover{background:var(--green-dark);}
+.btn.danger{background:var(--danger);}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
+.msg{margin-top:10px;font-size:.88rem;}
+.msg.ok{color:#1E7A47;}
+.msg.err{color:var(--danger);}
+
+.table-wrap{overflow-x:auto;background:var(--panel);border-radius:var(--radius);}
+table{border-collapse:collapse;width:100%;min-width:700px;font-size:.95rem;font-variant-numeric:tabular-nums;}
+th,td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;}
+th{background:var(--head);color:var(--muted);font-weight:600;font-size:.8rem;}
+tbody tr:hover{background:var(--head);}
+tbody tr.row-pegno,tbody tr.row-pegno:hover{background:var(--pegno-bg);}
+td:nth-child(2), td:nth-child(4){font-weight:700;}
+.badge{display:inline-block;padding:3px 10px;border-radius:4px;background:var(--amber);color:#1C2630;font-size:.75rem;font-weight:700;}
+.badge.badge-pegno{background:#B3261E;color:#fff;}
+.badge.badge-bio{background:#1E7A47;color:#fff;}
+.badge.badge-grigio{background:#667483;color:#fff;}
+.hl-credem{color:#1B6B40;font-weight:700;}
+.hl-agricole{color:#0B63A0;font-weight:700;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .hl-credem{color:#4ADE80;}
+  :root:not([data-theme="light"]) .hl-agricole{color:#5CC8FF;}
+  :root:not([data-theme="light"]) .msg.ok{color:#4ADE80;}
+}
+.empty-row td{color:var(--muted);text-align:center;padding:26px;}
+.count{color:var(--muted);font-size:.85rem;margin:10px 2px 0;}
+.del-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.95rem;}
+.edit-btn{background:none;border:none;color:var(--link);cursor:pointer;font-size:.95rem;margin-right:8px;}
+.editing-banner{background:var(--amber);color:#1C2630;padding:8px 12px;border-radius:6px;font-size:.85rem;font-weight:600;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:10px;}
+.editing-banner.show{display:flex;}
+.editing-banner button{background:none;border:1px solid #1C2630;border-radius:6px;padding:4px 10px;color:#1C2630;cursor:pointer;font-size:.78rem;}
+
+.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.table-toolbar input{flex:1;min-width:200px;padding:10px 13px;}
+.print-btn{
+  padding:10px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel);
+  color:var(--ink);font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;
+}
+.print-btn:hover{border-color:var(--link);color:var(--link);}
+th.sortable{cursor:pointer;user-select:none;}
+th.sortable:hover{color:var(--ink);}
+th.sortable .arrow{opacity:.35;margin-left:4px;font-size:.7em;}
+th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--link);}
+.stag,.fo{font-weight:700;}
+.mm{font-weight:400;color:var(--muted);font-size:.75rem;}
+
+.editing-row td{padding:6px 7px;}
+.editing-row input{padding:6px 7px;font-size:.88rem;min-width:64px;}
+.hint{font-size:.78rem;color:var(--muted);margin-top:8px;}
+
+.back-to-top{
+  position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  width:46px;height:46px;border-radius:50%;background:var(--side);color:#fff;border:none;
+  font-size:1.3rem;cursor:pointer;display:none;align-items:center;justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.28);z-index:50;
+}
+.back-to-top.show{display:flex;}
+.back-to-top:hover{background:var(--green-dark);}
+
+.overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.show{display:flex;}
+.login-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;width:100%;max-width:340px;}
+.login-card h2{margin:0 0 6px;font-size:1.2rem;}
+.login-card p{margin:0 0 16px;color:var(--muted);font-size:.85rem;}
+.migrate-banner{background:var(--amber);color:#1C2630;padding:10px 14px;border-radius:6px;font-size:.88rem;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.migrate-banner button{background:none;border:1px solid #1C2630;border-radius:6px;padding:5px 12px;color:#1C2630;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
+.panel h3{margin:24px 0 4px;font-size:1rem;font-weight:600;}
+
+/* ===== Contenuto su un'unica colonna, larghezza limitata ===== */
+.kpis,.layout,.migrate-banner{max-width:1100px;margin-left:auto;margin-right:auto;}
+.col-left .panel{margin-bottom:22px;}
+
+/* ===== Schermi stretti: la barra laterale diventa una testata ===== */
+@media (max-width:899px){
+  .app{flex-direction:column;}
+  .side{position:static;height:auto;flex:none;padding:18px 16px;gap:14px;}
+  .tabs{flex-direction:row;flex-wrap:wrap;}
+  .tab-btn{flex:1;text-align:center;}
+  .side-foot{margin-top:0;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .main-area{padding:20px 14px 60px;}
+}
+
+@media print{
+  body{background:#fff;}
+  .side,.kpis,.panel,.col-left,.table-toolbar,.count,.del-btn,.edit-btn,.print-btn,.back-to-top,.migrate-banner,.overlay{display:none !important;}
+  .app,.layout{display:block;}
+  .main-area{padding:0;}
+  .table-wrap{border:none;}
+  th,td{white-space:normal;}
+}
 </style>
 </head>
 <body>
-<header class="app-header">
-  <div class="brand"><div class="logo">VW</div><div><div id="brandName" class="brand-name" onclick="editTitle()" title="Tocca per modificare il nome">Golf GTI</div></div><button class="gear" onclick="showSettings()" aria-label="Impostazioni">⚙</button></div>
-  </header>
-<main>
-  <section id="listView">
-    <div class="section-head"><h2>Tutti i pieni</h2><button class="btn secondary" onclick="document.getElementById('csvInput').click()">Importa CSV</button></div>
-    <div id="listSummary" class="summary-grid"></div>
-    <div id="records" class="record-list"></div>
-  </section>
-  <section id="statsView" class="hidden">
-    <div class="section-head"><h2>Le tue statistiche</h2><select id="yearSelect" onchange="renderStats()" style="max-width:130px;border:1px solid #dce5f0;border-radius:10px;padding:9px;background:white"></select></div>
-    <div id="statsCards" class="summary-grid"></div>
-    <div class="card"><h3>Anno corrente vs precedente</h3><div id="yearCompare" class="record-meta"></div></div>
-    <div class="card"><h3>Totale generale</h3><div id="allTime" class="summary-grid" style="margin:0"></div></div>
-  </section>
-  <section id="chartsView" class="hidden">
-    <div class="section-head"><h2>Andamento</h2></div>
-    <div class="card"><h3>Prezzo carburante (€/L)</h3><div class="chart-filters"><button class="filter active" onclick="setChartRange('price',3,this)">3M</button><button class="filter" onclick="setChartRange('price',6,this)">6M</button><button class="filter" onclick="setChartRange('price',12,this)">1A</button><button class="filter" onclick="setChartRange('price',0,this)">Tutti</button></div><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div>
-    <div class="card"><h3>Consumo (km/L)</h3><div class="chart-filters"><button class="filter active" onclick="setChartRange('consumption',3,this)">3M</button><button class="filter" onclick="setChartRange('consumption',6,this)">6M</button><button class="filter" onclick="setChartRange('consumption',12,this)">1A</button><button class="filter" onclick="setChartRange('consumption',0,this)">Tutti</button></div><div class="chart-wrap"><canvas id="consumptionChart"></canvas></div></div>
-    <div class="card"><div class="section-head"><h3>Spesa mensile totale (€)</h3><select id="spendYear" onchange="renderSpendChart()" aria-label="Anno spesa mensile"></select></div><p class="muted">Somma di tutti i rifornimenti di ciascun mese.</p><div class="chart-wrap"><canvas id="spendChart"></canvas></div></div>
-  </section>
-  <section id="formView" class="hidden">
-    <div class="section-head"><button class="btn ghost" onclick="cancelForm()">← Indietro</button><h2 id="formTitle">Nuovo pieno</h2><span></span></div>
-    <div class="notice">Usa la tastiera numerica dell’iPhone: digita le cifre senza virgola. 5000 = 50,00 € · 2513 = 25,13 L.</div>
-    <div class="card">
-      <div class="field"><label for="fDate">Data e ora</label><input id="fDate" type="datetime-local"></div>
-      <div class="field"><label for="fOdo">Contachilometri (km)</label><input id="fOdo" type="text" inputmode="numeric" autocomplete="off" placeholder="Ultimo: —" oninput="formatOdometer(this)" onfocus="unformatOdometer(this)" onblur="formatOdometer(this)"></div>
-      <div class="row2">
-        <div class="field"><label for="fAmount">Importo (€)</label><input id="fAmount" class="money-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" oninput="autoCents(this)"><div class="hint">Inserisci centesimi</div></div>
-        <div class="field"><label for="fLiters">Litri (L)</label><input id="fLiters" class="money-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" oninput="autoCents(this)"><div class="hint">Inserisci centesimi</div></div>
-      </div>
-      <div class="toggle-line"><div><b>Pieno parziale</b><div class="hint">Non conteggiare come pieno completo nel consumo</div></div><button id="partialSwitch" class="switch" onclick="togglePartial()" aria-label="Pieno parziale"></button></div>
-      <div class="field"><label for="fFuel">Carburante</label><select id="fFuel"><option>Benzina</option><option>Diesel</option><option>GPL</option><option>Metano</option><option>Elettrico</option></select></div>
-      <div class="field"><label for="fAddress">Stazione / indirizzo (facoltativo)</label><input id="fAddress" placeholder="Dove hai fatto rifornimento"></div>
-      <div class="field"><label for="fNote">Note (facoltativo)</label><textarea id="fNote" rows="2" placeholder="Aggiungi una nota"></textarea></div>
-      <div class="form-actions"><button class="btn ghost" onclick="cancelForm()">Annulla</button><button class="btn" onclick="saveForm()">Salva rifornimento</button></div>
-      <button id="deleteButton" class="btn danger hidden" style="width:100%;margin-top:9px" onclick="deleteCurrent()">Elimina rifornimento</button>
-    </div>
-  </section>
-  <section id="settingsView" class="hidden">
-    <div class="section-head"><h2>Impostazioni e dati</h2><button class="btn ghost" onclick="setView('list')">Chiudi</button></div>
-    <div class="card"><h3>Sincronizzazione cloud</h3><p class="record-meta">I dati sono conservati in un Google Sheet collegato a questa app. Ogni modifica viene sincronizzata online.</p><button class="btn secondary" onclick="reloadData()">↻ Aggiorna dati</button> <button class="btn secondary" onclick="exportCsv()">Esporta CSV</button></div>
-    <div class="card"><h3>Importa storico</h3><p class="record-meta">Carica il CSV originale. L'importazione aggiunge i rifornimenti senza cancellare quelli già presenti; le righe già importate non vengono duplicate.</p><button class="btn" onclick="document.getElementById('csvInput').click()">Scegli file CSV</button></div>
-    <div class="card"><h3>Apri archivio</h3><p class="record-meta">Il Google Sheet è l'archivio cloud completo e modificabile.</p><button class="btn secondary" onclick="google.script.run.withSuccessHandler(r=>window.open(r.spreadsheetUrl,'_blank')).getAppData()">Apri Google Sheet</button></div>
-    <div class="notice">Per installarla su iPhone: apri il link dell'app in Safari → Condividi → Aggiungi alla schermata Home. L'accesso cloud richiede connessione a Internet.</div>
-  </section>
-</main>
-<button id="fab" class="fab" onclick="newRecord()" aria-label="Aggiungi rifornimento">+</button>
-<input id="csvInput" type="file" accept=".csv,text/csv" class="file-picker" onchange="handleCsv(event)">
-<nav class="bottom-nav"><button class="nav-item active" data-view="list" onclick="setView('list')"><span class="nav-icon">⛽️</span>Pieni</button><button class="nav-item" data-view="stats" onclick="setView('stats')"><span class="nav-icon">📊</span>Statistiche</button><button class="nav-item" data-view="charts" onclick="setView('charts')"><span class="nav-icon">📈</span>Grafici</button><button class="nav-item" onclick="showSettings()"><span class="nav-icon">⚙️</span>Altro</button></nav>
-<script>
-let records=[], currentId=null, partial=false, charts={}, ranges={price:3,consumption:3,spend:3};
-const money=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
-const num=n=>new Intl.NumberFormat('it-IT',{useGrouping:true,maximumFractionDigits:2}).format(Number(n)||0);
-const dateObj=s=>{let d=new Date(s);return isNaN(d)?new Date():d};
-const dateLabel=s=>dateObj(s).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(s){let t=document.createElement('div');t.className='toast';t.textContent=s;document.body.appendChild(t);setTimeout(()=>t.remove(),2800)}
-function load(){google.script.run.withSuccessHandler(data=>{records=data.records||[];document.getElementById('brandName').textContent=data.car||'Golf GTI';const last=records.filter(r=>r.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';if(!document.getElementById('fDate').value){document.getElementById('fDate').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}renderAll();}).withFailureHandler(e=>{const msg=e&&(e.message||e.details||e.toString&&e.toString());toast('Errore caricamento: '+(msg&&msg!=='[object Object]'?msg:'errore del server Google Apps Script.'));console.error('getAppData error',e)}).getAppData()}
-function reloadData(){load();toast('Aggiornamento richiesto')}
-function editTitle(){const current=document.getElementById('brandName').textContent||'Golf GTI';const next=prompt('Nome dell’auto:',current);if(next===null)return;if(!next.trim()){toast('Il nome non può essere vuoto');return}google.script.run.withSuccessHandler(r=>{document.getElementById('brandName').textContent=r.title;toast('Nome aggiornato')}).withFailureHandler(e=>toast('Errore: '+e.message)).setCarTitle(next.trim())}
+<div class="overlay" id="login-overlay">
+  <form class="login-card" onsubmit="doLogin(event)">
+    <h2>Gestione Magazzino</h2>
+    <p>Inserisci la password per accedere all'inventario.</p>
+    <label for="login-pw">Password</label>
+    <input type="password" id="login-pw" autocomplete="current-password" required>
+    <button class="btn" type="submit" style="width:100%">Accedi</button>
+    <div class="msg err" id="login-msg"></div>
+  </form>
+</div>
 
-function setView(v){['list','stats','charts','form','settings'].forEach(x=>document.getElementById(x+'View')?.classList.toggle('hidden',x!==v));document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===v));document.getElementById('fab').classList.toggle('hidden',v!=='list');if(v==='stats')renderStats();if(v==='charts')renderCharts()}
-function renderAll(){renderList();renderStats();if(!document.getElementById('chartsView').classList.contains('hidden'))renderCharts()}
-function renderList(){
- const all=records.length, liters=records.reduce((s,r)=>s+r.liters,0), amount=records.reduce((s,r)=>s+r.amount,0), latest=records[0];
- document.getElementById('listSummary').innerHTML=`<div class="stat"><div class="label">💶 Spesa totale</div><div class="value">${money(amount)}</div><div class="foot">${all} rifornimenti registrati</div></div><div class="stat"><div class="label">⛽ Litri acquistati</div><div class="value">${num(liters)} L</div><div class="foot">Ultimo: ${latest?dateLabel(latest.date).split(',')[0]:'—'}</div></div>`;
- const box=document.getElementById('records');
- if(!records.length){box.innerHTML='<div class="empty"><div class="big">⛽</div><b>Nessun rifornimento</b><p>Importa il CSV storico o aggiungi il primo pieno.</p><button class="btn" onclick="newRecord()">Aggiungi pieno</button></div>';return}
- box.innerHTML=records.map(r=>{const chronological=[...records].filter(x=>x.odometer&&x.liters).sort((a,b)=>a.odometer-b.odometer);const idx=chronological.findIndex(x=>x.id===r.id);let km=0,litersCycle=0,cons=0;if(!r.partial&&idx>=0){let prevFull=-1;for(let j=idx-1;j>=0;j--){if(!chronological[j].partial){prevFull=j;break}}if(prevFull>=0){km=Math.max(0,r.odometer-chronological[prevFull].odometer);for(let j=prevFull+1;j<=idx;j++)litersCycle+=chronological[j].liters;if(km&&litersCycle)cons=km/litersCycle}}return `<div class="record" onclick="editRecord('${esc(r.id)}')"><div class="fuel-icon">⛽</div><div class="record-main"><div class="record-top"><span class="record-date">${dateLabel(r.date)}</span><span class="record-amount">${money(r.amount)}</span></div><div class="record-meta">${num(r.liters)} L · ${r.odometer?num(r.odometer)+' km':'km non indicati'} · ${num(r.pricePerLiter||r.amount/(r.liters||1))} €/L</div>${r.address?`<div class="record-meta">⌖ ${esc(r.address)}</div>`:''}</div><div class="record-right">${cons?`<b style="color:var(--blue)">${num(cons)} km/L</b>`:''}${r.partial?'<div class="pill">Parziale</div>':'<div class="muted" style="font-size:11px;margin-top:5px">›</div>'}</div></div>`}).join('');
+<div class="app">
+  <aside class="side">
+    <div>
+      <h1>Magazzino</h1>
+      <p class="sub">Forme in stagionatura</p>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="carico">Carico merce</button>
+      <button class="tab-btn" data-tab="scarico">Scarico merce</button>
+      <button class="tab-btn" data-tab="pegno">Pegno</button>
+    </nav>
+    <div class="side-foot">
+      <span id="sync-status">Non connesso</span>
+      <span class="sync-actions">
+        <button class="print-btn" onclick="loadData()">Aggiorna</button>
+        <button class="print-btn" onclick="doLogout()">Esci</button>
+      </span>
+    </div>
+  </aside>
+
+<div class="main-area">
+  <div class="migrate-banner" id="migrate-banner">
+    <span>Su questo browser ci sono <b id="migrate-count">0</b> righe salvate in locale. Vuoi caricarle online?</span>
+    <span>
+      <button onclick="migrateLocal()">Carica online</button>
+      <button onclick="dismissMigrate()">Non ora</button>
+    </span>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b id="kpi-righe">0</b><span>righe</span></div>
+    <div class="kpi"><b id="kpi-forme">0</b><span>forme totali</span></div>
+    <div class="kpi pg"><b id="kpi-pegno">0</b><span>forme in pegno</span></div>
+  </div>
+
+  <div class="layout">
+  <div class="col-left">
+
+  <!-- CARICO -->
+  <div class="panel active" id="panel-carico">
+    <h2>Carica nuova merce in inventario</h2>
+    <div class="grid">
+      <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
+      <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
+      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="M/AA o MM/AA es. 9/24" maxlength="5"></div>
+      <div><label>Forme</label><input id="c-forme" type="number" min="0" placeholder="es. 30"></div>
+      <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
+      <div style="grid-column:1/-1"><label>Note</label><input id="c-note" type="text" placeholder="facoltativo"></div>
+    </div>
+    <p class="hint">Matricola facoltativa per GRAN BON, SBIANCATO e RETINATO. Mese/Anno facoltativo per SBIANCATO e RETINATO.</p>
+    <datalist id="tip-list"></datalist>
+    <button class="btn" id="c-submit-btn" onclick="caricaMerce()">Carica in inventario</button>
+    <div class="msg" id="c-msg"></div>
+  </div>
+
+  <!-- SCARICO -->
+  <div class="panel" id="panel-scarico">
+    <h2>Scarica merce dall'inventario</h2>
+    <div class="grid">
+      <div><label>Cerca per Scalera</label><input id="sc-search-scalera" type="number" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="number" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderScaricoList()"></div>
+    </div>
+    <button class="btn ghost" onclick="scaricoResetRicerca()">Azzera ricerca</button>
+    <div class="msg" id="s-msg"></div>
+    <div class="table-wrap" style="margin-top:14px;">
+      <table>
+        <thead><tr>
+          <th class="sortable" data-st="sc" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="sc" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
+          <th>Forme da togliere</th><th></th>
+        </tr></thead>
+        <tbody id="scarico-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PEGNO -->
+  <div class="panel" id="panel-pegno">
+    <h2>Pegno</h2>
+    <div class="grid">
+      <div><label>Cerca per Scalera</label><input id="pg-search-scalera" type="number" oninput="renderPegno()"></div>
+      <div><label>Cerca per Matricola</label><input id="pg-search-matricola" type="number" oninput="renderPegno()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="pg-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderPegno()"></div>
+    </div>
+    <button class="btn ghost" onclick="pegnoResetRicerca()">Azzera ricerca</button>
+    <div class="msg" id="pg-msg"></div>
+
+    <h3>Scarico dal pegno</h3>
+    <p class="hint">Le forme scaricate non spariscono: tornano in inventario libero, senza la dicitura PEGNO.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="sortable" data-st="pg" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="forme">Forme in pegno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pg" data-col="note">Banca / Note<span class="arrow">▲▼</span></th>
+          <th>Forme da scaricare</th><th></th>
+        </tr></thead>
+        <tbody id="pegno-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="pg-count"></div>
+
+    <h3>Carico in pegno</h3>
+    <p class="hint">Scegli la banca, poi indica per ogni riga libera quante forme mettere in pegno. Si possono mettere in pegno solo righe senza tipologia.</p>
+    <div class="grid" style="max-width:240px;margin-bottom:12px;">
+      <div><label>Banca</label>
+        <select id="pl-banca"><option value="CREDEM">CREDEM</option><option value="AGRICOLE">AGRICOLE</option></select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="sortable" data-st="pl" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="forme">Forme libere<span class="arrow">▲▼</span></th>
+          <th class="sortable" data-st="pl" data-col="note">Note<span class="arrow">▲▼</span></th>
+          <th>Forme da mettere in pegno</th><th></th>
+        </tr></thead>
+        <tbody id="pegno-libero-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- /col-left -->
+  <div class="col-right">
+  <div class="table-toolbar">
+    <input id="q-search" type="text" placeholder="Cerca un valore in tutta la tabella…" oninput="applyFilters()">
+    <button class="print-btn" onclick="exportExcel()" title="Scarica la tabella come file Excel, con l'ordine e i filtri attuali">📊 Scarica Excel</button>
+    <button class="print-btn" onclick="exportData()">⬇️ Esporta dati</button>
+    <button class="print-btn" onclick="document.getElementById('import-file').click()">⬆️ Importa dati</button>
+    <button class="print-btn" onclick="window.print()">🖨️ Stampa tabella</button>
+    <input type="file" id="import-file" accept="application/json,.json" style="display:none">
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr id="thead-row">
+        <th class="sortable" data-col="scalera">Scalera<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="mese">Mese/Anno<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="stag" title="Mesi compiuti dalla produzione (un mese è compiuto al termine del mese stesso)">Stagionatura<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
+        <th class="sortable" data-col="note">Note<span class="arrow">▲▼</span></th>
+        <th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="count" id="count"></div>
+  </div><!-- /col-right -->
+  </div><!-- /layout -->
+</div><!-- /main-area -->
+</div><!-- /app -->
+
+<button class="back-to-top" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Torna all'inizio della pagina">↑</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+// ====== CONFIGURAZIONE SUPABASE: sostituisci questi 3 valori ======
+const SUPABASE_URL = 'https://jeyaymdllslsssqnovdj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_T3tpl8qpQuMrXoWMj1L1yg_6O-1vJgJ';
+const SHARED_EMAIL = 'paolo.ferrari@trentingroup.it';
+// ==================================================================
+
+const TABLE = 'inventario';
+const CONFIGURED = !SUPABASE_URL.startsWith('INCOLLA') && !SUPABASE_ANON_KEY.startsWith('INCOLLA');
+const sb = (CONFIGURED && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let DATA = [];
+
+function setStatus(text, isErr){
+  const el=document.getElementById('sync-status');
+  el.textContent=text;
+  el.className=isErr?'err':'';
 }
-function newRecord(){currentId=null;partial=false;document.getElementById('formTitle').textContent='Nuovo pieno';document.getElementById('deleteButton').classList.add('hidden');document.getElementById('fDate').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);document.getElementById('fOdo').value='';const last=records.filter(r=>r.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';document.getElementById('fAmount').value='';document.getElementById('fLiters').value='';document.getElementById('fFuel').value='Benzina';document.getElementById('fAddress').value='';document.getElementById('fNote').value='';updatePartial();setView('form')}
-function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;currentId=id;partial=r.partial;document.getElementById('formTitle').textContent='Modifica pieno';document.getElementById('deleteButton').classList.remove('hidden');document.getElementById('fDate').value=(r.date||'').slice(0,16);document.getElementById('fOdo').value=r.odometer||'';const last=records.filter(x=>x.id!==id&&x.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';document.getElementById('fAmount').value=(Number(r.amount)||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});document.getElementById('fLiters').value=(Number(r.liters)||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});document.getElementById('fFuel').value=r.fuel||'Benzina';document.getElementById('fAddress').value=r.address||'';document.getElementById('fNote').value=r.note||'';updatePartial();setView('form')}
-function cancelForm(){setView('list')}
-function autoCents(el){const raw=String(el.value||'');if(!raw)return;let digits=raw.replace(/\D/g,'').slice(0,10);if(!digits){el.value='';return}el.value=(Number(digits)/100).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false})}
-function parseInputNumber(v){return Number(String(v??'').trim().replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.'))||0}
-function unformatOdometer(el){el.value=String(el.value||'').replace(/\D/g,'')}
-function formatOdometer(el){const digits=String(el.value||'').replace(/\D/g,'');el.value=digits?new Intl.NumberFormat('it-IT',{maximumFractionDigits:0,useGrouping:true}).format(Number(digits)):''}
-function togglePartial(){partial=!partial;updatePartial()}function updatePartial(){document.getElementById('partialSwitch').classList.toggle('on',partial)}
-function saveForm(){const d=document.getElementById('fDate').value, odo=parseInputNumber(document.getElementById('fOdo').value), amount=parseInputNumber(document.getElementById('fAmount').value), liters=parseInputNumber(document.getElementById('fLiters').value);if(!d||!amount||!liters){toast('Inserisci data, importo e litri.');return}if(odo&&records.some(r=>r.id!==currentId&&r.odometer===odo)){if(!confirm('Esiste già un rifornimento con questo chilometraggio. Vuoi salvare comunque?'))return}
- const r={id:currentId||'',date:d,odometer:odo,amount,liters,partial,fuel:document.getElementById('fFuel').value,address:document.getElementById('fAddress').value,note:document.getElementById('fNote').value,origin:'manuale'};
- google.script.run.withSuccessHandler(()=>{toast('Rifornimento salvato e sincronizzato');setView('list');load()}).withFailureHandler(e=>{const msg=e&&(e.message||e.details||e.toString&&e.toString());toast('Errore salvataggio: '+(msg&&msg!=='[object Object]'?msg:'errore del server Google Apps Script. Verifica autorizzazioni e foglio collegato.'));console.error('saveRecord error',e)}).saveRecord(r)}
-function deleteCurrent(){if(!currentId||!confirm('Eliminare definitivamente questo rifornimento?'))return;google.script.run.withSuccessHandler(()=>{toast('Rifornimento eliminato');setView('list');load()}).deleteRecord(currentId)}
-function showSettings(){setView('settings')}
-function parseCsv(text){let rows=[],row=[],field='',quoted=false;text=String(text||'').replace(/^\uFEFF/,'');for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(quoted){if(c==='"'&&n==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field);rows.push(row);row=[];field=''}else if(c!=='\r')field+=c}}if(field.length||row.length){row.push(field);rows.push(row)}return rows}
-function parseItalianDate(s){const m=String(s||'').trim().match(/(\d{1,2})\s+([a-zàèéìòù]+)\s+(\d{4}),?\s*(\d{1,2}):(\d{2})/i);if(!m){let d=new Date(s);return isNaN(d)?'':d.toISOString().slice(0,16)}const months={gen:1,feb:2,mar:3,apr:4,mag:5,giu:6,lug:7,ago:8,set:9,ott:10,nov:11,dic:12};const mon=months[m[2].toLowerCase().slice(0,3)];if(!mon)return '';return `${m[3]}-${String(mon).padStart(2,'0')}-${m[1].padStart(2,'0')}T${m[4].padStart(2,'0')}:${m[5]}`}
-function decimal(s){return Number(String(s??'').trim().replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.'))||0}
-function handleCsv(e){const file=e.target.files&&e.target.files[0];if(!file)return;toast('Lettura CSV in corso…');const reader=new FileReader();reader.onerror=()=>toast('Impossibile leggere il file. Riprova scegliendo il CSV da File su iPhone.');reader.onload=()=>{try{const rows=parseCsv(reader.result);if(rows.length<2)throw new Error('Il file è vuoto o non contiene righe dati.');const headers=rows.shift().map(x=>x.trim().replace(/^\uFEFF/,''));const ix=k=>headers.findIndex(x=>x.toLowerCase()===k.toLowerCase());const required=['Data','Litri','Importo','Contachilometri'];const missing=required.filter(k=>ix(k)<0);if(missing.length)throw new Error('Colonne mancanti: '+missing.join(', ')+'. Intestazioni trovate: '+headers.join(', '));const data=rows.filter(r=>r.length>3&&r[ix('Data')]).map(r=>{const date=parseItalianDate(r[ix('Data')]);const liters=decimal(r[ix('Litri')]),amount=decimal(r[ix('Importo')]),odo=decimal(r[ix('Contachilometri')]);const stable=[r[ix('Data')],r[ix('Contachilometri')],r[ix('Litri')],r[ix('Importo')],r[ix('Indirizzo')]||''].join('|');let id='csv-'+Array.from(stable).reduce((hash,ch)=>((hash*31)+ch.charCodeAt(0))>>>0,2166136261).toString(16)+'-'+btoa(unescape(encodeURIComponent(stable))).replace(/[^a-zA-Z0-9]/g,'').slice(0,18);return {id,date,odometer:odo,liters,amount,partial:decimal(r[ix('Parziale')])===1,fuel:(ix('Carburante')>=0?r[ix('Carburante')]: '')||'Benzina',address:ix('Indirizzo')>=0?r[ix('Indirizzo')]||'':'',note:ix('Note')>=0?r[ix('Note')]||'':'',latitude:ix('Latitudine')>=0&&r[ix('Latitudine')].trim()!==''?Number(String(r[ix('Latitudine')]).replace(',','.')):null,longitude:ix('Longitudine')>=0&&r[ix('Longitudine')].trim()!==''?Number(String(r[ix('Longitudine')]).replace(',','.')):null,origin:'CSV'}}).filter(r=>r.date&&r.liters>0&&r.amount>0);if(!data.length)throw new Error('Nessuna riga valida trovata. Verifica che il CSV abbia data, litri e importo.');if(!confirm(`Trovati ${data.length} rifornimenti validi. Verranno aggiunti senza cancellare i dati esistenti; i record già importati saranno saltati. Procedere?`)){e.target.value='';return}google.script.run.withSuccessHandler(res=>{toast(`Importazione completata: ${res.imported} nuovi record, ${res.skipped||0} già presenti. Totale: ${res.total}.`);e.target.value='';setView('list');load()}).withFailureHandler(err=>{toast('Errore del server durante l’importazione: '+(err&&err.message?err.message:String(err)));e.target.value=''}).importRecords(data,false)}catch(err){toast('Errore CSV: '+err.message);e.target.value=''}};reader.readAsText(file,'UTF-8')}
-function exportCsv(){
-  if(!records.length){toast('Non ci sono rifornimenti da esportare.');return}
-  toast('Creo il CSV su Google Drive…');
-  google.script.run
-    .withSuccessHandler(result=>{
-      if(!result||!result.url){toast('Esportazione non riuscita: il server non ha restituito il link.');return}
-      const box=document.createElement('div');
-      box.className='toast';
-      box.style.cssText='max-width:90vw;white-space:normal;display:flex;align-items:center;gap:12px;';
-      const label=document.createElement('span');
-      label.textContent='CSV creato ('+result.rows+' rifornimenti). ';
-      const link=document.createElement('a');
-      link.href=result.url;link.target='_blank';link.rel='noopener';link.textContent='Apri / scarica';link.style.cssText='color:#fff;text-decoration:underline;font-weight:700';
-      box.append(label,link);document.body.appendChild(box);setTimeout(()=>box.remove(),10000);
-    })
-    .withFailureHandler(err=>{
-      const msg=err&&(err.message||String(err));
-      toast('Errore esportazione CSV: '+(msg||'errore del server'));
-      console.error('exportRecordsCsv error',err);
-    })
-    .exportRecordsCsv();
+
+function showLogin(message){
+  document.getElementById('login-overlay').classList.add('show');
+  document.getElementById('login-msg').textContent=message||'';
 }
-function renderStats(){const ys=[...new Set(records.map(r=>(r.date||'').slice(0,4)).filter(x=>/^\d{4}$/.test(x)))].sort().reverse();const sel=document.getElementById('yearSelect');const old=sel.value;sel.innerHTML=ys.map(y=>`<option>${y}</option>`).join('');if(ys.includes(old))sel.value=old;const year=sel.value||String(new Date().getFullYear()),yr=records.filter(r=>(r.date||'').startsWith(year)),prev=records.filter(r=>(r.date||'').startsWith(String(Number(year)-1)));const sum=(a,k)=>a.reduce((s,r)=>s+(Number(r[k])||0),0);const stats=[['⛽','Litri',sum(yr,'liters'),'L'],['💶','Importo',sum(yr,'amount'),'€'],['🛣️','Chilometri',yr.length?Math.max(...yr.map(r=>r.odometer))-Math.min(...yr.map(r=>r.odometer)):0,'km'],['◉','Media km/L',calcAverage(yr),'km/L'],['🏷️','Costo medio €/L',sum(yr,'amount')/(sum(yr,'liters')||1),'€/L'],['📈','Ultimo prezzo',yr[0]?.pricePerLiter||0,'€/L']];document.getElementById('statsCards').innerHTML=stats.map((s,i)=>`<div class="stat"><div class="label">${s[0]} ${s[1]}</div><div class="value">${i===1||i===4||i===5?money(s[2]):new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:s[3]==='km'?0:2,maximumFractionDigits:s[3]==='km'?0:2}).format(Number(s[2])||0)+(s[3]==='L'?' L':s[3]==='km'?' km':s[3]==='km/L'?' km/L':'')}</div><div class="foot">${i===0?'Anno '+year:i===1?'Spesa nel periodo':i===4?'Prezzo medio ponderato':'Dati registrati'}</div></div>`).join('');document.getElementById('yearCompare').innerHTML=`<div>Litri: <b>${new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(yr,'liters'))} L</b> · anno precedente ${new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(prev,'liters'))} L</div><div style="margin-top:7px">Spesa: <b>${money(sum(yr,'amount'))}</b> · anno precedente ${money(sum(prev,'amount'))}</div><div style="margin-top:7px">Rifornimenti: <b>${yr.length}</b> · anno precedente ${prev.length}</div>`;document.getElementById('allTime').innerHTML=[['Litri',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(records,'liters'))+' L'],['Importo',money(sum(records,'amount'))],['Km registrati',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(records.length?Math.max(...records.map(r=>r.odometer))-Math.min(...records.map(r=>r.odometer)):0)+' km'],['Media km/L',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(calcAverage(records))+' km/L']].map(x=>`<div class="stat"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('')}
-function calcAverage(arr){const sorted=[...arr].filter(r=>r.odometer&&r.liters).sort((a,b)=>a.odometer-b.odometer);let lastFull=null,litersSince=0,km=0,liters=0;for(const r of sorted){litersSince+=r.liters;if(!r.partial){if(lastFull&&r.odometer>lastFull.odometer&&litersSince>0){km+=r.odometer-lastFull.odometer;liters+=litersSince}lastFull=r;litersSince=0}}return liters?km/liters:0}
-function setChartRange(kind,months,btn){ranges[kind]=months;btn.parentElement.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderCharts()}
-function renderCharts(){
- if(!window.Chart)return;
- const cutoff=months=>months?new Date(Date.now()-months*30.44*86400000):new Date(0);
- const sorted=[...records].filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));
- const price=sorted.filter(r=>dateObj(r.date)>=cutoff(ranges.price)&&r.liters>0);
- const labels=price.map(r=>dateObj(r.date).toLocaleDateString('it-IT',{month:'short',year:'2-digit'}));
- drawChart('priceChart','price',labels,price.map(r=>r.pricePerLiter||r.amount/r.liters),'#087cf0');
- const cons=[];let previousFull=null;let litersSinceFull=0;
- for(const r of sorted){if(!(r.liters>0))continue;litersSinceFull+=r.liters;if(r.partial||!(r.odometer>0))continue;if(previousFull&&r.odometer>previousFull.odometer&&litersSinceFull>0&&dateObj(r.date)>=cutoff(ranges.consumption)){cons.push({label:dateObj(r.date).toLocaleDateString('it-IT',{month:'short',year:'2-digit'}),value:(r.odometer-previousFull.odometer)/litersSinceFull})}if(r.odometer>0){previousFull=r;litersSinceFull=0;}}
- drawChart('consumptionChart','consumption',cons.map(x=>x.label),cons.map(x=>x.value),'#159447');
- renderSpendChart();
+function hideLogin(){ document.getElementById('login-overlay').classList.remove('show'); }
+
+async function loadData(){
+  if(!sb) return false;
+  setStatus('Sincronizzazione…');
+  try{
+    const all=[]; let from=0; const step=1000;
+    while(true){
+      const {data,error}=await sb.from(TABLE).select('*')
+        .order('created_at',{ascending:true}).order('id',{ascending:true})
+        .range(from,from+step-1);
+      if(error) throw error;
+      all.push(...data);
+      if(data.length<step) break;
+      from+=step;
+    }
+    DATA=all;
+    refreshAll();
+    setStatus('Dati aggiornati alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
+    return true;
+  }catch(e){
+    setStatus('Errore di connessione: '+(e.message||e), true);
+    return false;
+  }
 }
-function renderSpendChart(){
- const sel=document.getElementById('spendYear');if(!sel||!window.Chart)return;
- const years=[...new Set(records.map(r=>(r.date||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)))].sort().reverse();
- const current=sel.value;
- sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
- const year=years.includes(current)?current:(years.includes(String(new Date().getFullYear()))?String(new Date().getFullYear()):years[0]);
- if(year)sel.value=year;
- const totals=Array.from({length:12},(_,i)=>0);
- for(const r of records){if((r.date||'').startsWith(year+'-')){const month=Number((r.date||'').slice(5,7));if(month>=1&&month<=12)totals[month-1]+=Number(r.amount)||0}}
- const labels=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
- drawChart('spendChart','spend',labels,totals,'#e91f38');
+
+async function doLogin(ev){
+  ev.preventDefault();
+  if(!sb) return;
+  const msg=document.getElementById('login-msg');
+  msg.textContent='';
+  const pw=document.getElementById('login-pw').value;
+  const {error}=await sb.auth.signInWithPassword({email:SHARED_EMAIL, password:pw});
+  if(error){
+    msg.textContent=/invalid/i.test(error.message) ? 'Password non corretta.' : 'Accesso non riuscito: '+error.message;
+    return;
+  }
+  document.getElementById('login-pw').value='';
+  hideLogin();
+  await startApp();
 }
-function drawChart(id,key,labels,data,color){const ctx=document.getElementById(id);if(charts[key])charts[key].destroy();charts[key]=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'20',fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:color,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>key==='spend'?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(ctx.parsed.y):ctx.parsed.y.toLocaleString('it-IT',{maximumFractionDigits:2})}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:6,color:'#748198'}},y:{grid:{color:'#edf1f6'},ticks:{color:'#748198',callback:value=>key==='spend'?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(value):value}}}}})}
-load();
-// La schermata iniziale è direttamente il modulo di inserimento.
-setView('form');
+
+async function doLogout(){
+  if(sb) await sb.auth.signOut();
+  DATA=[];
+  refreshAll();
+  setStatus('Non connesso');
+  showLogin();
+}
+
+let autoRefreshSet=false;
+function canAutoRefresh(){
+  const a=document.activeElement;
+  const typing=a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');
+  return !typing && !inlineEditId && !document.hidden;
+}
+function setupAutoRefresh(){
+  if(autoRefreshSet) return;
+  autoRefreshSet=true;
+  setInterval(()=>{ if(canAutoRefresh()) loadData(); }, 60000);
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden && canAutoRefresh()) loadData(); });
+}
+
+async function startApp(){
+  checkLocalMigration();
+  await loadData();
+  setupAutoRefresh();
+}
+
+function normalizeRow(r){
+  return {
+    id: r.id ? String(r.id) : crypto.randomUUID(),
+    scalera: Number(r.scalera),
+    matricola: (r.matricola===null||r.matricola===undefined||r.matricola==='') ? null : Number(r.matricola),
+    mese: r.mese || null,
+    forme: Number(r.forme),
+    tipologia: (r.tipologia||'').toString().toUpperCase(),
+    note: (r.note||'').toString().toUpperCase()
+  };
+}
+
+// Carica righe online ignorando quelle già presenti (stesso id). Restituisce quante ne ha aggiunte.
+async function uploadRows(rows){
+  let inserted=0;
+  for(let i=0;i<rows.length;i+=500){
+    const chunk=rows.slice(i,i+500).map(normalizeRow);
+    const {data,error}=await sb.from(TABLE).upsert(chunk,{onConflict:'id',ignoreDuplicates:true}).select('id');
+    if(error) throw error;
+    inserted+=data.length;
+  }
+  return inserted;
+}
+
+function localRows(){
+  try{
+    const a=JSON.parse(localStorage.getItem('magazzino_data')||'[]');
+    return Array.isArray(a)?a:[];
+  }catch(e){ return []; }
+}
+function checkLocalMigration(){
+  const banner=document.getElementById('migrate-banner');
+  let done=false;
+  try{ done=localStorage.getItem('magazzino_migrato')==='1'; }catch(e){}
+  const rows=localRows();
+  if(rows.length>0 && !done){
+    document.getElementById('migrate-count').textContent=rows.length.toLocaleString('it-IT');
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+}
+async function migrateLocal(){
+  const rows=localRows();
+  try{
+    const n=await uploadRows(rows);
+    try{ localStorage.setItem('magazzino_migrato','1'); }catch(e){}
+    alert(`Caricamento completato: ${n} righe aggiunte online (su ${rows.length} presenti in questo browser; le altre erano già online).`);
+    checkLocalMigration();
+    await loadData();
+  }catch(e){
+    alert('Caricamento non riuscito: '+(e.message||e));
+  }
+}
+function dismissMigrate(){
+  try{ localStorage.setItem('magazzino_migrato','1'); }catch(e){}
+  checkLocalMigration();
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
+  if(tab==='scarico') renderScaricoList();
+  if(tab==='pegno') renderPegno();
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+// Stagionatura: mesi compiuti. Un mese si considera compiuto al termine del mese stesso
+// (produzione set-2024 -> 24 mesi il 1 ottobre 2026).
+function stagionatura(v, oggi){
+  if(!v) return null;
+  const [y,m]=v.split('-').map(Number);
+  oggi=oggi||new Date();
+  const n=(oggi.getFullYear()-y)*12+(oggi.getMonth()+1-m)-1;
+  return n<0?0:n;
+}
+function fmtStag(v){ const n=stagionatura(v); return n===null?'—':String(n); }
+
+function fmtMese(v){
+  if(!v) return '—';
+  const [y,m]=v.split('-');
+  return m+'/'+y;
+}
+
+const MESI_BREVI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+function fmtMeseTesto(v){
+  if(!v) return '—';
+  const [y,m]=v.split('-');
+  return (MESI_BREVI[parseInt(m,10)-1]||m)+'-'+y;
+}
+
+function parseMese(str){
+  if(!str) return null;
+  const m=str.trim().match(/^(\d{1,2})\/(\d{2})$/);
+  if(!m) return null;
+  const month=parseInt(m[1],10);
+  if(month<1||month>12) return null;
+  const year=2000+parseInt(m[2],10);
+  return year+'-'+String(month).padStart(2,'0');
+}
+
+function fmtMeseInput(iso){
+  if(!iso) return '';
+  const [y,m]=iso.split('-');
+  return m+'/'+y.slice(2);
+}
+
+function attachMeseAutoFormat(id, onDone){
+  const el=document.getElementById(id);
+  el.addEventListener('input',()=>{
+    let raw=el.value.replace(/[^0-9/]/g,'');
+    const firstSlash=raw.indexOf('/');
+    if(firstSlash!==-1){
+      raw=raw.slice(0,firstSlash+1)+raw.slice(firstSlash+1).replace(/\//g,'');
+    }
+    if(firstSlash===-1 && raw.length>2){
+      raw=raw.slice(0,2)+'/'+raw.slice(2);
+    }
+    raw=raw.slice(0,5);
+    el.value=raw;
+    if(onDone) onDone();
+  });
+}
+attachMeseAutoFormat('c-mese');
+
+function attachUppercase(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input',()=>{
+    const pos=el.selectionStart;
+    el.value=el.value.toUpperCase();
+    if(pos!==null) el.setSelectionRange(pos,pos);
+  });
+}
+attachUppercase('c-tipologia');
+attachUppercase('c-note');
+
+function up(s){ return (s||'').toString().toUpperCase(); }
+function fmtNum(n){ return Number(n||0).toLocaleString('it-IT'); }
+
+const MATRICOLA_OPTIONAL=['GRAN BON','SBIANCATO','RETINATO'];
+const MESE_OPTIONAL=['SBIANCATO','RETINATO'];
+
+let inlineEditId=null;
+
+async function caricaMerce(){
+  const scalera=document.getElementById('c-scalera').value;
+  const matricola=document.getElementById('c-matricola').value;
+  const meseStr=document.getElementById('c-mese').value;
+  const forme=parseFloat(document.getElementById('c-forme').value);
+  const tipologia=up(document.getElementById('c-tipologia').value.trim());
+  const note=up(document.getElementById('c-note').value.trim());
+  const msg=document.getElementById('c-msg');
+
+  const matricolaOpt=MATRICOLA_OPTIONAL.includes(tipologia);
+  const meseOpt=MESE_OPTIONAL.includes(tipologia);
+
+  if(!scalera || !forme || forme<=0){
+    msg.textContent='Compila scalera e un numero di forme valido.';
+    msg.className='msg err'; return;
+  }
+  if(!matricolaOpt && !matricola){
+    msg.textContent='La matricola è obbligatoria per questa tipologia.';
+    msg.className='msg err'; return;
+  }
+  if(!meseOpt && !meseStr){
+    msg.textContent='Il mese/anno è obbligatorio per questa tipologia.';
+    msg.className='msg err'; return;
+  }
+  let mese=null;
+  if(meseStr){
+    mese=parseMese(meseStr);
+    if(!mese){
+      msg.textContent='Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.';
+      msg.className='msg err'; return;
+    }
+  }
+  const btn=document.getElementById('c-submit-btn');
+  btn.disabled=true;
+  const {error}=await sb.from(TABLE).insert({
+    scalera:Number(scalera), matricola: matricola?Number(matricola):null,
+    mese, forme:Number(forme), tipologia, note
+  });
+  btn.disabled=false;
+  if(error){
+    msg.textContent='Salvataggio non riuscito: '+error.message;
+    msg.className='msg err'; return;
+  }
+  const matricolaDisplay=matricola?matricola:'—';
+  const meseDisplay=mese?fmtMeseInput(mese):'—';
+  msg.textContent=`Merce caricata in inventario: Matricola ${matricolaDisplay}, Mese/Anno ${meseDisplay}, ${fmtNum(forme)} forme.`;
+  msg.className='msg ok';
+  document.getElementById('c-scalera').value='';
+  document.getElementById('c-matricola').value='';
+  document.getElementById('c-mese').value='';
+  document.getElementById('c-forme').value='';
+  document.getElementById('c-tipologia').value='';
+  document.getElementById('c-note').value='';
+  document.getElementById('c-scalera').focus();
+  await loadData();
+}
+
+function startInlineEdit(id){
+  inlineEditId=id;
+  applyFilters();
+}
+
+function cancelInlineEdit(){
+  inlineEditId=null;
+  applyFilters();
+}
+
+async function saveInlineEdit(id){
+  const rec=DATA.find(r=>r.id===id);
+  if(!rec) return;
+  const scalera=document.getElementById('ir-scalera-'+id).value;
+  const matricola=document.getElementById('ir-matricola-'+id).value;
+  const meseStr=document.getElementById('ir-mese-'+id).value;
+  const forme=parseFloat(document.getElementById('ir-forme-'+id).value);
+  const tipologia=up(document.getElementById('ir-tipologia-'+id).value.trim());
+  const note=up(document.getElementById('ir-note-'+id).value.trim());
+
+  const matricolaOpt=MATRICOLA_OPTIONAL.includes(tipologia);
+  const meseOpt=MESE_OPTIONAL.includes(tipologia);
+
+  if(!scalera || !forme || forme<=0){ alert('Compila scalera e un numero di forme valido.'); return; }
+  if(!matricolaOpt && !matricola){ alert('La matricola è obbligatoria per questa tipologia.'); return; }
+  if(!meseOpt && !meseStr){ alert('Il mese/anno è obbligatorio per questa tipologia.'); return; }
+  let mese=null;
+  if(meseStr){
+    mese=parseMese(meseStr);
+    if(!mese){ alert('Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.'); return; }
+  }
+  const {error}=await sb.from(TABLE).update({
+    scalera:Number(scalera), matricola:matricola?Number(matricola):null, mese,
+    forme:Number(forme), tipologia, note
+  }).eq('id',id);
+  if(error){ alert('Salvataggio non riuscito: '+error.message); return; }
+  inlineEditId=null;
+  await loadData();
+}
+
+function scaricoResetRicerca(){
+  document.getElementById('sc-search-scalera').value='';
+  document.getElementById('sc-search-matricola').value='';
+  document.getElementById('sc-search-mese').value='';
+  renderScaricoList();
+}
+
+function renderScaricoList(){
+  const tbody=document.getElementById('scarico-tbody');
+  if(!tbody) return;
+  const qtyBackup=captureQty('sc-qty-');
+  const fScalera=document.getElementById('sc-search-scalera').value;
+  const fMatricola=document.getElementById('sc-search-matricola').value;
+  const fMese=document.getElementById('sc-search-mese').value.trim().toLowerCase();
+
+  let list=DATA.filter(r=>{
+    if(fScalera && String(r.scalera)!==String(fScalera)) return false;
+    if(fMatricola && String(r.matricola)!==String(fMatricola)) return false;
+    if(fMese && !fmtMese(r.mese).toLowerCase().includes(fMese)) return false;
+    return true;
+  });
+
+  if(list.length===0){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="7">Nessuna riga trovata.</td></tr>';
+    return;
+  }
+  const sorted=sortRows(list, SORTS.sc);
+  tbody.innerHTML=sorted.map(r=>{
+    const matricolaTxt=r.matricola!=null && r.matricola!=='' ? String(r.matricola) : '—';
+    const tipologiaUp=up(r.tipologia);
+    return `<tr>
+      <td>${fmtNum(r.scalera)}</td>
+      <td>${matricolaTxt}</td>
+      <td>${fmtMese(r.mese)}</td>
+      <td>${fmtNum(r.forme)}</td>
+      <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
+      <td><input type="number" min="1" id="sc-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+      <td><button class="edit-btn" onclick="scaricoSalva('${r.id}')" title="Salva scarico">💾</button><button class="del-btn" onclick="scaricoElimina('${r.id}')" title="Elimina riga">✕</button></td>
+    </tr>`;
+  }).join('');
+  restoreQty(qtyBackup);
+}
+
+async function scaricoSalva(id){
+  const rec=DATA.find(r=>r.id===id);
+  const msg=document.getElementById('s-msg');
+  if(!rec) return;
+  const input=document.getElementById('sc-qty-'+id);
+  const qty=parseFloat(input.value);
+  if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme disponibili (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  const rimanenti=rec.forme-qty;
+  // Si agisce solo se la riga online ha ancora le forme che vedo: protegge da scarichi simultanei di altri utenti
+  const query = rimanenti<=0
+    ? sb.from(TABLE).delete().eq('id',id).eq('forme',rec.forme)
+    : sb.from(TABLE).update({forme:rimanenti}).eq('id',id).eq('forme',rec.forme);
+  const {data,error}=await query.select();
+  if(error){ msg.textContent='Scarico non riuscito: '+error.message; msg.className='msg err'; return; }
+  if(!data || data.length===0){
+    msg.textContent='Questa riga è stata modificata da un altro utente nel frattempo: ho ricaricato i dati, ricontrolla e riprova.';
+    msg.className='msg err';
+    await loadData();
+    return;
+  }
+  msg.textContent = rimanenti<=0
+    ? 'Scarico registrato: riga esaurita e rimossa dall\'inventario.'
+    : `Scarico registrato: nuova quantità ${fmtNum(rimanenti)} forme.`;
+  msg.className='msg ok';
+  input.value='';
+  await loadData();
+}
+
+async function scaricoElimina(id){
+  const {error}=await sb.from(TABLE).delete().eq('id',id);
+  const msg=document.getElementById('s-msg');
+  if(error){ msg.textContent='Eliminazione non riuscita: '+error.message; msg.className='msg err'; return; }
+  msg.textContent='Riga rimossa dall\'inventario.';
+  msg.className='msg ok';
+  await loadData();
+}
+
+async function deleteRow(id){
+  const {error}=await sb.from(TABLE).delete().eq('id',id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadData();
+}
+
+function populateTipologiaOptions(){
+  const dl=document.getElementById('tip-list');
+  const types=[...new Set(DATA.map(r=>up(r.tipologia)).filter(Boolean))].sort();
+  dl.innerHTML=types.map(t=>`<option value="${t}">`).join('');
+}
+
+function resetFilters(){
+  document.getElementById('q-search').value='';
+  applyFilters();
+}
+
+let sortState={col:null, dir:1};
+
+function toggleSort(col){
+  if(sortState.col===col){ sortState.dir*=-1; }
+  else{ sortState.col=col; sortState.dir=1; }
+  document.querySelectorAll('th.sortable:not([data-st])').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col===sortState.col) th.classList.add(sortState.dir===1?'sort-asc':'sort-desc');
+  });
+  applyFilters();
+}
+document.querySelectorAll('th.sortable:not([data-st])').forEach(th=>th.addEventListener('click',()=>toggleSort(th.dataset.col)));
+
+function compareMatricolaAware(va, vb, dir){
+  const aNull=(va===null||va===undefined||va==='');
+  const bNull=(vb===null||vb===undefined||vb==='');
+  if(aNull && bNull) return 0;
+  if(aNull) return 1;
+  if(bNull) return -1;
+  return (Number(va)-Number(vb))*dir;
+}
+
+function sortRows(rows, st){
+  st=st||sortState;
+  if(!st.col) return rows;
+  const col=st.col, dir=st.dir;
+  const numeric=(col==='scalera'||col==='matricola'||col==='forme');
+  return [...rows].sort((a,b)=>{
+    if(col==='matricola') return compareMatricolaAware(a.matricola, b.matricola, dir);
+    if(col==='mese' || col==='stag'){
+      const x=a.mese||'', y=b.mese||'';
+      if(!x && !y) return 0;
+      if(!x) return 1;
+      if(!y) return -1;
+      const d=(col==='stag')?-dir:dir;   // più mesi = produzione più vecchia
+      return (x<y?-1:x>y?1:0)*d;
+    }
+    let va=a[col], vb=b[col];
+    if(numeric){ va=Number(va)||0; vb=Number(vb)||0; }
+    else{ va=(va||'').toString().toLowerCase(); vb=(vb||'').toString().toLowerCase(); }
+    if(va<vb) return -1*dir;
+    if(va>vb) return 1*dir;
+    return 0;
+  });
+}
+
+function applyFilters(){
+  const quick=document.getElementById('q-search').value.trim().toLowerCase();
+  let filtered=DATA.filter(r=>{
+    if(quick){
+      const hay=[r.scalera,r.matricola,fmtMese(r.mese),fmtMeseTesto(r.mese),r.mese?stagionatura(r.mese)+' mesi':'',r.forme,r.tipologia,r.note].join(' ').toLowerCase();
+      if(!hay.includes(quick)) return false;
+    }
+    return true;
+  });
+  renderTable(sortRows(filtered));
+}
+
+function escapeHtml(s){
+  return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+const GREY_TIPOLOGIE=['GRAN BON','SBIANCATO','RETINATO'];
+function badgeClass(tip){
+  if(!tip) return '';
+  const t=up(tip).trim();
+  if(t==='PEGNO') return 'badge-pegno';
+  if(t==='BIO') return 'badge-bio';
+  if(GREY_TIPOLOGIE.includes(t)) return 'badge-grigio';
+  return '';
+}
+
+function highlightNote(note){
+  if(!note) return '—';
+  let text=escapeHtml(up(note));
+  text=text.replace(/CREDEM/g, m=>`<span class="hl-credem">${m}</span>`);
+  text=text.replace(/AGRICOLE/g, m=>`<span class="hl-agricole">${m}</span>`);
+  return text;
+}
+
+function renderRow(r){
+  const matricolaTxt=r.matricola!=null && r.matricola!=='' ? String(r.matricola) : '—';
+  const tipologiaUp=up(r.tipologia);
+  return `<tr class="${isPegno(r)?'row-pegno':''}">
+    <td>${fmtNum(r.scalera)}</td>
+    <td>${matricolaTxt}</td>
+    <td>${fmtMeseTesto(r.mese)}</td>
+    <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
+    <td class="fo">${fmtNum(r.forme)}</td>
+    <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
+    <td>${highlightNote(r.note)}</td>
+    <td><button class="edit-btn" onclick="startInlineEdit('${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="deleteRow('${r.id}')" title="Elimina riga">✕</button></td>
+  </tr>`;
+}
+
+function renderEditableRow(r){
+  return `<tr class="editing-row">
+    <td><input type="number" id="ir-scalera-${r.id}" value="${r.scalera}"></td>
+    <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
+    <td><input type="text" id="ir-mese-${r.id}" value="${fmtMeseInput(r.mese)}" placeholder="M/AA"></td>
+    <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
+    <td><input type="number" id="ir-forme-${r.id}" value="${r.forme}"></td>
+    <td><input type="text" id="ir-tipologia-${r.id}" value="${escapeHtml(up(r.tipologia))}" list="tip-list"></td>
+    <td><input type="text" id="ir-note-${r.id}" value="${escapeHtml(up(r.note))}"></td>
+    <td><button class="edit-btn" onclick="saveInlineEdit('${r.id}')" title="Salva">💾</button><button class="del-btn" onclick="cancelInlineEdit()" title="Annulla">✕</button></td>
+  </tr>`;
+}
+
+let lastRows=[];
+function renderTable(rows){
+  lastRows=rows;
+  const tbody=document.getElementById('tbody');
+  const count=document.getElementById('count');
+  if(rows.length===0){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="8">Nessuna riga in inventario. Usa "Carico merce" per aggiungerne una.</td></tr>';
+  }else{
+    tbody.innerHTML=rows.map(r=> r.id===inlineEditId ? renderEditableRow(r) : renderRow(r)).join('');
+    if(inlineEditId){
+      attachUppercase('ir-tipologia-'+inlineEditId);
+      attachUppercase('ir-note-'+inlineEditId);
+      attachMeseAutoFormat('ir-mese-'+inlineEditId);
+    }
+  }
+  const totForme=rows.reduce((s,r)=>s+r.forme,0);
+  count.textContent=`${rows.length} righe · ${fmtNum(totForme)} forme totali`;
+}
+
+function updateKpi(){
+  const el=id=>document.getElementById(id);
+  el('kpi-righe').textContent=fmtNum(DATA.length);
+  el('kpi-forme').textContent=fmtNum(DATA.reduce((t,r)=>t+(Number(r.forme)||0),0));
+  el('kpi-pegno').textContent=fmtNum(DATA.filter(isPegno).reduce((t,r)=>t+(Number(r.forme)||0),0));
+}
+
+function refreshAll(){
+  updateKpi();
+  populateTipologiaOptions();
+  applyFilters();
+  renderScaricoList();
+  renderPegno();
+}
+
+function exportExcel(){
+  const rows=lastRows.length||!DATA.length ? lastRows : DATA;
+  if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
+  const head=['Scalera','Matricola','Mese/Anno','Stagionatura','Forme','Tipologia','Note'];
+  const body=rows.map(r=>[
+    Number(r.scalera),
+    (r.matricola!=null && r.matricola!=='') ? Number(r.matricola) : '',
+    r.mese ? fmtMeseTesto(r.mese).replace(/-\d{2}(\d{2})$/,'-$1') : '',
+    r.mese ? stagionatura(r.mese)+' mesi' : '',
+    Number(r.forme)||0,
+    up(r.tipologia),
+    up(r.note)
+  ]);
+  const oggi=new Date().toISOString().slice(0,10);
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const ws=XLSX.utils.aoa_to_sheet([head,...body]);
+    // Mese/Anno (es. feb-25) e Stagionatura (es. 24 mesi) restano testo
+    ws['!cols']=[{wch:9},{wch:10},{wch:11},{wch:14},{wch:8},{wch:12},{wch:24}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+    XLSX.writeFile(wb,'inventario-'+oggi+'.xlsx');
+  }catch(e){
+    // piano B: CSV con separatore ; (si apre direttamente in Excel italiano)
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='\uFEFF'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='inventario-'+oggi+'.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+}
+
+function exportData(){
+  try{
+    const blob=new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='magazzino-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert('Esportazione non riuscita: '+((e&&e.message)||'errore sconosciuto'));
+  }
+}
+
+document.getElementById('import-file').addEventListener('change', function(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async function(ev){
+    let imported;
+    try{
+      imported=JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('formato non valido');
+    }catch(err){
+      alert('File non valido: assicurati di selezionare un file di importazione o un backup esportato da questa app.');
+      e.target.value='';
+      return;
+    }
+    try{
+      const added=await uploadRows(imported);
+      await loadData();
+      alert(`Importazione completata: ${added} righe aggiunte online (le righe già presenti sono state ignorate).`);
+    }catch(err){
+      alert('Importazione non riuscita: '+(err.message||err));
+    }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+});
+
+// ====== Ordinamento per colonna nelle liste di scarico e pegno ======
+const SORTS={
+  sc:{col:'matricola',dir:1},
+  pg:{col:'matricola',dir:1},
+  pl:{col:'matricola',dir:1}
+};
+function paintSortHeaders(key){
+  document.querySelectorAll('th.sortable[data-st="'+key+'"]').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col===SORTS[key].col) th.classList.add(SORTS[key].dir===1?'sort-asc':'sort-desc');
+  });
+}
+function toggleSortFor(key,col){
+  const s=SORTS[key];
+  if(s.col===col){ s.dir*=-1; } else { s.col=col; s.dir=1; }
+  paintSortHeaders(key);
+  if(key==='sc') renderScaricoList(); else renderPegno();
+}
+document.querySelectorAll('th.sortable[data-st]').forEach(th=>th.addEventListener('click',()=>toggleSortFor(th.dataset.st, th.dataset.col)));
+
+// Conserva le quantità già scritte nelle caselle quando la lista viene ridisegnata (ordinamento, aggiornamento)
+function captureQty(prefix){
+  const m={};
+  document.querySelectorAll('input[id^="'+prefix+'"]').forEach(i=>{ if(i.value) m[i.id]=i.value; });
+  return m;
+}
+function restoreQty(m){
+  Object.keys(m).forEach(k=>{ const el=document.getElementById(k); if(el) el.value=m[k]; });
+}
+
+// ====== Pegno ======
+function isPegno(r){ return up(r.tipologia)==='PEGNO'; }
+
+function rpcErrorText(e){
+  const m=(e&&e.message)||String(e);
+  if(/could not find the function|schema cache/i.test(m)){
+    return 'manca la configurazione del pegno su Supabase: esegui lo script SQL del pegno (SQL Editor) e riprova.';
+  }
+  return m;
+}
+
+function pegnoResetRicerca(){
+  ['pg-search-scalera','pg-search-matricola','pg-search-mese'].forEach(id=>document.getElementById(id).value='');
+  renderPegno();
+}
+
+function renderPegno(){
+  const tb1=document.getElementById('pegno-tbody');
+  const tb2=document.getElementById('pegno-libero-tbody');
+  if(!tb1||!tb2) return;
+  const fS=document.getElementById('pg-search-scalera').value;
+  const fM=document.getElementById('pg-search-matricola').value;
+  const fP=document.getElementById('pg-search-mese').value.trim().toLowerCase();
+  const match=r=>{
+    if(fS && String(r.scalera)!==String(fS)) return false;
+    if(fM && String(r.matricola)!==String(fM)) return false;
+    if(fP && !fmtMese(r.mese).toLowerCase().includes(fP)) return false;
+    return true;
+  };
+  const q1=captureQty('pg-qty-'), q2=captureQty('pl-qty-');
+  const mat=r=> (r.matricola!=null && r.matricola!=='') ? String(r.matricola) : '—';
+
+  const tuttiPegno=DATA.filter(isPegno);
+  const inPegno=sortRows(tuttiPegno.filter(match), SORTS.pg);
+  const libere=sortRows(DATA.filter(r=>!up(r.tipologia) && match(r)), SORTS.pl);
+
+  tb1.innerHTML = inPegno.length===0
+    ? '<tr class="empty-row"><td colspan="7">Nessuna merce in pegno.</td></tr>'
+    : inPegno.map(r=>`<tr>
+        <td>${fmtNum(r.scalera)}</td>
+        <td>${mat(r)}</td>
+        <td>${fmtMese(r.mese)}</td>
+        <td>${fmtNum(r.forme)}</td>
+        <td>${highlightNote(r.note)}</td>
+        <td><input type="number" min="1" id="pg-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><button class="edit-btn" onclick="pegnoScarica('${r.id}')" title="Scarica dal pegno">💾</button></td>
+      </tr>`).join('');
+
+  tb2.innerHTML = libere.length===0
+    ? '<tr class="empty-row"><td colspan="7">Nessuna riga libera trovata.</td></tr>'
+    : libere.map(r=>`<tr>
+        <td>${fmtNum(r.scalera)}</td>
+        <td>${mat(r)}</td>
+        <td>${fmtMese(r.mese)}</td>
+        <td>${fmtNum(r.forme)}</td>
+        <td>${highlightNote(r.note)}</td>
+        <td><input type="number" min="1" id="pl-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><button class="edit-btn" onclick="pegnoCarica('${r.id}')" title="Metti in pegno">💾</button></td>
+      </tr>`).join('');
+
+  restoreQty(q1); restoreQty(q2);
+  const totForme=tuttiPegno.reduce((s,r)=>s+r.forme,0);
+  document.getElementById('pg-count').textContent=`${tuttiPegno.length} righe in pegno · ${fmtNum(totForme)} forme in pegno`;
+}
+
+async function pegnoScarica(id){
+  const rec=DATA.find(r=>r.id===id);
+  const msg=document.getElementById('pg-msg');
+  if(!rec) return;
+  const input=document.getElementById('pg-qty-'+id);
+  const qty=parseFloat(input.value);
+  if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme in pegno (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  const {error}=await sb.rpc('rilascia_pegno',{p_id:id, p_qty:qty});
+  if(error){ msg.textContent='Operazione non riuscita: '+rpcErrorText(error); msg.className='msg err'; return; }
+  input.value='';
+  const restano=rec.forme-qty;
+  msg.textContent = restano<=0
+    ? `${fmtNum(qty)} forme scaricate dal pegno e tornate in inventario libero: la partita non è più in pegno.`
+    : `${fmtNum(qty)} forme scaricate dal pegno e tornate in inventario libero; in pegno ne restano ${fmtNum(restano)}.`;
+  msg.className='msg ok';
+  await loadData();
+}
+
+async function pegnoCarica(id){
+  const rec=DATA.find(r=>r.id===id);
+  const msg=document.getElementById('pg-msg');
+  if(!rec) return;
+  const input=document.getElementById('pl-qty-'+id);
+  const qty=parseFloat(input.value);
+  const banca=document.getElementById('pl-banca').value;
+  if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
+  if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme libere (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
+  const {error}=await sb.rpc('metti_in_pegno',{p_id:id, p_qty:qty, p_banca:banca});
+  if(error){ msg.textContent='Operazione non riuscita: '+rpcErrorText(error); msg.className='msg err'; return; }
+  input.value='';
+  msg.textContent=`${fmtNum(qty)} forme messe in pegno (${banca}).`;
+  msg.className='msg ok';
+  await loadData();
+}
+
+async function init(){
+  ['sc','pg','pl'].forEach(paintSortHeaders);
+  refreshAll();
+  if(!sb){
+    showLogin('Configurazione mancante: compila SUPABASE_URL e SUPABASE_ANON_KEY all\'inizio dello script.');
+    return;
+  }
+  const {data}=await sb.auth.getSession();
+  if(data.session){ hideLogin(); await startApp(); }
+  else showLogin();
+}
+init();
+
+window.addEventListener('scroll', ()=>{
+  const btn=document.getElementById('back-to-top');
+  if(window.scrollY>300) btn.classList.add('show');
+  else btn.classList.remove('show');
+});
 </script>
 </body>
 </html>
