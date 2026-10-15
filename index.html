@@ -1,1150 +1,220 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
+<meta name="theme-color" content="#087cf0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Golf GTI">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Registro Lotti</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="https://www.google.com/s2/favicons?domain=volkswagen.com&sz=128">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{
-  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#17212B; --muted:#566574;
-  --line:#D8DEE4; --green:#1C2630; --green-dark:#2F3F50; --amber:#E3B23C;
-  --danger:#B3261E; --link:#2F5D8A; --head:#F6F8FA; --ok:#1E7A47; --ok-bg:#E6F4EC; --warn-bg:#FFF4D6;
-  --side:#1C2630; --radius:8px;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
-    --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
-    --head:#222E3A; --side:#0B1117; --danger:#FF7A80; --ok:#4ADE80; --ok-bg:#16301F; --warn-bg:#3A3015;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#11181F; --panel:#1C2630; --ink:#E6ECF2; --muted:#9FB0C0;
-  --line:#34414F; --green:#3B6E9E; --green-dark:#4A82B8; --link:#8DB9E6;
-  --head:#222E3A; --side:#0B1117; --danger:#FF7A80; --ok:#4ADE80; --ok-bg:#16301F; --warn-bg:#3A3015;
-}
-*{box-sizing:border-box;}
-body{
-  margin:0; background:var(--bg); color:var(--ink);
-  font-family:"Barlow","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); min-height:100%;
-}
-[hidden]{display:none !important;}
+:root{--blue:#087cf0;--navy:#102c53;--ink:#10203b;--muted:#6b7890;--bg:#f2f6fb;--line:#e3eaf3;--green:#159447;--amber:#ed9b00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;color:var(--ink);padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app-header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.94);backdrop-filter:blur(18px);padding:calc(10px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid #dbe6f2;display:grid;place-items:center;font-size:22px;box-shadow:0 3px 10px #102c5314}.brand-name{font-size:21px;font-weight:800;letter-spacing:-.4px}.brand-sub{font-size:12px;color:var(--muted);margin-top:2px}.gear{margin-left:auto;background:#f0f5fb;border-radius:13px;padding:10px;font-size:18px}
+.tabs{display:flex;gap:6px;background:#e9eff7;border-radius:15px;padding:4px;margin-top:14px}.tab{flex:1;padding:10px 5px;border-radius:11px;background:transparent;color:#43536e;font-size:13px;font-weight:650}.tab.active{background:var(--blue);color:white;box-shadow:0 3px 8px #087cf033}
+main{max-width:780px;margin:0 auto;padding:18px 15px}.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.section-head h2{font-size:21px;margin:0;letter-spacing:-.5px}.muted{color:var(--muted)}.btn{background:var(--blue);color:white;border-radius:13px;padding:12px 15px;font-weight:700;box-shadow:0 5px 12px #087cf025}.btn.secondary{background:#e6f1ff;color:#0969cf;box-shadow:none}.btn.ghost{background:#eef2f7;color:#34445e;box-shadow:none}.btn.danger{background:#fff0f0;color:#b42318;box-shadow:none}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:20px}.stat{background:#fff;border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:0 4px 12px #12284c06}.stat .label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}.stat .value{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-top:8px;overflow-wrap:anywhere}.stat .foot{font-size:11px;color:var(--muted);margin-top:5px}
+.record-list{display:flex;flex-direction:column;gap:9px}.record{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px 13px;display:flex;gap:11px;align-items:center;box-shadow:0 3px 10px #102c5306}.fuel-icon{width:38px;height:38px;flex:0 0 38px;border-radius:12px;background:#e7f8ed;color:var(--green);display:grid;place-items:center;font-size:19px}.record-main{min-width:0;flex:1}.record-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.record-date{font-size:14px;font-weight:750}.record-amount{font-size:15px;font-weight:800;white-space:nowrap}.record-meta{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.5}.record-right{text-align:right}.pill{font-size:10px;font-weight:700;border-radius:7px;padding:4px 6px;background:#fff2d6;color:#8d5a00;display:inline-block;margin-top:4px}
+.fab{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:5;width:58px;height:58px;border-radius:20px;background:var(--blue);color:white;font-size:31px;box-shadow:0 9px 22px #087cf044}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:rgba(255,255,255,.96);backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;justify-content:space-around}.nav-item{background:transparent;color:#748198;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;min-width:55px}.nav-item .nav-icon{font-size:21px}.nav-item.active{color:var(--blue);font-weight:800}
+.card{background:white;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 4px 12px #12284c06}.card h3{margin:0 0 13px;font-size:16px}.field{margin-bottom:13px}.field label{display:block;font-size:12px;font-weight:750;color:#53627a;margin-bottom:7px}.field input,.field select,.field textarea{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;border:1px solid #dce5f0;background:#fbfdff;border-radius:12px;padding:13px;color:var(--ink);outline:none}.field input[type='datetime-local']{min-width:0;width:100%;max-width:100%;font-size:16px;padding-left:10px;padding-right:10px;-webkit-appearance:none;appearance:none}.field input[type='datetime-local']{min-width:0;width:100%;max-width:100%;font-size:16px;padding-left:10px;padding-right:10px;-webkit-appearance:none;appearance:none}.field input:focus,.field select:focus,.field textarea:focus{border-color:#80baff;box-shadow:0 0 0 3px #087cf018}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.money-input{font-size:24px!important;font-weight:800;text-align:right}.hint{font-size:11px;color:var(--muted);margin-top:6px}.toggle-line{display:flex;align-items:center;justify-content:space-between;padding:12px 0}.switch{width:48px;height:28px;border-radius:99px;background:#dce3ed;position:relative}.switch:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 5px #0002;transition:.15s}.switch.on{background:var(--blue)}.switch.on:after{left:23px}
+.key.wide{grid-column:span 2}.form-actions{display:flex;gap:8px;margin-top:16px}.form-actions button{flex:1}
+.chart-wrap{height:230px;position:relative}.chart-filters{display:flex;gap:6px;margin-bottom:13px}.filter{flex:1;background:#eff3f8;color:#50607a;border-radius:10px;padding:9px 3px;font-size:12px}.filter.active{background:var(--blue);color:white}
+.empty{text-align:center;background:white;border:1px dashed #cbd8e8;border-radius:18px;padding:35px 20px;color:var(--muted)}.empty .big{font-size:32px;margin-bottom:10px}.hidden{display:none!important}.file-picker{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;opacity:0!important;display:block!important}.notice{border-radius:13px;padding:12px 14px;background:#e9f5ff;color:#165a9c;font-size:12px;line-height:1.5;margin-bottom:13px}.toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:15px;right:15px;z-index:10;background:#12325a;color:white;padding:13px 16px;border-radius:13px;box-shadow:0 6px 20px #0002;text-align:center;font-size:13px}
 
-/* ===== Struttura: barra laterale + area principale ===== */
-.app{display:flex;min-height:100vh;}
-.side{
-  flex:0 0 220px;background:var(--side);color:#DCE3EA;padding:28px 16px;
-  display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh;align-self:flex-start;
-}
-.side h1{font-size:1.75rem;margin:0;line-height:1.1;color:#fff;font-weight:600;letter-spacing:-.01em;}
-.side .sub{margin:5px 0 0;font-size:.82rem;color:#A9B8C6;}
-.tabs{display:flex;flex-direction:column;gap:4px;}
-.tab-btn{
-  display:block;text-align:left;padding:11px 14px;border-radius:6px;border:0;background:none;color:#DCE3EA;
-  font-size:1rem;font-weight:500;cursor:pointer;text-decoration:none;transition:background .15s,color .15s;
-}
-.tab-btn:hover{background:rgba(255,255,255,.08);}
-.tab-btn.active{background:var(--amber);color:#1C2630;font-weight:700;}
-.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;font-size:.8rem;color:#A9B8C6;}
-.side-foot .err{color:#FF9A9F;font-weight:600;}
-.side-foot .live{color:#7BE0A4;font-weight:600;}
-.side-foot .sync-actions{display:flex;gap:8px;}
-.side-foot .print-btn{background:none;border:1px solid #4A5A69;color:#DCE3EA;padding:7px 14px;font-size:.8rem;border-radius:6px;font-weight:500;cursor:pointer;font-family:inherit;}
-.side-foot .print-btn:hover{border-color:var(--amber);color:var(--amber);}
-.postazione{background:none;border:0;padding:0;color:#DCE3EA;font:inherit;font-size:.8rem;cursor:pointer;text-align:left;}
-.postazione b{color:#fff;}
-.postazione:hover{color:var(--amber);}
+/* Dark Sport theme */
+:root{--blue:#ef233c;--navy:#090b0f;--ink:#f4f5f7;--muted:#a5acb8;--bg:#0b0d11;--line:#2a2e36;--green:#35c979;--amber:#ffbf3c}
+body{background:#0b0d11;color:#f4f5f7}
+.app-header,.bottom-nav{background:rgba(13,15,20,.97);border-color:#2a2e36}
+.logo{background:#11151b;color:#f4f5f7;border-color:#343943;box-shadow:0 3px 12px #0008}
+.brand-name{color:#f7f7f9}.gear{background:#20252e;color:#f4f5f7}
+.tabs{background:#191d24}.tab{color:#c4cad4}.tab.active{background:#e91f38;color:#fff;box-shadow:0 4px 12px #ef233c35}
+.stat,.record,.card,.empty{background:#15181e;border-color:#2a2e36;box-shadow:0 4px 14px #0003}
+.record-date,.record-amount,.section-head h2,.card h3,.stat .value{color:#f4f5f7}
+.field label{color:#c2c8d2}.field input,.field select,.field textarea{background:#101318;color:#f4f5f7;border-color:#343a45}
+.field input::placeholder,.field textarea::placeholder{color:#737d8d}
+.btn{background:#e91f38;color:#fff;box-shadow:0 5px 14px #ef233c25}
+.btn.secondary{background:#2a1b20;color:#ff6375;box-shadow:none}.btn.ghost{background:#222730;color:#e1e5ec;box-shadow:none}
+.fuel-icon{background:#172d24;color:#35c979}.nav-item{color:#9aa3b2}.nav-item.active{color:#ff334b}
+.record-meta,.stat .foot,.muted,.hint{color:#a5acb8}.notice{background:#191f2a;color:#a9cfff}
+.pill{background:#3a2b12;color:#ffca68}.switch{background:#3a414d}.switch.on{background:#e91f38}
+.filter{background:#222730;color:#c1c8d4}.filter.active{background:#e91f38;color:white}
+.key{background:#222730;border-color:#353b46;color:#f1f3f7}.empty{color:#a5acb8}
 
-.main-area{flex:1 1 auto;min-width:0;padding:28px 28px 60px;}
-.view{display:none;}
-.view.active{display:block;}
-.page-title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 18px;}
-.page-title h2{margin:0;font-size:1.5rem;font-weight:600;}
-.page-title span{color:var(--muted);font-size:.9rem;}
+@media(min-width:600px){main{padding:24px}.summary-grid{grid-template-columns:repeat(3,1fr)}.record{padding:16px}.fab{right:calc((100vw - 740px)/2 + 20px)}}
 
-.kpis{display:flex;flex-wrap:wrap;row-gap:12px;margin:0 0 24px;align-items:flex-end;}
-.kpi{padding-right:30px;margin-right:30px;border-right:1px solid var(--line);}
-.kpi:last-child{border-right:0;}
-.kpi b{display:block;font-size:1.9rem;line-height:1;font-weight:600;font-variant-numeric:tabular-nums;}
-.kpi span{display:block;font-size:.8rem;color:var(--muted);margin-top:4px;}
-.kpi.next b{font-size:2.6rem;color:var(--link);font-weight:700;letter-spacing:-.01em;}
-.kpi .linkbtn{background:none;border:0;color:var(--link);font:inherit;font-size:.8rem;cursor:pointer;padding:0;margin-top:4px;text-decoration:underline;}
+/* Final approved light theme with GTI red accents */
+:root{--blue:#e91f38;--navy:#173052;--ink:#17243b;--muted:#748198;--bg:#f2f6fb;--line:#e3eaf3;--green:#159447;--amber:#ed9b00}
+body{background:#f2f6fb;color:#17243b;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif}
+.app-header,.bottom-nav{background:rgba(255,255,255,.96);border-color:#e3eaf3}
+.logo{background:#fff;color:#17243b;border-color:#dbe6f2;box-shadow:0 3px 10px #102c5312}
+.brand-name{color:#17243b}.gear{background:#f0f5fb;color:#34445e}
+.tabs{display:none!important}
+.stat,.record,.card,.empty{background:#fff;border-color:#e3eaf3;box-shadow:0 4px 14px #102c5308}
+.record-date,.record-amount,.section-head h2,.card h3,.stat .value{color:#17243b}
+.field label{color:#59677f}
+.field input,.field select,.field textarea{background:#fbfdff;color:#17243b;border-color:#dce5f0}
+.field input::placeholder,.field textarea::placeholder{color:#a0a8b5}
+.btn{background:#e91f38;color:#fff;box-shadow:0 5px 14px #e91f3825}
+.btn.secondary{background:#e6f1ff;color:#0969cf;box-shadow:none}
+.btn.ghost{background:#eef2f7;color:#34445e;box-shadow:none}
+.fuel-icon{background:#e7f8ed;color:#159447}
+.nav-item{color:#748198}.nav-item.active{color:#e91f38}
+.record-meta,.stat .foot,.muted,.hint{color:#748198}
+.notice{background:#e9f5ff;color:#165a9c}
+.pill{background:#fff2d6;color:#8d5a00}
+.switch{background:#dce3ed}.switch.on{background:#e91f38}
+.filter{background:#f0f5fb;color:#50607a}.filter.active{background:#e91f38;color:white}
+.key{background:#f0f5fb;border-color:#e1e9f3;color:#253653}
+.empty{color:#748198}
 
-.panel{background:var(--panel);border-radius:var(--radius);padding:20px 22px;margin-bottom:26px;}
-.panel h2{margin:0 0 14px;font-size:1.1rem;font-weight:600;}
-.panel h3{margin:22px 0 10px;font-size:1rem;font-weight:600;}
-.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
-.panel-head h2{margin:0;}
-.narrow{max-width:1100px;}
-
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 14px;}
-.grid > div{display:flex;flex-direction:column;justify-content:flex-end;}
-.grid .s2{grid-column:span 2;} .grid .s3{grid-column:span 3;} .grid .s4{grid-column:1/-1;}
-@media (max-width:1100px){ .grid{grid-template-columns:repeat(2,minmax(0,1fr));} .grid .s3,.grid .s4{grid-column:1/-1;} }
-@media (max-width:560px){ .grid{grid-template-columns:1fr;} .grid .s2{grid-column:auto;} }
-label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
-input,select{
-  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:6px;
-  background:var(--panel);color:var(--ink);font-size:.95rem;font-family:inherit;
-}
-input:focus,select:focus{outline:2px solid var(--link);outline-offset:1px;}
-input[readonly]{background:var(--head);font-weight:700;color:var(--link);}
-input:disabled,select:disabled{opacity:.55;}
-.lotbox input{font-size:1.15rem;letter-spacing:.02em;}
-.lotbox small{display:block;font-size:.74rem;color:var(--muted);margin-top:3px;min-height:1em;}
-select.esito-non{border-color:var(--danger);color:var(--danger);font-weight:600;}
-
-.btn{
-  margin-top:16px;padding:11px 22px;border:none;border-radius:6px;background:var(--green);
-  color:#fff;font-weight:600;font-size:.95rem;cursor:pointer;font-family:inherit;
-}
-.btn:hover{background:var(--green-dark);}
-.btn:disabled{opacity:.6;cursor:wait;}
-.btn.amber{background:var(--amber);color:#1C2630;}
-.btn.amber:hover{filter:brightness(.95);}
-.btn.danger{background:var(--danger);color:#fff;}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
-.btn.ghost:hover{border-color:var(--link);color:var(--link);}
-.btn.sm{margin-top:0;padding:8px 14px;font-size:.85rem;}
-.msg{margin-top:10px;font-size:.9rem;min-height:1.2em;}
-.msg.err{color:var(--danger);font-weight:600;}
-.hint{font-size:.78rem;color:var(--muted);margin-top:8px;}
-
-.table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
-.table-toolbar input[type=text],.table-toolbar input[type=search]{flex:1;min-width:200px;padding:10px 13px;}
-.table-toolbar .fld{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);}
-.table-toolbar .fld input,.table-toolbar .fld select{width:auto;padding:9px 10px;}
-.print-btn{
-  padding:10px 16px;border:1px solid var(--line);border-radius:6px;background:var(--panel);
-  color:var(--ink);font-size:.88rem;font-weight:500;cursor:pointer;white-space:nowrap;font-family:inherit;
-}
-.print-btn:hover{border-color:var(--link);color:var(--link);}
-
-.table-wrap{overflow:auto;background:var(--panel);border-radius:var(--radius);}
-.table-wrap.tall{max-height:calc(100vh - 255px);}
-table{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums;}
-th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:top;}
-th{background:var(--head);color:var(--muted);font-weight:600;font-size:.78rem;white-space:normal;position:sticky;top:0;z-index:2;}
-th.sortable{cursor:pointer;user-select:none;}
-th.sortable:hover{color:var(--ink);}
-th.sortable .arrow{opacity:.35;margin-left:4px;font-size:.7em;}
-th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--link);}
-tbody tr:hover{background:var(--head);}
-td.wrap{white-space:normal;min-width:190px;}
-td.num,th.num{text-align:right;}
-td.lot{font-weight:700;}
-td.lot.forn{font-weight:500;color:var(--muted);}
-td.act{text-align:right;white-space:nowrap;}
-.empty-row td{color:var(--muted);text-align:center;padding:26px;}
-.count{color:var(--muted);font-size:.85rem;margin:10px 2px 0;}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;background:var(--amber);color:#1C2630;font-size:.7rem;font-weight:700;vertical-align:middle;margin-left:6px;}
-.badge.red{background:var(--danger);color:#fff;margin-left:0;}
-.badge.mag{background:var(--head);color:var(--muted);border:1px solid var(--line);margin-left:0;font-weight:600;}
-.reg-ok{color:var(--muted);}
-a.cell-link{color:var(--link);cursor:pointer;text-decoration:underline;font-size:.82rem;}
-.icon-btn{background:none;border:none;cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:4px;color:var(--link);font-family:inherit;}
-.icon-btn:hover{background:var(--head);}
-.icon-btn.del{color:var(--danger);}
-
-/* ===== Consegne frazionate ===== */
-.frz{display:grid;grid-template-columns:minmax(0,1fr);gap:0 26px;align-items:start;}
-@media (min-width:1350px){ .frz{grid-template-columns:minmax(420px,.85fr) minmax(0,1.15fr);} }
-tr.sel td{background:var(--warn-bg);}
-tr.clickable{cursor:pointer;}
-.mod120{border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1.4fr auto;gap:10px 22px;align-items:end;}
-.mod120 .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-.mod120 .v{font-size:1.05rem;font-weight:600;}
-.mod120 .big{font-size:1.9rem;font-weight:700;color:var(--link);line-height:1;}
-@media (max-width:800px){ .mod120{grid-template-columns:1fr;} }
-tfoot td{font-weight:700;background:var(--head);border-top:2px solid var(--line);}
-.frz-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
-.sep{border:0;border-top:1px dashed var(--line);margin:22px 0 4px;}
-.placeholder{color:var(--muted);text-align:center;padding:50px 10px;}
-
-/* ===== Registro a schermo intero ===== */
-body.wide .side{display:none;}
-body.wide .main-area{padding:16px 18px 30px;}
-body.wide .table-wrap.tall{max-height:calc(100vh - 150px);}
-.exit-wide{position:fixed;top:10px;right:14px;z-index:60;display:none;}
-body.wide .exit-wide{display:block;}
-body.wide #view-registro .page-title{margin-bottom:10px;}
-
-/* ===== Sovrapposizioni ===== */
-.overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
-.overlay.show{display:flex;}
-.login-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px;width:100%;max-width:340px;}
-.login-card h2{margin:0 0 6px;font-size:1.2rem;}
-.login-card p{margin:0 0 16px;color:var(--muted);font-size:.85rem;}
-.login-card.wide{max-width:460px;}
-.choice{display:flex;gap:12px;margin-top:6px;}
-.choice button{flex:1;padding:22px 10px;font-size:1.05rem;font-weight:700;border-radius:8px;border:2px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font-family:inherit;}
-.choice button:hover{border-color:var(--amber);background:var(--head);}
-
-.modal{position:fixed;inset:0;background:rgba(10,16,22,.55);z-index:90;display:none;align-items:flex-start;justify-content:center;padding:4vh 16px;overflow:auto;}
-.modal.show{display:flex;}
-.modal-card{background:var(--panel);border-radius:var(--radius);padding:22px 24px;width:100%;max-width:980px;box-shadow:0 10px 40px rgba(0,0,0,.35);}
-.modal-card.small{max-width:480px;}
-.modal-card h2{margin:0 0 14px;font-size:1.2rem;}
-.modal-btns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;}
-.modal-btns .spacer{flex:1;}
-
-.success{position:fixed;inset:0;background:rgba(10,16,22,.6);z-index:120;display:none;align-items:center;justify-content:center;padding:20px;}
-.success.show{display:flex;}
-.success-card{background:var(--panel);border-radius:14px;padding:34px 44px 28px;max-width:560px;width:100%;text-align:center;border-top:10px solid var(--ok);box-shadow:0 14px 50px rgba(0,0,0,.4);animation:pop .22s ease-out;}
-@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
-.success-card .check{width:74px;height:74px;border-radius:50%;background:var(--ok);color:#fff;font-size:2.7rem;line-height:74px;margin:0 auto 14px;font-weight:700;}
-.success-card h3{margin:0 0 6px;font-size:1.45rem;}
-.success-card .big{font-size:3.4rem;font-weight:700;color:var(--link);line-height:1.1;margin:6px 0;letter-spacing:-.01em;word-break:break-all;}
-.success-card .detail{color:var(--muted);font-size:.95rem;margin:4px 0;}
-.success-card .warn{background:var(--warn-bg);border-radius:6px;padding:8px 12px;font-size:.88rem;margin:10px 0 0;font-weight:600;}
-.success-card .btn{margin-top:18px;min-width:140px;}
-.success-card .bar{height:4px;background:var(--line);border-radius:2px;margin-top:16px;overflow:hidden;}
-.success-card .bar i{display:block;height:100%;width:100%;background:var(--ok);transform-origin:left;}
-.success.show .bar i{animation:shrink 7s linear forwards;}
-@keyframes shrink{to{transform:scaleX(0)}}
-
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--side);color:#fff;padding:12px 22px;border-radius:8px;font-size:.95rem;font-weight:600;z-index:130;box-shadow:0 6px 24px rgba(0,0,0,.35);display:none;max-width:90vw;text-align:center;}
-.toast.show{display:block;}
-.toast.err{background:var(--danger);}
-
-/* ===== Schermi stretti ===== */
-@media (max-width:899px){
-  .app{flex-direction:column;}
-  .side{position:static;height:auto;flex:none;padding:18px 16px;gap:14px;}
-  .tabs{flex-direction:row;flex-wrap:wrap;}
-  .tab-btn{flex:1;text-align:center;}
-  .side-foot{margin-top:0;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;}
-  .main-area{padding:20px 14px 60px;}
-}
-
-/* ===== Stampa ===== */
-#print-area{display:none;}
-@media print{
-  body{background:#fff;color:#000;}
-  body.is-printing > *:not(#print-area){display:none !important;}
-  body.is-printing #print-area{display:block;}
-  #print-area{font-family:Arial,Helvetica,sans-serif;color:#000;font-size:8.5pt;}
-  #print-area .p-head{display:flex;justify-content:space-between;align-items:flex-start;border:1px solid #000;padding:6px 10px;margin-bottom:0;}
-  #print-area .p-head b{font-size:11pt;letter-spacing:.02em;}
-  #print-area .p-head .mod{font-size:8pt;text-align:right;white-space:pre-line;}
-  #print-area table{border-collapse:collapse;width:100%;min-width:0;font-size:8pt;font-variant-numeric:normal;}
-  #print-area th,#print-area td{border:1px solid #000;padding:3px 4px;white-space:normal;vertical-align:middle;background:#fff;color:#000;position:static;font-weight:400;}
-  #print-area th{font-weight:700;text-align:center;font-size:7.5pt;background:#EDEDED;}
-  #print-area td.c{text-align:center;} #print-area td.r{text-align:right;} #print-area td.b{font-weight:700;}
-  #print-area thead{display:table-header-group;}
-  #print-area tr{break-inside:avoid;}
-  #print-area .p-foot{margin-top:6px;font-size:7.5pt;color:#444;display:flex;justify-content:space-between;}
-  #print-area .p-meta{margin:6px 0;font-size:8.5pt;}
-  #print-area .p-hdr120 td{font-size:10pt;padding:6px 8px;}
-}
 </style>
 </head>
 <body>
-
-<!-- Accesso -->
-<div class="overlay" id="login-overlay">
-  <form class="login-card" id="login-form">
-    <h2>Registro Lotti</h2>
-    <p>Inserisci la password per accedere al registro.</p>
-    <label for="login-pw">Password</label>
-    <input type="password" id="login-pw" autocomplete="current-password" required>
-    <button class="btn" type="submit" style="width:100%">Accedi</button>
-    <div class="msg err" id="login-msg"></div>
-  </form>
-</div>
-
-<!-- Scelta postazione -->
-<div class="overlay" id="postazione-overlay" style="z-index:110">
-  <div class="login-card wide">
-    <h2>Su quale magazzino stai lavorando?</h2>
-    <p>Serve solo a ricordare quale magazzino ha registrato ogni lotto. Potrai cambiarlo dal menu a sinistra.</p>
-    <div class="choice">
-      <button data-postazione="STAGIONATURA">Stagionatura</button>
-      <button data-postazione="SPEDIZIONI">Spedizioni</button>
+<header class="app-header">
+  <div class="brand"><div class="logo">VW</div><div><div id="brandName" class="brand-name" onclick="editTitle()" title="Tocca per modificare il nome">Golf GTI</div></div><button class="gear" onclick="showSettings()" aria-label="Impostazioni">⚙</button></div>
+  </header>
+<main>
+  <section id="listView">
+    <div class="section-head"><h2>Tutti i pieni</h2><button class="btn secondary" onclick="document.getElementById('csvInput').click()">Importa CSV</button></div>
+    <div id="listSummary" class="summary-grid"></div>
+    <div id="records" class="record-list"></div>
+  </section>
+  <section id="statsView" class="hidden">
+    <div class="section-head"><h2>Le tue statistiche</h2><select id="yearSelect" onchange="renderStats()" style="max-width:130px;border:1px solid #dce5f0;border-radius:10px;padding:9px;background:white"></select></div>
+    <div id="statsCards" class="summary-grid"></div>
+    <div class="card"><h3>Anno corrente vs precedente</h3><div id="yearCompare" class="record-meta"></div></div>
+    <div class="card"><h3>Totale generale</h3><div id="allTime" class="summary-grid" style="margin:0"></div></div>
+  </section>
+  <section id="chartsView" class="hidden">
+    <div class="section-head"><h2>Andamento</h2></div>
+    <div class="card"><h3>Prezzo carburante (€/L)</h3><div class="chart-filters"><button class="filter active" onclick="setChartRange('price',3,this)">3M</button><button class="filter" onclick="setChartRange('price',6,this)">6M</button><button class="filter" onclick="setChartRange('price',12,this)">1A</button><button class="filter" onclick="setChartRange('price',0,this)">Tutti</button></div><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div>
+    <div class="card"><h3>Consumo (km/L)</h3><div class="chart-filters"><button class="filter active" onclick="setChartRange('consumption',3,this)">3M</button><button class="filter" onclick="setChartRange('consumption',6,this)">6M</button><button class="filter" onclick="setChartRange('consumption',12,this)">1A</button><button class="filter" onclick="setChartRange('consumption',0,this)">Tutti</button></div><div class="chart-wrap"><canvas id="consumptionChart"></canvas></div></div>
+    <div class="card"><div class="section-head"><h3>Spesa mensile totale (€)</h3><select id="spendYear" onchange="renderSpendChart()" aria-label="Anno spesa mensile"></select></div><p class="muted">Somma di tutti i rifornimenti di ciascun mese.</p><div class="chart-wrap"><canvas id="spendChart"></canvas></div></div>
+  </section>
+  <section id="formView" class="hidden">
+    <div class="section-head"><button class="btn ghost" onclick="cancelForm()">← Indietro</button><h2 id="formTitle">Nuovo pieno</h2><span></span></div>
+    <div class="notice">Usa la tastiera numerica dell’iPhone: digita le cifre senza virgola. 5000 = 50,00 € · 2513 = 25,13 L.</div>
+    <div class="card">
+      <div class="field"><label for="fDate">Data e ora</label><input id="fDate" type="datetime-local"></div>
+      <div class="field"><label for="fOdo">Contachilometri (km)</label><input id="fOdo" type="text" inputmode="numeric" autocomplete="off" placeholder="Ultimo: —" oninput="formatOdometer(this)" onfocus="unformatOdometer(this)" onblur="formatOdometer(this)"></div>
+      <div class="row2">
+        <div class="field"><label for="fAmount">Importo (€)</label><input id="fAmount" class="money-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" oninput="autoCents(this)"><div class="hint">Inserisci centesimi</div></div>
+        <div class="field"><label for="fLiters">Litri (L)</label><input id="fLiters" class="money-input" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" oninput="autoCents(this)"><div class="hint">Inserisci centesimi</div></div>
+      </div>
+      <div class="toggle-line"><div><b>Pieno parziale</b><div class="hint">Non conteggiare come pieno completo nel consumo</div></div><button id="partialSwitch" class="switch" onclick="togglePartial()" aria-label="Pieno parziale"></button></div>
+      <div class="field"><label for="fFuel">Carburante</label><select id="fFuel"><option>Benzina</option><option>Diesel</option><option>GPL</option><option>Metano</option><option>Elettrico</option></select></div>
+      <div class="field"><label for="fAddress">Stazione / indirizzo (facoltativo)</label><input id="fAddress" placeholder="Dove hai fatto rifornimento"></div>
+      <div class="field"><label for="fNote">Note (facoltativo)</label><textarea id="fNote" rows="2" placeholder="Aggiungi una nota"></textarea></div>
+      <div class="form-actions"><button class="btn ghost" onclick="cancelForm()">Annulla</button><button class="btn" onclick="saveForm()">Salva rifornimento</button></div>
+      <button id="deleteButton" class="btn danger hidden" style="width:100%;margin-top:9px" onclick="deleteCurrent()">Elimina rifornimento</button>
     </div>
-  </div>
-</div>
-
-<div class="app">
-  <aside class="side">
-    <div>
-      <h1>Lotti</h1>
-      <p class="sub">Registro materie prime</p>
-    </div>
-    <nav class="tabs">
-      <a class="tab-btn active" href="#carico" data-view="carico">Carico merce</a>
-      <a class="tab-btn" href="#frazionate" data-view="frazionate">Consegne frazionate</a>
-      <a class="tab-btn" href="#registro" data-view="registro">Registro lotti</a>
-    </nav>
-    <div class="side-foot">
-      <button class="postazione" id="postazione-btn" title="Cambia magazzino">Magazzino: <b id="postazione-nome">—</b> ✎</button>
-      <span id="sync-status">Non connesso</span>
-      <span class="sync-actions">
-        <button class="print-btn" id="btn-aggiorna">Aggiorna</button>
-        <button class="print-btn" id="btn-esci">Esci</button>
-      </span>
-    </div>
-  </aside>
-
-  <div class="main-area">
-    <button class="print-btn exit-wide" id="btn-exit-wide">✕ Esci da schermo intero</button>
-
-    <!-- ================= CARICO ================= -->
-    <section class="view active" id="view-carico">
-      <div class="kpis">
-        <div class="kpi next"><b id="kpi-next">—</b><span id="kpi-next-sub">prossimo lotto</span></div>
-        <div class="kpi"><b id="kpi-serie">0</b><span id="kpi-serie-lbl">lotti registrati</span><button class="linkbtn" id="btn-anno">Cambia anno</button></div>
-        <div class="kpi"><b id="kpi-oggi">0</b><span>arrivi di oggi</span></div>
-      </div>
-
-      <div class="panel narrow">
-        <h2>Registra arrivo merce</h2>
-        <form id="c-form" novalidate>
-          <div id="c-fields"></div>
-          <button class="btn" type="submit" id="c-submit">Registra lotto</button>
-          <div class="msg err" id="c-msg"></div>
-        </form>
-        <p class="hint">Fornitore TRENTIN: non viene assegnato il lotto interno (P) e nella colonna «Nr. Lotto Trentin» viene copiato il lotto del fornitore.</p>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head"><h2>Ultime registrazioni</h2><a class="print-btn" href="#registro" style="text-decoration:none">Apri il registro completo →</a></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Lotto</th><th>Data arrivo</th><th>Fornitore</th><th>Prodotto</th><th class="num">Kg</th><th class="num">Quantità</th><th>Registrato da</th></tr></thead>
-            <tbody id="recent-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= CONSEGNE FRAZIONATE ================= -->
-    <section class="view" id="view-frazionate">
-      <div class="page-title"><h2>Consegne frazionate</h2><span>Mod. 120 – partite che entrano in più momenti o più giorni sotto lo stesso lotto</span></div>
-      <div class="frz">
-        <div>
-          <div class="panel">
-            <div class="panel-head"><h2>Partite</h2><button class="btn amber sm" id="f-new-btn">+ Nuova partita</button></div>
-            <div id="f-new" hidden>
-              <form id="n-form" novalidate>
-                <div id="n-fields"></div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap">
-                  <button class="btn" type="submit" id="n-submit">Crea partita e registra il primo ingresso</button>
-                  <button class="btn ghost" type="button" id="n-cancel">Annulla</button>
-                </div>
-                <div class="msg err" id="n-msg"></div>
-              </form>
-              <hr class="sep">
-            </div>
-            <div class="table-toolbar"><input type="search" id="f-search" placeholder="Cerca partita (lotto, fornitore, prodotto)…"></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Lotto</th><th>Fornitore</th><th>Prodotto</th><th class="num">Ingressi</th><th class="num">Forme</th><th class="num">Kg</th><th>Ultimo arrivo</th></tr></thead>
-                <tbody id="f-list"></tbody>
-              </table>
-            </div>
-            <div class="count" id="f-count"></div>
-          </div>
-        </div>
-        <div>
-          <div class="panel" id="f-detail"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= REGISTRO ================= -->
-    <section class="view" id="view-registro">
-      <div class="page-title">
-        <h2>Registro lotti</h2><span id="reg-sub">Mod. 11-P – Scheda controllo materie prime all'arrivo</span>
-      </div>
-      <div class="table-toolbar">
-        <input type="search" id="q-search" placeholder="Cerca in tutto il registro (lotto, fornitore, prodotto, DDT…)">
-        <span class="fld">Serie <select id="r-serie"></select></span>
-        <span class="fld">Dal <input type="date" id="r-da"></span>
-        <span class="fld">al <input type="date" id="r-a"></span>
-        <button class="print-btn" id="btn-reset-filtri" title="Azzera ricerca e filtri">Azzera</button>
-        <button class="print-btn" id="btn-wide">⛶ Schermo intero</button>
-        <button class="print-btn" id="btn-excel">📊 Scarica Excel</button>
-        <button class="print-btn" id="btn-print">🖨️ Stampa / PDF</button>
-      </div>
-      <div class="table-wrap tall">
-        <table id="reg-table">
-          <thead><tr id="reg-thead"></tr></thead>
-          <tbody id="reg-tbody"></tbody>
-        </table>
-      </div>
-      <div class="count" id="reg-count"></div>
-    </section>
-  </div>
-</div>
-
-<datalist id="sup-list"></datalist>
-
-<div class="modal" id="modal"><div class="modal-card" id="modal-card"></div></div>
-
-<div class="success" id="success">
-  <div class="success-card">
-    <div class="check">✔</div>
-    <h3 id="success-title">Lotto registrato correttamente</h3>
-    <div class="big" id="success-big"></div>
-    <div class="detail" id="success-detail"></div>
-    <div class="warn" id="success-warn" hidden></div>
-    <button class="btn" id="success-ok">OK</button>
-    <div class="bar"><i></i></div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-
-<div id="print-area"></div>
-<style id="page-style"></style>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </section>
+  <section id="settingsView" class="hidden">
+    <div class="section-head"><h2>Impostazioni e dati</h2><button class="btn ghost" onclick="setView('list')">Chiudi</button></div>
+    <div class="card"><h3>Sincronizzazione cloud</h3><p class="record-meta">I dati sono conservati in un Google Sheet collegato a questa app. Ogni modifica viene sincronizzata online.</p><button class="btn secondary" onclick="reloadData()">↻ Aggiorna dati</button> <button class="btn secondary" onclick="exportCsv()">Esporta CSV</button></div>
+    <div class="card"><h3>Importa storico</h3><p class="record-meta">Carica il CSV originale. L'importazione aggiunge i rifornimenti senza cancellare quelli già presenti; le righe già importate non vengono duplicate.</p><button class="btn" onclick="document.getElementById('csvInput').click()">Scegli file CSV</button></div>
+    <div class="card"><h3>Apri archivio</h3><p class="record-meta">Il Google Sheet è l'archivio cloud completo e modificabile.</p><button class="btn secondary" onclick="google.script.run.withSuccessHandler(r=>window.open(r.spreadsheetUrl,'_blank')).getAppData()">Apri Google Sheet</button></div>
+    <div class="notice">Per installarla su iPhone: apri il link dell'app in Safari → Condividi → Aggiungi alla schermata Home. L'accesso cloud richiede connessione a Internet.</div>
+  </section>
+</main>
+<button id="fab" class="fab" onclick="newRecord()" aria-label="Aggiungi rifornimento">+</button>
+<input id="csvInput" type="file" accept=".csv,text/csv" class="file-picker" onchange="handleCsv(event)">
+<nav class="bottom-nav"><button class="nav-item active" data-view="list" onclick="setView('list')"><span class="nav-icon">⛽️</span>Pieni</button><button class="nav-item" data-view="stats" onclick="setView('stats')"><span class="nav-icon">📊</span>Statistiche</button><button class="nav-item" data-view="charts" onclick="setView('charts')"><span class="nav-icon">📈</span>Grafici</button><button class="nav-item" onclick="showSettings()"><span class="nav-icon">⚙️</span>Altro</button></nav>
 <script>
-// ====== CONFIGURAZIONE SUPABASE (stesso progetto del programma Magazzino) ======
-const SUPABASE_URL = 'https://jeyaymdllslsssqnovdj.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_T3tpl8qpQuMrXoWMj1L1yg_6O-1vJgJ';
-const SHARED_EMAIL = 'paolo.ferrari@trentingroup.it';
-// ===============================================================================
+let records=[], currentId=null, partial=false, charts={}, ranges={price:3,consumption:3,spend:3};
+const money=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0);
+const num=n=>new Intl.NumberFormat('it-IT',{useGrouping:true,maximumFractionDigits:2}).format(Number(n)||0);
+const dateObj=s=>{let d=new Date(s);return isNaN(d)?new Date():d};
+const dateLabel=s=>dateObj(s).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(s){let t=document.createElement('div');t.className='toast';t.textContent=s;document.body.appendChild(t);setTimeout(()=>t.remove(),2800)}
+function load(){google.script.run.withSuccessHandler(data=>{records=data.records||[];document.getElementById('brandName').textContent=data.car||'Golf GTI';const last=records.filter(r=>r.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';if(!document.getElementById('fDate').value){document.getElementById('fDate').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)}renderAll();}).withFailureHandler(e=>{const msg=e&&(e.message||e.details||e.toString&&e.toString());toast('Errore caricamento: '+(msg&&msg!=='[object Object]'?msg:'errore del server Google Apps Script.'));console.error('getAppData error',e)}).getAppData()}
+function reloadData(){load();toast('Aggiornamento richiesto')}
+function editTitle(){const current=document.getElementById('brandName').textContent||'Golf GTI';const next=prompt('Nome dell’auto:',current);if(next===null)return;if(!next.trim()){toast('Il nome non può essere vuoto');return}google.script.run.withSuccessHandler(r=>{document.getElementById('brandName').textContent=r.title;toast('Nome aggiornato')}).withFailureHandler(e=>toast('Errore: '+e.message)).setCarTitle(next.trim())}
 
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const $ = id => document.getElementById(id);
-let LOTTI = [], INGRESSI = [], CONFIG = { anno_lotto: '27' };
-let INGR_BY = {};           // lotto_id -> [ingressi]
-let SEL_PARTITA = null;     // id della partita aperta nella pagina Consegne frazionate
-const REG = { q: '', serie: null, da: '', a: '', sort: { col: 'data', dir: 'desc' } };
-
-// ---------- utilità ----------
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const val = id => { const e = $(id); return e ? e.value.trim() : ''; };
-function oggiISO(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-function fmtData(s){ if (!s) return '—'; const [y, m, d] = s.slice(0, 10).split('-'); return d + '/' + m + '/' + y; }
-function fmtNum(n, dec = 2){ return n === null || n === undefined || n === '' ? '—' : Number(n).toLocaleString('it-IT', { maximumFractionDigits: dec }); }
-function num(s){
-  s = String(s ?? '').trim().replace(/\s/g, '');
-  if (!s) return null;
-  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
-  const n = Number(s);
-  return Number.isFinite(n) ? n : NaN;
+function setView(v){['list','stats','charts','form','settings'].forEach(x=>document.getElementById(x+'View')?.classList.toggle('hidden',x!==v));document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===v));document.getElementById('fab').classList.toggle('hidden',v!=='list');if(v==='stats')renderStats();if(v==='charts')renderCharts()}
+function renderAll(){renderList();renderStats();if(!document.getElementById('chartsView').classList.contains('hidden'))renderCharts()}
+function renderList(){
+ const all=records.length, liters=records.reduce((s,r)=>s+r.liters,0), amount=records.reduce((s,r)=>s+r.amount,0), latest=records[0];
+ document.getElementById('listSummary').innerHTML=`<div class="stat"><div class="label">💶 Spesa totale</div><div class="value">${money(amount)}</div><div class="foot">${all} rifornimenti registrati</div></div><div class="stat"><div class="label">⛽ Litri acquistati</div><div class="value">${num(liters)} L</div><div class="foot">Ultimo: ${latest?dateLabel(latest.date).split(',')[0]:'—'}</div></div>`;
+ const box=document.getElementById('records');
+ if(!records.length){box.innerHTML='<div class="empty"><div class="big">⛽</div><b>Nessun rifornimento</b><p>Importa il CSV storico o aggiungi il primo pieno.</p><button class="btn" onclick="newRecord()">Aggiungi pieno</button></div>';return}
+ box.innerHTML=records.map(r=>{const chronological=[...records].filter(x=>x.odometer&&x.liters).sort((a,b)=>a.odometer-b.odometer);const idx=chronological.findIndex(x=>x.id===r.id);let km=0,litersCycle=0,cons=0;if(!r.partial&&idx>=0){let prevFull=-1;for(let j=idx-1;j>=0;j--){if(!chronological[j].partial){prevFull=j;break}}if(prevFull>=0){km=Math.max(0,r.odometer-chronological[prevFull].odometer);for(let j=prevFull+1;j<=idx;j++)litersCycle+=chronological[j].liters;if(km&&litersCycle)cons=km/litersCycle}}return `<div class="record" onclick="editRecord('${esc(r.id)}')"><div class="fuel-icon">⛽</div><div class="record-main"><div class="record-top"><span class="record-date">${dateLabel(r.date)}</span><span class="record-amount">${money(r.amount)}</span></div><div class="record-meta">${num(r.liters)} L · ${r.odometer?num(r.odometer)+' km':'km non indicati'} · ${num(r.pricePerLiter||r.amount/(r.liters||1))} €/L</div>${r.address?`<div class="record-meta">⌖ ${esc(r.address)}</div>`:''}</div><div class="record-right">${cons?`<b style="color:var(--blue)">${num(cons)} km/L</b>`:''}${r.partial?'<div class="pill">Parziale</div>':'<div class="muted" style="font-size:11px;margin-top:5px">›</div>'}</div></div>`}).join('');
 }
-const UM = { f: 'forme', ct: 'cartoni', pz: 'pezzi' };
-const isTrentin = f => /TRENTIN/i.test(f || '');
-const codice = (anno, prog) => String(anno).padStart(2, '0') + 'P' + prog;
-function annoEff(){ return Math.max(parseInt(CONFIG.anno_lotto, 10) || 27, new Date().getFullYear() % 100); }
-function nextProg(anno){
-  const used = new Set(LOTTI.filter(l => l.anno === anno && l.progressivo != null).map(l => l.progressivo));
-  let n = 1; while (used.has(n)) n++;
-  return n;
+function newRecord(){currentId=null;partial=false;document.getElementById('formTitle').textContent='Nuovo pieno';document.getElementById('deleteButton').classList.add('hidden');document.getElementById('fDate').value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);document.getElementById('fOdo').value='';const last=records.filter(r=>r.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';document.getElementById('fAmount').value='';document.getElementById('fLiters').value='';document.getElementById('fFuel').value='Benzina';document.getElementById('fAddress').value='';document.getElementById('fNote').value='';updatePartial();setView('form')}
+function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;currentId=id;partial=r.partial;document.getElementById('formTitle').textContent='Modifica pieno';document.getElementById('deleteButton').classList.remove('hidden');document.getElementById('fDate').value=(r.date||'').slice(0,16);document.getElementById('fOdo').value=r.odometer||'';const last=records.filter(x=>x.id!==id&&x.odometer>0).sort((a,b)=>b.odometer-a.odometer)[0];document.getElementById('fOdo').placeholder=last?'Ultimo registrato: '+new Intl.NumberFormat('it-IT').format(last.odometer)+' km':'Inserisci chilometraggio';document.getElementById('fAmount').value=(Number(r.amount)||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});document.getElementById('fLiters').value=(Number(r.liters)||0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});document.getElementById('fFuel').value=r.fuel||'Benzina';document.getElementById('fAddress').value=r.address||'';document.getElementById('fNote').value=r.note||'';updatePartial();setView('form')}
+function cancelForm(){setView('list')}
+function autoCents(el){const raw=String(el.value||'');if(!raw)return;let digits=raw.replace(/\D/g,'').slice(0,10);if(!digits){el.value='';return}el.value=(Number(digits)/100).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false})}
+function parseInputNumber(v){return Number(String(v??'').trim().replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.'))||0}
+function unformatOdometer(el){el.value=String(el.value||'').replace(/\D/g,'')}
+function formatOdometer(el){const digits=String(el.value||'').replace(/\D/g,'');el.value=digits?new Intl.NumberFormat('it-IT',{maximumFractionDigits:0,useGrouping:true}).format(Number(digits)):''}
+function togglePartial(){partial=!partial;updatePartial()}function updatePartial(){document.getElementById('partialSwitch').classList.toggle('on',partial)}
+function saveForm(){const d=document.getElementById('fDate').value, odo=parseInputNumber(document.getElementById('fOdo').value), amount=parseInputNumber(document.getElementById('fAmount').value), liters=parseInputNumber(document.getElementById('fLiters').value);if(!d||!amount||!liters){toast('Inserisci data, importo e litri.');return}if(odo&&records.some(r=>r.id!==currentId&&r.odometer===odo)){if(!confirm('Esiste già un rifornimento con questo chilometraggio. Vuoi salvare comunque?'))return}
+ const r={id:currentId||'',date:d,odometer:odo,amount,liters,partial,fuel:document.getElementById('fFuel').value,address:document.getElementById('fAddress').value,note:document.getElementById('fNote').value,origin:'manuale'};
+ google.script.run.withSuccessHandler(()=>{toast('Rifornimento salvato e sincronizzato');setView('list');load()}).withFailureHandler(e=>{const msg=e&&(e.message||e.details||e.toString&&e.toString());toast('Errore salvataggio: '+(msg&&msg!=='[object Object]'?msg:'errore del server Google Apps Script. Verifica autorizzazioni e foglio collegato.'));console.error('saveRecord error',e)}).saveRecord(r)}
+function deleteCurrent(){if(!currentId||!confirm('Eliminare definitivamente questo rifornimento?'))return;google.script.run.withSuccessHandler(()=>{toast('Rifornimento eliminato');setView('list');load()}).deleteRecord(currentId)}
+function showSettings(){setView('settings')}
+function parseCsv(text){let rows=[],row=[],field='',quoted=false;text=String(text||'').replace(/^\uFEFF/,'');for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(quoted){if(c==='"'&&n==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else{if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'){row.push(field);rows.push(row);row=[];field=''}else if(c!=='\r')field+=c}}if(field.length||row.length){row.push(field);rows.push(row)}return rows}
+function parseItalianDate(s){const m=String(s||'').trim().match(/(\d{1,2})\s+([a-zàèéìòù]+)\s+(\d{4}),?\s*(\d{1,2}):(\d{2})/i);if(!m){let d=new Date(s);return isNaN(d)?'':d.toISOString().slice(0,16)}const months={gen:1,feb:2,mar:3,apr:4,mag:5,giu:6,lug:7,ago:8,set:9,ott:10,nov:11,dic:12};const mon=months[m[2].toLowerCase().slice(0,3)];if(!mon)return '';return `${m[3]}-${String(mon).padStart(2,'0')}-${m[1].padStart(2,'0')}T${m[4].padStart(2,'0')}:${m[5]}`}
+function decimal(s){return Number(String(s??'').trim().replace(/\s/g,'').replace(/\.(?=\d{3}(?:\D|$))/g,'').replace(',','.'))||0}
+function handleCsv(e){const file=e.target.files&&e.target.files[0];if(!file)return;toast('Lettura CSV in corso…');const reader=new FileReader();reader.onerror=()=>toast('Impossibile leggere il file. Riprova scegliendo il CSV da File su iPhone.');reader.onload=()=>{try{const rows=parseCsv(reader.result);if(rows.length<2)throw new Error('Il file è vuoto o non contiene righe dati.');const headers=rows.shift().map(x=>x.trim().replace(/^\uFEFF/,''));const ix=k=>headers.findIndex(x=>x.toLowerCase()===k.toLowerCase());const required=['Data','Litri','Importo','Contachilometri'];const missing=required.filter(k=>ix(k)<0);if(missing.length)throw new Error('Colonne mancanti: '+missing.join(', ')+'. Intestazioni trovate: '+headers.join(', '));const data=rows.filter(r=>r.length>3&&r[ix('Data')]).map(r=>{const date=parseItalianDate(r[ix('Data')]);const liters=decimal(r[ix('Litri')]),amount=decimal(r[ix('Importo')]),odo=decimal(r[ix('Contachilometri')]);const stable=[r[ix('Data')],r[ix('Contachilometri')],r[ix('Litri')],r[ix('Importo')],r[ix('Indirizzo')]||''].join('|');let id='csv-'+Array.from(stable).reduce((hash,ch)=>((hash*31)+ch.charCodeAt(0))>>>0,2166136261).toString(16)+'-'+btoa(unescape(encodeURIComponent(stable))).replace(/[^a-zA-Z0-9]/g,'').slice(0,18);return {id,date,odometer:odo,liters,amount,partial:decimal(r[ix('Parziale')])===1,fuel:(ix('Carburante')>=0?r[ix('Carburante')]: '')||'Benzina',address:ix('Indirizzo')>=0?r[ix('Indirizzo')]||'':'',note:ix('Note')>=0?r[ix('Note')]||'':'',latitude:ix('Latitudine')>=0&&r[ix('Latitudine')].trim()!==''?Number(String(r[ix('Latitudine')]).replace(',','.')):null,longitude:ix('Longitudine')>=0&&r[ix('Longitudine')].trim()!==''?Number(String(r[ix('Longitudine')]).replace(',','.')):null,origin:'CSV'}}).filter(r=>r.date&&r.liters>0&&r.amount>0);if(!data.length)throw new Error('Nessuna riga valida trovata. Verifica che il CSV abbia data, litri e importo.');if(!confirm(`Trovati ${data.length} rifornimenti validi. Verranno aggiunti senza cancellare i dati esistenti; i record già importati saranno saltati. Procedere?`)){e.target.value='';return}google.script.run.withSuccessHandler(res=>{toast(`Importazione completata: ${res.imported} nuovi record, ${res.skipped||0} già presenti. Totale: ${res.total}.`);e.target.value='';setView('list');load()}).withFailureHandler(err=>{toast('Errore del server durante l’importazione: '+(err&&err.message?err.message:String(err)));e.target.value=''}).importRecords(data,false)}catch(err){toast('Errore CSV: '+err.message);e.target.value=''}};reader.readAsText(file,'UTF-8')}
+function exportCsv(){
+  if(!records.length){toast('Non ci sono rifornimenti da esportare.');return}
+  toast('Creo il CSV su Google Drive…');
+  google.script.run
+    .withSuccessHandler(result=>{
+      if(!result||!result.url){toast('Esportazione non riuscita: il server non ha restituito il link.');return}
+      const box=document.createElement('div');
+      box.className='toast';
+      box.style.cssText='max-width:90vw;white-space:normal;display:flex;align-items:center;gap:12px;';
+      const label=document.createElement('span');
+      label.textContent='CSV creato ('+result.rows+' rifornimenti). ';
+      const link=document.createElement('a');
+      link.href=result.url;link.target='_blank';link.rel='noopener';link.textContent='Apri / scarica';link.style.cssText='color:#fff;text-decoration:underline;font-weight:700';
+      box.append(label,link);document.body.appendChild(box);setTimeout(()=>box.remove(),10000);
+    })
+    .withFailureHandler(err=>{
+      const msg=err&&(err.message||String(err));
+      toast('Errore esportazione CSV: '+(msg||'errore del server'));
+      console.error('exportRecordsCsv error',err);
+    })
+    .exportRecordsCsv();
 }
-function maxProg(anno){ return LOTTI.filter(l => l.anno === anno && l.progressivo != null).reduce((m, l) => Math.max(m, l.progressivo), 0); }
-function magLabel(m){ return m ? m.charAt(0) + m.slice(1).toLowerCase() : '—'; }
-function postazione(){ try { return localStorage.getItem('lotti_postazione') || ''; } catch (e) { return ''; } }
-function ultimoAddetto(){ try { return localStorage.getItem('lotti_addetto') || ''; } catch (e) { return ''; } }
-function ricordaAddetto(a){ try { localStorage.setItem('lotti_addetto', a); } catch (e) {} }
-
-let toastT;
-function toast(msg, err){
-  const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (err ? ' err' : '');
-  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), err ? 6000 : 3500);
+function renderStats(){const ys=[...new Set(records.map(r=>(r.date||'').slice(0,4)).filter(x=>/^\d{4}$/.test(x)))].sort().reverse();const sel=document.getElementById('yearSelect');const old=sel.value;sel.innerHTML=ys.map(y=>`<option>${y}</option>`).join('');if(ys.includes(old))sel.value=old;const year=sel.value||String(new Date().getFullYear()),yr=records.filter(r=>(r.date||'').startsWith(year)),prev=records.filter(r=>(r.date||'').startsWith(String(Number(year)-1)));const sum=(a,k)=>a.reduce((s,r)=>s+(Number(r[k])||0),0);const stats=[['⛽','Litri',sum(yr,'liters'),'L'],['💶','Importo',sum(yr,'amount'),'€'],['🛣️','Chilometri',yr.length?Math.max(...yr.map(r=>r.odometer))-Math.min(...yr.map(r=>r.odometer)):0,'km'],['◉','Media km/L',calcAverage(yr),'km/L'],['🏷️','Costo medio €/L',sum(yr,'amount')/(sum(yr,'liters')||1),'€/L'],['📈','Ultimo prezzo',yr[0]?.pricePerLiter||0,'€/L']];document.getElementById('statsCards').innerHTML=stats.map((s,i)=>`<div class="stat"><div class="label">${s[0]} ${s[1]}</div><div class="value">${i===1||i===4||i===5?money(s[2]):new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:s[3]==='km'?0:2,maximumFractionDigits:s[3]==='km'?0:2}).format(Number(s[2])||0)+(s[3]==='L'?' L':s[3]==='km'?' km':s[3]==='km/L'?' km/L':'')}</div><div class="foot">${i===0?'Anno '+year:i===1?'Spesa nel periodo':i===4?'Prezzo medio ponderato':'Dati registrati'}</div></div>`).join('');document.getElementById('yearCompare').innerHTML=`<div>Litri: <b>${new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(yr,'liters'))} L</b> · anno precedente ${new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(prev,'liters'))} L</div><div style="margin-top:7px">Spesa: <b>${money(sum(yr,'amount'))}</b> · anno precedente ${money(sum(prev,'amount'))}</div><div style="margin-top:7px">Rifornimenti: <b>${yr.length}</b> · anno precedente ${prev.length}</div>`;document.getElementById('allTime').innerHTML=[['Litri',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(sum(records,'liters'))+' L'],['Importo',money(sum(records,'amount'))],['Km registrati',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:0,maximumFractionDigits:0}).format(records.length?Math.max(...records.map(r=>r.odometer))-Math.min(...records.map(r=>r.odometer)):0)+' km'],['Media km/L',new Intl.NumberFormat('it-IT',{useGrouping:true,minimumFractionDigits:2,maximumFractionDigits:2}).format(calcAverage(records))+' km/L']].map(x=>`<div class="stat"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('')}
+function calcAverage(arr){const sorted=[...arr].filter(r=>r.odometer&&r.liters).sort((a,b)=>a.odometer-b.odometer);let lastFull=null,litersSince=0,km=0,liters=0;for(const r of sorted){litersSince+=r.liters;if(!r.partial){if(lastFull&&r.odometer>lastFull.odometer&&litersSince>0){km+=r.odometer-lastFull.odometer;liters+=litersSince}lastFull=r;litersSince=0}}return liters?km/liters:0}
+function setChartRange(kind,months,btn){ranges[kind]=months;btn.parentElement.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderCharts()}
+function renderCharts(){
+ if(!window.Chart)return;
+ const cutoff=months=>months?new Date(Date.now()-months*30.44*86400000):new Date(0);
+ const sorted=[...records].filter(r=>r.date).sort((a,b)=>a.date.localeCompare(b.date));
+ const price=sorted.filter(r=>dateObj(r.date)>=cutoff(ranges.price)&&r.liters>0);
+ const labels=price.map(r=>dateObj(r.date).toLocaleDateString('it-IT',{month:'short',year:'2-digit'}));
+ drawChart('priceChart','price',labels,price.map(r=>r.pricePerLiter||r.amount/r.liters),'#087cf0');
+ const cons=[];let previousFull=null;let litersSinceFull=0;
+ for(const r of sorted){if(!(r.liters>0))continue;litersSinceFull+=r.liters;if(r.partial||!(r.odometer>0))continue;if(previousFull&&r.odometer>previousFull.odometer&&litersSinceFull>0&&dateObj(r.date)>=cutoff(ranges.consumption)){cons.push({label:dateObj(r.date).toLocaleDateString('it-IT',{month:'short',year:'2-digit'}),value:(r.odometer-previousFull.odometer)/litersSinceFull})}if(r.odometer>0){previousFull=r;litersSinceFull=0;}}
+ drawChart('consumptionChart','consumption',cons.map(x=>x.label),cons.map(x=>x.value),'#159447');
+ renderSpendChart();
 }
-
-let successT;
-function successo({ titolo, grande, dettaglio, avviso }){
-  $('success-title').textContent = titolo;
-  $('success-big').textContent = grande || '';
-  $('success-detail').textContent = dettaglio || '';
-  const w = $('success-warn'); w.hidden = !avviso; w.textContent = avviso || '';
-  const s = $('success'); s.classList.remove('show'); void s.offsetWidth; s.classList.add('show');
-  clearTimeout(successT); successT = setTimeout(chiudiSuccesso, 7000);
-  $('success-ok').focus();
+function renderSpendChart(){
+ const sel=document.getElementById('spendYear');if(!sel||!window.Chart)return;
+ const years=[...new Set(records.map(r=>(r.date||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)))].sort().reverse();
+ const current=sel.value;
+ sel.innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join('');
+ const year=years.includes(current)?current:(years.includes(String(new Date().getFullYear()))?String(new Date().getFullYear()):years[0]);
+ if(year)sel.value=year;
+ const totals=Array.from({length:12},(_,i)=>0);
+ for(const r of records){if((r.date||'').startsWith(year+'-')){const month=Number((r.date||'').slice(5,7));if(month>=1&&month<=12)totals[month-1]+=Number(r.amount)||0}}
+ const labels=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+ drawChart('spendChart','spend',labels,totals,'#e91f38');
 }
-function chiudiSuccesso(){ clearTimeout(successT); $('success').classList.remove('show'); }
-$('success-ok').addEventListener('click', chiudiSuccesso);
-$('success').addEventListener('click', e => { if (e.target.id === 'success') chiudiSuccesso(); });
-
-function openModal(html, small){
-  const c = $('modal-card'); c.className = 'modal-card' + (small ? ' small' : ''); c.innerHTML = html;
-  $('modal').classList.add('show');
-}
-function closeModal(){ $('modal').classList.remove('show'); $('modal-card').innerHTML = ''; }
-function confirmModal(titolo, testo, okLabel, onOk){
-  openModal(`<h2>${esc(titolo)}</h2><p style="margin:0 0 16px;line-height:1.45">${testo}</p>
-    <div class="modal-btns"><button class="btn danger sm" id="cm-ok">${esc(okLabel)}</button><button class="btn ghost sm" id="cm-no">Annulla</button></div>
-    <div class="msg err" id="cm-msg"></div>`, true);
-  $('cm-no').onclick = closeModal;
-  $('cm-ok').onclick = async () => {
-    $('cm-ok').disabled = true;
-    try { await onOk(); closeModal(); } catch (e) { $('cm-msg').textContent = e.message; $('cm-ok').disabled = false; }
-  };
-}
-
-async function rpc(fn, args){
-  const { data, error } = await sb.rpc(fn, args);
-  if (error) throw new Error(error.message || String(error));
-  return data;
-}
-
-// ---------- moduli (usati da Carico, Nuova partita, Modifica) ----------
-const esitoOpts = '<option value="reg">Regolare</option><option value="non reg">Non regolare</option>';
-function lottoFields(p, opts = {}){
-  return `<div class="grid">
-    <div><label>Data arrivo *</label><input type="date" id="${p}-data"></div>
-    <div class="s2"><label>Fornitore *</label><input class="uc" id="${p}-fornitore" list="sup-list" autocomplete="off" placeholder="es. TRENTIN"></div>
-    <div><label>Nr. DDT / CMR</label><input class="uc" id="${p}-ddt" autocomplete="off"></div>
-    <div class="s2"><label>Prodotto / Matricola / Mese-anno produzione *</label><input class="uc" id="${p}-prodotto" autocomplete="off"></div>
-    <div><label>Nr. lotto fornitore</label><input class="uc" id="${p}-lf" autocomplete="off"></div>
-    <div><label>Scadenza / TMC</label><input type="date" id="${p}-scad"></div>
-    <div><label>Q.tà (kg) *</label><input id="${p}-kg" inputmode="decimal" autocomplete="off"></div>
-    <div><label>Quantità *</label><input id="${p}-qta" inputmode="numeric" autocomplete="off"></div>
-    <div><label>Unità</label><select id="${p}-um"><option value="f">forme (f)</option><option value="ct">cartoni (ct)</option><option value="pz">pezzi (pz)</option></select></div>
-    <div><label>Temp. prodotto (°C)</label><input id="${p}-temp" inputmode="decimal" autocomplete="off"></div>
-    <div><label>Stato igienico mezzo e infestanti</label><select class="esito" id="${p}-igiene">${esitoOpts}</select></div>
-    <div><label>Integrità imballo / prodotto / bancali</label><select class="esito" id="${p}-integrita">${esitoOpts}</select></div>
-    <div><label>Addetto (sigla) *</label><input class="uc" id="${p}-addetto" maxlength="8" autocomplete="off"></div>
-    <div class="lotbox"><label>Nr. Lotto Trentin (assegnato)</label><input id="${p}-lotto" readonly tabindex="-1"><small id="${p}-lotto-note"></small></div>
-  </div>`;
-}
-function ingressoFields(p){
-  return `<div class="grid">
-    <div><label>Data arrivo *</label><input type="date" id="${p}-data"></div>
-    <div><label>Nr. DDT / CMR</label><input class="uc" id="${p}-ddt" autocomplete="off"></div>
-    <div><label>Q.tà (kg) *</label><input id="${p}-kg" inputmode="decimal" autocomplete="off"></div>
-    <div><label>Forme *</label><input id="${p}-forme" inputmode="numeric" autocomplete="off"></div>
-    <div><label>Temp. prodotto (°C)</label><input id="${p}-temp" inputmode="decimal" autocomplete="off"></div>
-    <div><label>Stato igienico mezzo e infestanti</label><select class="esito" id="${p}-igiene">${esitoOpts}</select></div>
-    <div><label>Integrità imballo / prodotto / bancali</label><select class="esito" id="${p}-integrita">${esitoOpts}</select></div>
-    <div><label>Addetto (sigla) *</label><input class="uc" id="${p}-addetto" maxlength="8" autocomplete="off"></div>
-  </div>`;
-}
-function partitaFields(p){
-  return `<div class="grid">
-    <div class="s2"><label>Fornitore *</label><input class="uc" id="${p}-fornitore" list="sup-list" autocomplete="off" placeholder="es. TRENTIN"></div>
-    <div class="s2"><label>Prodotto / Matricola / Mese-anno produzione *</label><input class="uc" id="${p}-prodotto" autocomplete="off"></div>
-    <div><label>Nr. lotto fornitore</label><input class="uc" id="${p}-lf" autocomplete="off"></div>
-    <div><label>Scadenza / TMC</label><input type="date" id="${p}-scad"></div>
-    <div class="lotbox s2"><label>Nr. Lotto Trentin (assegnato)</label><input id="${p}-lotto" readonly tabindex="-1"><small id="${p}-lotto-note"></small></div>
-  </div>`;
-}
-function setV(id, v){ const e = $(id); if (e) e.value = v ?? ''; }
-function segnaEsiti(){
-  document.querySelectorAll('select.esito').forEach(s => s.classList.toggle('esito-non', s.value === 'non reg'));
-}
-
-function resetLottoForm(p){
-  setV(p + '-data', oggiISO()); ['fornitore','ddt','prodotto','lf','scad','kg','qta','temp'].forEach(k => setV(p + '-' + k, ''));
-  setV(p + '-um', 'f'); setV(p + '-igiene', 'reg'); setV(p + '-integrita', 'reg'); setV(p + '-addetto', ultimoAddetto());
-}
-function resetIngressoForm(p){
-  setV(p + '-data', oggiISO()); ['ddt','kg','forme','temp'].forEach(k => setV(p + '-' + k, ''));
-  setV(p + '-igiene', 'reg'); setV(p + '-integrita', 'reg'); setV(p + '-addetto', ultimoAddetto());
-}
-
-function leggiLotto(p){
-  const kg = num(val(p + '-kg')), qta = num(val(p + '-qta')), temp = num(val(p + '-temp'));
-  if (Number.isNaN(kg)) throw new Error('I kg non sono un numero valido.');
-  if (Number.isNaN(qta)) throw new Error('La quantità non è un numero valido.');
-  if (Number.isNaN(temp)) throw new Error('La temperatura non è un numero valido.');
-  if (!val(p + '-data')) throw new Error('Indica la data di arrivo.');
-  if (!val(p + '-fornitore')) throw new Error('Indica il fornitore.');
-  if (!val(p + '-prodotto')) throw new Error('Indica il prodotto.');
-  if (isTrentin(val(p + '-fornitore')) && !val(p + '-lf')) throw new Error('Fornitore TRENTIN: indica il lotto del fornitore.');
-  if (!kg || kg <= 0) throw new Error('Indica i kg.');
-  if (!qta || qta <= 0) throw new Error('Indica la quantità (forme / cartoni / pezzi).');
-  if (!Number.isInteger(qta)) throw new Error('La quantità deve essere un numero intero.');
-  if (!val(p + '-addetto')) throw new Error('Indica la sigla dell\'addetto.');
-  return {
-    anno: annoEff(), data_arrivo: val(p + '-data'), fornitore: val(p + '-fornitore'), ddt: val(p + '-ddt'),
-    prodotto: val(p + '-prodotto'), lotto_fornitore: val(p + '-lf'), scadenza: val(p + '-scad'),
-    qta_kg: kg, qta: qta, um: val(p + '-um'), temp: temp, igiene: val(p + '-igiene'), integrita: val(p + '-integrita'),
-    addetto: val(p + '-addetto'), magazzino: postazione()
-  };
-}
-function leggiIngresso(p){
-  const kg = num(val(p + '-kg')), forme = num(val(p + '-forme')), temp = num(val(p + '-temp'));
-  if (!val(p + '-data')) throw new Error('Indica la data di arrivo.');
-  if (Number.isNaN(kg) || !kg || kg <= 0) throw new Error('Indica i kg.');
-  if (Number.isNaN(forme) || !forme || forme <= 0) throw new Error('Indica le forme.');
-  if (!Number.isInteger(forme)) throw new Error('Le forme devono essere un numero intero.');
-  if (Number.isNaN(temp)) throw new Error('La temperatura non è un numero valido.');
-  if (!val(p + '-addetto')) throw new Error('Indica la sigla dell\'addetto.');
-  return { data_arrivo: val(p + '-data'), ddt: val(p + '-ddt'), qta_kg: kg, forme: forme, temp: temp,
-    igiene: val(p + '-igiene'), integrita: val(p + '-integrita'), addetto: val(p + '-addetto'), magazzino: postazione() };
-}
-function leggiPartita(p){
-  if (!val(p + '-fornitore')) throw new Error('Indica il fornitore.');
-  if (!val(p + '-prodotto')) throw new Error('Indica il prodotto.');
-  if (isTrentin(val(p + '-fornitore')) && !val(p + '-lf')) throw new Error('Fornitore TRENTIN: indica il lotto del fornitore.');
-  return { anno: annoEff(), fornitore: val(p + '-fornitore'), prodotto: val(p + '-prodotto'), lotto_fornitore: val(p + '-lf'), scadenza: val(p + '-scad'), um: 'f' };
-}
-
-// Anteprima del lotto che verrà assegnato (il numero definitivo lo decide il database al salvataggio)
-function anteprima(fornitore, lf, lotto){
-  if (isTrentin(fornitore)) {
-    const nota = lotto && lotto.progressivo != null ? `TRENTIN: nessun lotto interno (${lotto.lotto_trentin} verrà liberato)` : 'TRENTIN: si usa il lotto del fornitore, nessun lotto interno';
-    return { testo: lf || '(inserisci il lotto fornitore)', nota };
-  }
-  if (lotto && lotto.progressivo != null) return { testo: lotto.lotto_trentin, nota: 'codice invariato' };
-  const a = lotto ? lotto.anno : annoEff(), n = nextProg(a);
-  return { testo: codice(a, n), nota: n <= maxProg(a) ? 'codice libero riutilizzato' : '' };
-}
-function aggiornaAnteprime(){
-  [['c', null], ['n', null]].forEach(([p]) => {
-    if (!$(p + '-lotto')) return;
-    const a = anteprima(val(p + '-fornitore'), val(p + '-lf'), null);
-    $(p + '-lotto').value = a.testo; $(p + '-lotto-note').textContent = a.nota;
-  });
-  if ($('e-lotto') && EDIT_LOTTO) {
-    const a = anteprima(val('e-fornitore'), val('e-lf'), EDIT_LOTTO);
-    $('e-lotto').value = a.testo; $('e-lotto-note').textContent = a.nota;
-  }
-}
-
-// ---------- caricamento dati + tempo reale ----------
-function setStatus(text, cls){ const el = $('sync-status'); el.textContent = text; el.className = cls || ''; }
-let liveOk = false, loading = false, pendingLoad = false, loadT = null;
-
-async function fetchAll(table, orderCols){
-  const all = []; let from = 0; const step = 1000;
-  while (true) {
-    let q = sb.from(table).select('*');
-    orderCols.forEach(c => { q = q.order(c, { ascending: true }); });
-    const { data, error } = await q.range(from, from + step - 1);
-    if (error) throw error;
-    all.push(...data);
-    if (data.length < step) break;
-    from += step;
-  }
-  return all;
-}
-async function loadData(){
-  if (!sb) return false;
-  if (loading) { pendingLoad = true; return false; }
-  loading = true;
-  try {
-    const [l, i, c] = await Promise.all([fetchAll('lotti', ['created_at', 'id']), fetchAll('ingressi', ['created_at', 'id']), fetchAll('impostazioni', ['chiave'])]);
-    LOTTI = l; INGRESSI = i;
-    c.forEach(r => { CONFIG[r.chiave] = r.valore; });
-    INGR_BY = {};
-    INGRESSI.forEach(x => { (INGR_BY[x.lotto_id] = INGR_BY[x.lotto_id] || []).push(x); });
-    Object.values(INGR_BY).forEach(a => a.sort((x, y) => (x.data_arrivo + x.created_at).localeCompare(y.data_arrivo + y.created_at)));
-    refreshAll();
-    paintStatus();
-    return true;
-  } catch (e) {
-    setStatus('Errore di connessione: ' + (e.message || e), 'err');
-    return false;
-  } finally {
-    loading = false;
-    if (pendingLoad) { pendingLoad = false; scheduleLoad(); }
-  }
-}
-function scheduleLoad(){ clearTimeout(loadT); loadT = setTimeout(loadData, 350); }
-function paintStatus(){
-  const ora = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-  if (liveOk) setStatus('● Collegato in tempo reale · ' + ora, 'live');
-  else setStatus('Aggiornato alle ' + ora + ' (ricarica ogni 20 s)', '');
-}
-let rtChannel = null;
-function setupRealtime(){
-  if (!sb || !sb.channel) return;
-  try {
-    if (rtChannel) sb.removeChannel(rtChannel);
-    rtChannel = sb.channel('lotti-live');
-    ['lotti', 'ingressi', 'impostazioni'].forEach(t => rtChannel.on('postgres_changes', { event: '*', schema: 'public', table: t }, scheduleLoad));
-    rtChannel.subscribe(st => { liveOk = (st === 'SUBSCRIBED'); paintStatus(); if (liveOk) scheduleLoad(); });
-  } catch (e) { liveOk = false; }
-}
-let pollSet = false;
-function setupPolling(){
-  if (pollSet) return; pollSet = true;
-  setInterval(() => { if (!document.hidden) loadData(); }, 20000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadData(); });
-  window.addEventListener('online', loadData);
-}
-
-// ---------- accesso ----------
-function showLogin(m){ $('login-overlay').classList.add('show'); $('login-msg').textContent = m || ''; }
-function hideLogin(){ $('login-overlay').classList.remove('show'); }
-$('login-form').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  if (!sb) return;
-  $('login-msg').textContent = '';
-  const { error } = await sb.auth.signInWithPassword({ email: SHARED_EMAIL, password: $('login-pw').value });
-  if (error) { $('login-msg').textContent = /invalid/i.test(error.message) ? 'Password non corretta.' : 'Accesso non riuscito: ' + error.message; return; }
-  $('login-pw').value = ''; hideLogin(); await startApp();
-});
-$('btn-esci').addEventListener('click', async () => {
-  if (sb) { if (rtChannel) { sb.removeChannel(rtChannel); rtChannel = null; } await sb.auth.signOut(); }
-  LOTTI = []; INGRESSI = []; INGR_BY = {}; liveOk = false; refreshAll(); setStatus('Non connesso'); showLogin();
-});
-$('btn-aggiorna').addEventListener('click', loadData);
-async function startApp(){
-  if (!postazione()) $('postazione-overlay').classList.add('show');
-  await loadData(); setupRealtime(); setupPolling();
-}
-
-// ---------- postazione ----------
-function paintPostazione(){ $('postazione-nome').textContent = postazione() ? magLabel(postazione()) : 'da scegliere'; }
-document.querySelectorAll('[data-postazione]').forEach(b => b.addEventListener('click', () => {
-  try { localStorage.setItem('lotti_postazione', b.dataset.postazione); } catch (e) {}
-  $('postazione-overlay').classList.remove('show'); paintPostazione();
-}));
-$('postazione-btn').addEventListener('click', () => $('postazione-overlay').classList.add('show'));
-
-// ---------- navigazione (una pagina per Carico, Frazionate, Registro) ----------
-function route(){
-  let v = (location.hash || '#carico').slice(1);
-  if (!['carico', 'frazionate', 'registro'].includes(v)) v = 'carico';
-  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
-  document.querySelectorAll('.tab-btn').forEach(a => a.classList.toggle('active', a.dataset.view === v));
-  if (v !== 'registro') setWide(false);
-  window.scrollTo(0, 0);
-}
-window.addEventListener('hashchange', route);
-
-// ---------- rendering ----------
-function refreshAll(){ renderCarico(); renderFraz(); renderRegistro(); aggiornaAnteprime(); }
-
-function badgeEsito(v){ return v === 'non reg' ? '<span class="badge red">non reg.</span>' : '<span class="reg-ok">reg.</span>'; }
-function celleLotto(l){
-  const n = (INGR_BY[l.id] || []).length;
-  const interno = l.progressivo != null;
-  let h = `<td class="lot${interno ? '' : ' forn'}" title="${interno ? 'Lotto interno' : 'Lotto del fornitore (nessun lotto interno)'}">${esc(l.lotto_trentin)}`;
-  if (l.frazionata) h += `<span class="badge">FRAZ.</span>`;
-  return h + '</td>';
-}
-
-function renderCarico(){
-  const a = annoEff(), n = nextProg(a);
-  $('kpi-next').textContent = codice(a, n);
-  $('kpi-next-sub').textContent = n <= maxProg(a) ? 'prossimo lotto (codice libero riutilizzato)' : 'prossimo lotto';
-  $('kpi-serie').textContent = fmtNum(LOTTI.filter(l => l.anno === a).length, 0);
-  $('kpi-serie-lbl').textContent = 'lotti serie ' + a + 'P';
-  const oggi = oggiISO();
-  $('kpi-oggi').textContent = fmtNum(LOTTI.filter(l => l.data_arrivo === oggi).length, 0);
-  const sup = [...new Set(LOTTI.map(l => l.fornitore))].sort();
-  $('sup-list').innerHTML = sup.map(s => `<option value="${esc(s)}">`).join('');
-  const rec = [...LOTTI].sort((x, y) => y.created_at.localeCompare(x.created_at)).slice(0, 8);
-  $('recent-tbody').innerHTML = rec.length ? rec.map(l => `<tr>${celleLotto(l)}<td>${fmtData(l.data_arrivo)}</td><td>${esc(l.fornitore)}</td><td class="wrap">${esc(l.prodotto)}</td>
-    <td class="num">${fmtNum(l.qta_kg)}</td><td class="num">${fmtNum(l.qta, 0)} ${l.um}</td><td><span class="badge mag">${esc(magLabel(l.magazzino))}</span></td></tr>`).join('')
-    : '<tr class="empty-row"><td colspan="7">Nessun lotto registrato.</td></tr>';
-}
-
-// --- Registro ---
-const COLS = [
-  ['data', 'Data arrivo'], ['fornitore', 'Fornitore'], ['ddt', 'Nr. DDT / CMR'], ['prodotto', 'Prodotto / Matricola / Mese-anno produzione'],
-  ['lf', 'Nr. Lotto Fornitore'], ['scad', 'Scadenza / TMC'], ['kg', 'Q.tà (kg)'], ['qta', 'Cartoni / forme / pezzi'], ['temp', 'Temp. prodotto (°C)'],
-  ['lotto', 'Nr. Lotto Trentin'], ['igiene', 'Stato igienico mezzo e infestanti'], ['integrita', 'Integrità imballo / prodotto / bancali'], ['addetto', 'Addetto (sigla)'], ['mag', 'Reg. da']
-];
-const NUMCOLS = ['kg', 'qta', 'temp'];
-function sortVal(l, c){
-  switch (c) {
-    case 'data': return l.data_arrivo; case 'fornitore': return l.fornitore; case 'ddt': return l.ddt || '';
-    case 'prodotto': return l.prodotto; case 'lf': return l.lotto_fornitore || ''; case 'scad': return l.scadenza || '';
-    case 'kg': return Number(l.qta_kg ?? -1); case 'qta': return Number(l.qta ?? -1); case 'temp': return l.temp === null ? -999 : Number(l.temp);
-    case 'lotto': return l.lotto_trentin; case 'igiene': return l.igiene; case 'integrita': return l.integrita;
-    case 'addetto': return l.addetto || ''; case 'mag': return l.magazzino || '';
-  }
-  return '';
-}
-function cmp(a, b){
-  if (typeof a === 'number' && typeof b === 'number') return a - b;
-  return String(a).localeCompare(String(b), 'it', { numeric: true, sensitivity: 'base' });
-}
-function serieOptions(){
-  const anni = [...new Set([...LOTTI.map(l => l.anno), annoEff()])].sort((x, y) => y - x);
-  return anni;
-}
-function lottiFiltrati(){
-  let rows = LOTTI.filter(l => REG.serie === 'all' || l.anno === Number(REG.serie));
-  if (REG.da) rows = rows.filter(l => l.data_arrivo >= REG.da);
-  if (REG.a) rows = rows.filter(l => l.data_arrivo <= REG.a);
-  const q = REG.q.toLowerCase();
-  if (q) rows = rows.filter(l => [l.lotto_trentin, l.fornitore, l.ddt, l.prodotto, l.lotto_fornitore, fmtData(l.data_arrivo), fmtData(l.scadenza), l.addetto, l.magazzino, l.qta_kg, l.frazionata ? 'frazionata' : ''].join(' ').toLowerCase().includes(q));
-  const { col, dir } = REG.sort, m = dir === 'asc' ? 1 : -1;
-  rows.sort((x, y) => m * cmp(sortVal(x, col), sortVal(y, col)) || m * x.created_at.localeCompare(y.created_at));
-  return rows;
-}
-function renderRegistro(){
-  if (REG.serie === null) REG.serie = String(annoEff());
-  const sel = $('r-serie');
-  if (document.activeElement !== sel) {
-    sel.innerHTML = `<option value="all">Tutte</option>` + serieOptions().map(a => `<option value="${a}">${a}P</option>`).join('');
-    sel.value = REG.serie;
-  }
-  $('reg-thead').innerHTML = COLS.map(([k, t]) => `<th class="sortable${NUMCOLS.includes(k) ? ' num' : ''}${REG.sort.col === k ? ' sort-' + REG.sort.dir : ''}" data-sort="${k}">${t}<span class="arrow">▲▼</span></th>`).join('') + '<th></th>';
-  const rows = lottiFiltrati();
-  $('reg-tbody').innerHTML = rows.length ? rows.map(rigaRegistro).join('') : `<tr class="empty-row"><td colspan="${COLS.length + 1}">Nessun lotto trovato.</td></tr>`;
-  const kg = rows.reduce((s, l) => s + Number(l.qta_kg || 0), 0);
-  $('reg-count').textContent = `${fmtNum(rows.length, 0)} righe · ${fmtNum(kg)} kg totali`;
-  $('reg-sub').textContent = 'Mod. 11-P – Scheda controllo materie prime all\'arrivo' + (REG.serie === 'all' ? '' : ' · serie ' + REG.serie + 'P');
-}
-function rigaRegistro(l){
-  const n = (INGR_BY[l.id] || []).length;
-  const ddt = l.frazionata ? `<a class="cell-link" data-act="open-partita" data-id="${l.id}">Mod. 120 · ${n} ingress${n === 1 ? 'o' : 'i'}</a>` : esc(l.ddt || '—');
-  return `<tr>
-    <td>${fmtData(l.data_arrivo)}</td><td>${esc(l.fornitore)}</td><td>${ddt}</td><td class="wrap">${esc(l.prodotto)}</td>
-    <td>${esc(l.lotto_fornitore || '—')}</td><td>${fmtData(l.scadenza)}</td><td class="num">${fmtNum(l.qta_kg)}</td>
-    <td class="num">${fmtNum(l.qta, 0)} ${l.um}</td><td class="num">${l.temp === null ? '—' : fmtNum(l.temp, 1)}</td>
-    ${celleLotto(l)}<td>${badgeEsito(l.igiene)}</td><td>${badgeEsito(l.integrita)}</td><td>${esc(l.addetto || '—')}</td>
-    <td><span class="badge mag">${esc(magLabel(l.magazzino))}</span></td>
-    <td class="act"><button class="icon-btn" data-act="edit-lotto" data-id="${l.id}" title="Modifica">✎</button><button class="icon-btn del" data-act="del-lotto" data-id="${l.id}" title="Elimina">🗑</button></td></tr>`;
-}
-
-// --- Frazionate ---
-function partite(){ return LOTTI.filter(l => l.frazionata); }
-function ultimoIngresso(l){ const a = INGR_BY[l.id] || []; return a.length ? a.map(x => x.data_arrivo).sort().pop() : l.data_arrivo; }
-function renderFraz(){
-  const q = val('f-search').toLowerCase();
-  let ps = partite();
-  if (q) ps = ps.filter(l => [l.lotto_trentin, l.fornitore, l.prodotto].join(' ').toLowerCase().includes(q));
-  ps.sort((a, b) => ultimoIngresso(b).localeCompare(ultimoIngresso(a)) || b.created_at.localeCompare(a.created_at));
-  $('f-list').innerHTML = ps.length ? ps.map(l => `<tr class="clickable${l.id === SEL_PARTITA ? ' sel' : ''}" data-act="sel-partita" data-id="${l.id}">
-      <td class="lot${l.progressivo != null ? '' : ' forn'}">${esc(l.lotto_trentin)}</td><td>${esc(l.fornitore)}</td><td class="wrap">${esc(l.prodotto)}</td>
-      <td class="num">${(INGR_BY[l.id] || []).length}</td><td class="num">${fmtNum(l.qta, 0)}</td><td class="num">${fmtNum(l.qta_kg)}</td><td>${fmtData(ultimoIngresso(l))}</td></tr>`).join('')
-    : `<tr class="empty-row"><td colspan="7">${q ? 'Nessuna partita trovata.' : 'Nessuna partita in consegna frazionata. Crea la prima con «+ Nuova partita».'}</td></tr>`;
-  $('f-count').textContent = `${partite().length} partite`;
-  renderDettaglio();
-}
-function renderDettaglio(){
-  const box = $('f-detail');
-  const l = LOTTI.find(x => x.id === SEL_PARTITA && x.frazionata);
-  if (!l) {
-    if (SEL_PARTITA) SEL_PARTITA = null;
-    box.dataset.sel = '';
-    box.innerHTML ='<div class="placeholder">Seleziona una partita dall\'elenco per vedere e aggiungere gli ingressi,<br>oppure crea una nuova partita.</div>';
-    return;
-  }
-  // se sto scrivendo nel modulo «aggiungi ingresso» non lo ricostruisco (aggiornamento in tempo reale)
-  const ing = INGR_BY[l.id] || [];
-  const tKg = ing.reduce((s, x) => s + Number(x.qta_kg), 0), tF = ing.reduce((s, x) => s + Number(x.forme), 0);
-  const keep = box.dataset.sel === l.id && $('i-data');
-  const top = `
-    <div class="panel-head"><h2>Partita ${esc(l.lotto_trentin)}</h2></div>
-    <div class="mod120">
-      <div><div class="k">Fornitore</div><div class="v">${esc(l.fornitore)}</div></div>
-      <div><div class="k">Prodotto / Matricola / Mese-anno produzione</div><div class="v">${esc(l.prodotto)}</div>${l.lotto_fornitore ? `<div class="hint" style="margin:3px 0 0">Lotto fornitore: ${esc(l.lotto_fornitore)}${l.scadenza ? ' · scad. ' + fmtData(l.scadenza) : ''}</div>` : (l.scadenza ? `<div class="hint" style="margin:3px 0 0">Scadenza: ${fmtData(l.scadenza)}</div>` : '')}</div>
-      <div><div class="k">Lotto Trentin</div><div class="big">${esc(l.lotto_trentin)}</div></div>
-    </div>
-    <div class="frz-actions">
-      <button class="print-btn" data-act="edit-partita" data-id="${l.id}">✎ Modifica dati partita</button>
-      <button class="print-btn" data-act="print-partita" data-id="${l.id}">🖨️ Stampa Mod. 120</button>
-      <button class="print-btn" data-act="del-partita" data-id="${l.id}" style="color:var(--danger)">🗑 Elimina partita</button>
-    </div>
-    <div class="table-wrap"><table>
-      <thead><tr><th>Data arrivo</th><th>Nr. DDT / CMR</th><th class="num">Q.tà (kg)</th><th class="num">Forme</th><th class="num">Temp. (°C)</th><th>Stato igienico</th><th>Integrità</th><th>Addetto</th><th></th></tr></thead>
-      <tbody>${ing.map(x => `<tr><td>${fmtData(x.data_arrivo)}</td><td>${esc(x.ddt || '—')}</td><td class="num">${fmtNum(x.qta_kg)}</td><td class="num">${fmtNum(x.forme, 0)}</td>
-        <td class="num">${x.temp === null ? '—' : fmtNum(x.temp, 1)}</td><td>${badgeEsito(x.igiene)}</td><td>${badgeEsito(x.integrita)}</td><td>${esc(x.addetto || '—')}</td>
-        <td class="act"><button class="icon-btn" data-act="edit-ingresso" data-id="${x.id}" title="Modifica">✎</button><button class="icon-btn del" data-act="del-ingresso" data-id="${x.id}" title="Elimina">🗑</button></td></tr>`).join('')}</tbody>
-      <tfoot><tr><td>TOTALI</td><td>${ing.length} ingress${ing.length === 1 ? 'o' : 'i'}</td><td class="num">${fmtNum(tKg)}</td><td class="num">${fmtNum(tF, 0)}</td><td colspan="5"></td></tr></tfoot>
-    </table></div>
-    <div class="hint">I totali di kg e forme sono riportati in automatico nel registro lotti (Mod. 11-P).</div>`;
-  const form = `<hr class="sep"><h3>Aggiungi ingresso a questa partita</h3>
-    <form id="i-form" novalidate><div id="i-fields">${ingressoFields('i')}</div>
-    <button class="btn" type="submit" id="i-submit">Aggiungi ingresso</button><div class="msg err" id="i-msg"></div></form>`;
-  if (keep) {
-    $('f-top').innerHTML = top;
-  } else {
-    box.innerHTML = `<div id="f-top">${top}</div><div id="f-form">${form}</div>`;
-    box.dataset.sel = l.id;
-    resetIngressoForm('i'); segnaEsiti();
-  }
-}
-
-// ---------- eventi: ordinamento, filtri, azioni ----------
-document.addEventListener('click', e => {
-  const th = e.target.closest('th[data-sort]');
-  if (th) {
-    const c = th.dataset.sort;
-    REG.sort = { col: c, dir: REG.sort.col === c && REG.sort.dir === 'asc' ? 'desc' : 'asc' };
-    renderRegistro(); return;
-  }
-  const b = e.target.closest('[data-act]'); if (!b) return;
-  const id = b.dataset.id;
-  switch (b.dataset.act) {
-    case 'edit-lotto': return editLotto(id);
-    case 'del-lotto': return delLotto(id);
-    case 'open-partita': return vaiPartita(id);
-    case 'sel-partita': return selPartita(id);
-    case 'edit-partita': return editPartita(id);
-    case 'del-partita': return delLotto(id);
-    case 'print-partita': return stampaPartita(id);
-    case 'edit-ingresso': return editIngresso(id);
-    case 'del-ingresso': return delIngresso(id);
-  }
-});
-document.addEventListener('input', e => {
-  const t = e.target;
-  if (t.classList && t.classList.contains('uc')) {
-    const pos = t.selectionStart; t.value = t.value.toUpperCase();
-    if (pos !== null) try { t.setSelectionRange(pos, pos); } catch (x) {}
-  }
-  if (t.id && /-(fornitore|lf)$/.test(t.id)) aggiornaAnteprime();
-});
-document.addEventListener('change', e => { if (e.target.classList && e.target.classList.contains('esito')) segnaEsiti(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { if ($('success').classList.contains('show')) chiudiSuccesso(); else closeModal(); } });
-$('q-search').addEventListener('input', e => { REG.q = e.target.value.trim(); renderRegistro(); });
-$('r-serie').addEventListener('change', e => { REG.serie = e.target.value; renderRegistro(); });
-$('r-da').addEventListener('change', e => { REG.da = e.target.value; renderRegistro(); });
-$('r-a').addEventListener('change', e => { REG.a = e.target.value; renderRegistro(); });
-$('btn-reset-filtri').addEventListener('click', () => {
-  REG.q = ''; REG.da = ''; REG.a = ''; REG.serie = String(annoEff());
-  $('q-search').value = ''; $('r-da').value = ''; $('r-a').value = ''; renderRegistro();
-});
-$('f-search').addEventListener('input', renderFraz);
-
-// ---------- carico normale ----------
-$('c-fields').innerHTML = lottoFields('c');
-resetLottoForm('c');
-$('c-form').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const msg = $('c-msg'), btn = $('c-submit'); msg.textContent = '';
-  let dati; try { dati = leggiLotto('c'); } catch (e) { msg.textContent = e.message; return; }
-  const previsto = $('c-lotto').value;
-  btn.disabled = true; btn.textContent = 'Salvataggio…';
-  try {
-    const r = await rpc('registra_lotto', { p: dati });
-    ricordaAddetto(dati.addetto);
-    const tr = r.progressivo == null;
-    successo({
-      titolo: 'Lotto registrato correttamente', grande: r.lotto_trentin,
-      dettaglio: tr ? 'Fornitore TRENTIN: registrato con il lotto del fornitore (nessun lotto interno)' : `${r.fornitore} · ${r.prodotto}`,
-      avviso: (!tr && previsto && previsto !== r.lotto_trentin) ? `Il lotto ${previsto} era appena stato preso dall'altro magazzino: assegnato ${r.lotto_trentin}.` : ''
-    });
-    resetLottoForm('c'); segnaEsiti();
-    await loadData();
-    $('c-fornitore').focus();
-  } catch (e) { msg.textContent = 'Registrazione non riuscita: ' + e.message; }
-  finally { btn.disabled = false; btn.textContent = 'Registra lotto'; }
-});
-
-// ---------- cambia anno ----------
-$('btn-anno').addEventListener('click', () => {
-  openModal(`<h2>Anno della serie lotti</h2>
-    <p style="margin:0 0 12px;line-height:1.45">I nuovi lotti avranno la forma <b>AAP1, AAP2…</b> (es. 27P1). Serie attuale: <b>${annoEff()}P</b>.<br>
-    <span style="color:var(--muted);font-size:.85rem">Dal 1° gennaio di ogni anno la serie passa da sola all'anno nuovo, se non l'hai già cambiata.</span></p>
-    <label>Anno (ultime due cifre)</label><input id="anno-in" inputmode="numeric" maxlength="2" value="${annoEff()}" style="max-width:120px">
-    <div class="modal-btns" style="margin-top:14px"><button class="btn sm" id="anno-ok" style="margin-top:0">Salva</button><button class="btn ghost sm" id="anno-no" style="margin-top:0">Annulla</button></div>
-    <div class="msg err" id="anno-msg"></div>`, true);
-  $('anno-no').onclick = closeModal;
-  $('anno-ok').onclick = async () => {
-    const n = parseInt($('anno-in').value, 10);
-    if (!(n >= 20 && n <= 99)) { $('anno-msg').textContent = 'Inserisci due cifre, per esempio 27.'; return; }
-    try { await rpc('imposta_anno_lotto', { p_anno: n }); closeModal(); await loadData(); toast('Serie lotti: ' + annoEff() + 'P'); }
-    catch (e) { $('anno-msg').textContent = e.message; }
-  };
-});
-
-// ---------- modifica / elimina lotto ----------
-let EDIT_LOTTO = null;
-function editLotto(id){
-  const l = LOTTI.find(x => x.id === id); if (!l) return;
-  EDIT_LOTTO = l;
-  openModal(`<h2>Modifica lotto ${esc(l.lotto_trentin)}</h2>
-    <form id="e-form" novalidate>${lottoFields('e')}
-    ${l.frazionata ? '<p class="hint">Partita in consegna frazionata: data, quantità, temperatura ed esiti si modificano dagli ingressi (pagina «Consegne frazionate»).</p>' : ''}
-    <div class="modal-btns" style="margin-top:14px"><button class="btn sm" type="submit" id="e-ok" style="margin-top:0">Salva modifiche</button>
-    <button class="btn ghost sm" type="button" id="e-no" style="margin-top:0">Annulla</button><span class="spacer"></span>
-    <button class="btn danger sm" type="button" id="e-del" style="margin-top:0">Elimina lotto</button></div>
-    <div class="msg err" id="e-msg"></div></form>`);
-  setV('e-data', l.data_arrivo); setV('e-fornitore', l.fornitore); setV('e-ddt', l.ddt); setV('e-prodotto', l.prodotto);
-  setV('e-lf', l.lotto_fornitore); setV('e-scad', l.scadenza); setV('e-kg', l.qta_kg); setV('e-qta', l.qta); setV('e-um', l.um);
-  setV('e-temp', l.temp); setV('e-igiene', l.igiene); setV('e-integrita', l.integrita); setV('e-addetto', l.addetto);
-  if (l.frazionata) ['data', 'ddt', 'kg', 'qta', 'um', 'temp', 'igiene', 'integrita', 'addetto'].forEach(k => { $('e-' + k).disabled = true; });
-  segnaEsiti(); aggiornaAnteprime();
-  $('e-no').onclick = () => { EDIT_LOTTO = null; closeModal(); };
-  $('e-del').onclick = () => { EDIT_LOTTO = null; delLotto(id); };
-  $('e-form').onsubmit = async ev => {
-    ev.preventDefault(); $('e-msg').textContent = '';
-    let dati;
-    try { dati = l.frazionata ? Object.assign(leggiPartita('e'), {}) : leggiLotto('e'); } catch (e) { $('e-msg').textContent = e.message; return; }
-    $('e-ok').disabled = true;
-    try {
-      const r = await rpc('modifica_lotto', { p_id: id, p: dati });
-      EDIT_LOTTO = null; closeModal(); await loadData();
-      toast('Modifiche salvate' + (r.lotto_trentin !== l.lotto_trentin ? ' · nuovo lotto ' + r.lotto_trentin : ''));
-    } catch (e) { $('e-msg').textContent = 'Salvataggio non riuscito: ' + e.message; $('e-ok').disabled = false; }
-  };
-}
-function delLotto(id){
-  const l = LOTTI.find(x => x.id === id); if (!l) return;
-  const n = (INGR_BY[id] || []).length;
-  const testo = l.progressivo != null
-    ? `Il lotto <b>${esc(l.lotto_trentin)}</b> (${esc(l.fornitore)} · ${esc(l.prodotto)}) verrà eliminato e il codice tornerà disponibile.`
-    : `Verrà eliminata la registrazione con lotto fornitore <b>${esc(l.lotto_trentin)}</b> (${esc(l.fornitore)} · ${esc(l.prodotto)}).`;
-  confirmModal('Eliminare questo lotto?', testo + (l.frazionata ? `<br><br><b>Verranno eliminati anche i ${n} ingressi della consegna frazionata.</b>` : ''), 'Elimina', async () => {
-    await rpc('elimina_lotto', { p_id: id });
-    if (SEL_PARTITA === id) SEL_PARTITA = null;
-    await loadData();
-    toast(l.progressivo != null ? `Lotto ${l.lotto_trentin} eliminato · il codice è di nuovo disponibile` : 'Registrazione eliminata');
-  });
-}
-
-// ---------- consegne frazionate ----------
-function selPartita(id){ SEL_PARTITA = id; $('f-detail').dataset.sel = ''; renderFraz(); }
-function vaiPartita(id){ SEL_PARTITA = id; $('f-detail').dataset.sel = ''; if (location.hash === '#frazionate') { renderFraz(); window.scrollTo(0, 0); } else location.hash = '#frazionate'; renderFraz(); }
-
-$('n-fields').innerHTML = partitaFields('n') + '<h3 style="margin:18px 0 10px">Primo ingresso</h3>' + ingressoFields('n');
-function apriNuova(open){
-  $('f-new').hidden = !open;
-  if (open) {
-    ['fornitore', 'prodotto', 'lf', 'scad'].forEach(k => setV('n-' + k, '')); resetIngressoForm('n'); segnaEsiti(); aggiornaAnteprime();
-    $('n-msg').textContent = ''; $('n-fornitore').focus();
-  }
-}
-$('f-new-btn').addEventListener('click', () => apriNuova($('f-new').hidden));
-$('n-cancel').addEventListener('click', () => apriNuova(false));
-$('n-form').addEventListener('submit', async ev => {
-  ev.preventDefault();
-  const msg = $('n-msg'), btn = $('n-submit'); msg.textContent = '';
-  let p, i; try { p = leggiPartita('n'); i = leggiIngresso('n'); } catch (e) { msg.textContent = e.message; return; }
-  const previsto = $('n-lotto').value;
-  btn.disabled = true; btn.textContent = 'Salvataggio…';
-  try {
-    const r = await rpc('crea_partita', { p, i });
-    ricordaAddetto(i.addetto); SEL_PARTITA = r.id;
-    const tr = r.progressivo == null;
-    successo({
-      titolo: 'Partita creata e primo ingresso registrato', grande: r.lotto_trentin,
-      dettaglio: `${r.fornitore} · ${fmtNum(i.forme, 0)} forme · ${fmtNum(i.qta_kg)} kg` + (tr ? ' · lotto del fornitore (nessun lotto interno)' : ''),
-      avviso: (!tr && previsto && previsto !== r.lotto_trentin) ? `Il lotto ${previsto} era appena stato preso dall'altro magazzino: assegnato ${r.lotto_trentin}.` : ''
-    });
-    apriNuova(false); $('f-detail').dataset.sel = ''; await loadData();
-  } catch (e) { msg.textContent = 'Operazione non riuscita: ' + e.message; }
-  finally { btn.disabled = false; btn.textContent = 'Crea partita e registra il primo ingresso'; }
-});
-document.addEventListener('submit', async ev => {
-  if (ev.target.id !== 'i-form') return;
-  ev.preventDefault();
-  const msg = $('i-msg'), btn = $('i-submit'); msg.textContent = '';
-  let i; try { i = leggiIngresso('i'); } catch (e) { msg.textContent = e.message; return; }
-  btn.disabled = true; btn.textContent = 'Salvataggio…';
-  try {
-    await rpc('aggiungi_ingresso', { p_lotto: SEL_PARTITA, i });
-    ricordaAddetto(i.addetto);
-    const l0 = LOTTI.find(x => x.id === SEL_PARTITA);
-    await loadData();
-    const l = LOTTI.find(x => x.id === SEL_PARTITA), n = (INGR_BY[SEL_PARTITA] || []).length;
-    successo({ titolo: 'Ingresso aggiunto correttamente', grande: (l || l0).lotto_trentin,
-      dettaglio: `Totale partita: ${fmtNum(l.qta, 0)} forme · ${fmtNum(l.qta_kg)} kg (${n} ingress${n === 1 ? 'o' : 'i'})` });
-    resetIngressoForm('i'); segnaEsiti();
-  } catch (e) { msg.textContent = 'Operazione non riuscita: ' + e.message; }
-  finally { const b2 = $('i-submit'); if (b2) { b2.disabled = false; b2.textContent = 'Aggiungi ingresso'; } }
-});
-
-function editPartita(id){ editLotto(id); }
-function editIngresso(id){
-  const x = INGRESSI.find(r => r.id === id); if (!x) return;
-  const l = LOTTI.find(r => r.id === x.lotto_id);
-  openModal(`<h2>Modifica ingresso · partita ${esc(l ? l.lotto_trentin : '')}</h2>
-    <form id="x-form" novalidate>${ingressoFields('x')}
-    <div class="modal-btns" style="margin-top:14px"><button class="btn sm" type="submit" id="x-ok" style="margin-top:0">Salva modifiche</button>
-    <button class="btn ghost sm" type="button" id="x-no" style="margin-top:0">Annulla</button></div><div class="msg err" id="x-msg"></div></form>`);
-  setV('x-data', x.data_arrivo); setV('x-ddt', x.ddt); setV('x-kg', x.qta_kg); setV('x-forme', x.forme); setV('x-temp', x.temp);
-  setV('x-igiene', x.igiene); setV('x-integrita', x.integrita); setV('x-addetto', x.addetto); segnaEsiti();
-  $('x-no').onclick = closeModal;
-  $('x-form').onsubmit = async ev => {
-    ev.preventDefault(); $('x-msg').textContent = '';
-    let i; try { i = leggiIngresso('x'); } catch (e) { $('x-msg').textContent = e.message; return; }
-    $('x-ok').disabled = true;
-    try { await rpc('modifica_ingresso', { p_id: id, i }); closeModal(); await loadData(); toast('Ingresso modificato · totali del registro aggiornati'); }
-    catch (e) { $('x-msg').textContent = 'Salvataggio non riuscito: ' + e.message; $('x-ok').disabled = false; }
-  };
-}
-function delIngresso(id){
-  const x = INGRESSI.find(r => r.id === id); if (!x) return;
-  const l = LOTTI.find(r => r.id === x.lotto_id);
-  const ultimo = (INGR_BY[x.lotto_id] || []).length === 1;
-  confirmModal('Eliminare questo ingresso?',
-    `Ingresso del <b>${fmtData(x.data_arrivo)}</b> (${fmtNum(x.qta_kg)} kg · ${fmtNum(x.forme, 0)} forme).` +
-    (ultimo ? `<br><br><b>È l'ultimo ingresso: verrà eliminato anche il lotto ${esc(l ? l.lotto_trentin : '')} dal registro${l && l.progressivo != null ? ' e il codice tornerà disponibile' : ''}.</b>` : '<br>I totali del registro lotti verranno ricalcolati.'),
-    'Elimina', async () => {
-      const lotto = await rpc('elimina_ingresso', { p_id: id });
-      if (lotto) SEL_PARTITA = null;
-      await loadData();
-      toast(lotto ? 'Ultimo ingresso eliminato · lotto rimosso dal registro' : 'Ingresso eliminato · totali aggiornati');
-    });
-}
-
-// ---------- schermo intero ----------
-function setWide(on){
-  document.body.classList.toggle('wide', on);
-  if (!on && document.fullscreenElement) { try { document.exitFullscreen(); } catch (e) {} }
-}
-$('btn-wide').addEventListener('click', () => {
-  setWide(true);
-  try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
-});
-$('btn-exit-wide').addEventListener('click', () => setWide(false));
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) document.body.classList.remove('wide'); });
-
-// ---------- stampa / PDF / Excel ----------
-const chk = v => v === 'non reg' ? '☐ reg.&nbsp; ☒ non reg.' : '☒ reg.&nbsp; ☐ non reg.';
-function stampa(html, orient){
-  $('print-area').innerHTML = html;
-  $('page-style').textContent = `@page{size:A4 ${orient};margin:9mm}`;
-  document.body.classList.add('is-printing');
-  setTimeout(() => window.print(), 60);
-}
-window.addEventListener('afterprint', () => { document.body.classList.remove('is-printing'); $('print-area').innerHTML = ''; });
-
-$('btn-print').addEventListener('click', () => {
-  const rows = lottiFiltrati();
-  if (!rows.length) { toast('Non ci sono righe da stampare', true); return; }
-  const anno = REG.serie === 'all' ? '' : ' - 20' + REG.serie;
-  const periodo = (REG.da || REG.a) ? `Periodo: ${REG.da ? 'dal ' + fmtData(REG.da) : ''} ${REG.a ? 'al ' + fmtData(REG.a) : ''}` : '';
-  const body = rows.map(l => {
-    const ddt = l.frazionata ? 'CONSEGNA FRAZIONATA (Mod. 120)' : esc(l.ddt || '');
-    return `<tr><td class="c">${fmtData(l.data_arrivo)}</td><td>${esc(l.fornitore)}</td><td class="c">${ddt}</td><td>${esc(l.prodotto)}</td>
-      <td class="c">${esc(l.lotto_fornitore || '')}</td><td class="c">${l.scadenza ? fmtData(l.scadenza) : ''}</td><td class="r">${fmtNum(l.qta_kg)}</td>
-      <td class="c">${fmtNum(l.qta, 0)} ${l.um}</td><td class="c">${l.temp === null ? '' : fmtNum(l.temp, 1)}</td><td class="c b">${esc(l.lotto_trentin)}</td>
-      <td class="c">${chk(l.igiene)}</td><td class="c">${chk(l.integrita)}</td><td class="c">${esc(l.addetto || '')}</td></tr>`;
-  }).join('');
-  stampa(`<div class="p-head"><b>SCHEDA CONTROLLO MATERIE PRIME ALL'ARRIVO${anno}</b><span class="mod">Mod. 11-P Revisione 4\ndel 12/09/2025</span></div>
-    <table><thead><tr><th>Data arrivo</th><th>Fornitore</th><th>Nr. DDT /<br>Nr. CMR</th><th>Prodotto / Matricola (per PR, GP, Pec. Romano) /<br>Mese/anno produzione</th>
-    <th>Nr. Lotto Fornitore</th><th>Scadenza / TMC</th><th>Q.tà (kg)</th><th>Cartoni (ct) / forme (f) / pezzi (pz)</th><th>Temp. prodotto (°C)</th><th>Nr. Lotto Trentin</th>
-    <th>Stato igienico mezzo di trasporto e assenza infestanti</th><th>Integrità imballo / prodotto / bancali di legno</th><th>Addetto (sigla)</th></tr></thead><tbody>${body}</tbody></table>
-    <div class="p-foot"><span>${periodo}</span><span>${rows.length} righe · stampato il ${fmtData(oggiISO())}</span></div>`, 'landscape');
-});
-
-function stampaPartita(id){
-  const l = LOTTI.find(x => x.id === id); if (!l) return;
-  const ing = INGR_BY[id] || [];
-  const tKg = ing.reduce((s, x) => s + Number(x.qta_kg), 0), tF = ing.reduce((s, x) => s + Number(x.forme), 0);
-  const righe = ing.map(x => `<tr><td class="c">${fmtData(x.data_arrivo)}</td><td class="c">${esc(x.ddt || '')}</td><td class="r">${fmtNum(x.qta_kg)}</td><td class="r">${fmtNum(x.forme, 0)}</td>
-    <td class="c">${x.temp === null ? '' : fmtNum(x.temp, 1)}</td><td class="c">${chk(x.igiene)}</td><td class="c">${chk(x.integrita)}</td><td class="c">${esc(x.addetto || '')}</td></tr>`).join('');
-  const vuote = Math.max(0, 8 - ing.length);
-  stampa(`<div class="p-head"><b>SCHEDA CONTROLLO MATERIE PRIME ALL'ARRIVO - 20${l.anno}<br>CONSEGNA FRAZIONATA</b><span class="mod">Mod. 120 Revisione 0\ndel 12/09/2025</span></div>
-    <table><tr class="p-hdr120"><td style="width:34%"><b>FORNITORE</b><br>${esc(l.fornitore)}</td><td style="width:42%"><b>Prodotto / Matricola / Mese-anno produzione</b><br>${esc(l.prodotto)}</td><td><b>LOTTO TRENTIN</b><br><span style="font-size:14pt;font-weight:700">${esc(l.lotto_trentin)}</span></td></tr></table>
-    <table style="margin-top:-1px"><thead><tr><th>Data arrivo</th><th>Nr. DDT /<br>Nr. CMR</th><th>Q.tà (kg)</th><th>Forme</th><th>Temp. prodotto (°C)</th><th>Stato igienico mezzo di trasporto e assenza infestanti</th><th>Integrità imballo / prodotto / bancali di legno</th><th>Addetto (sigla)</th></tr></thead>
-    <tbody>${righe}${('<tr>' + '<td>&nbsp;</td>'.repeat(8) + '</tr>').repeat(vuote)}
-    <tr><td></td><td class="b r">TOTALI:</td><td class="r b">${fmtNum(tKg)}</td><td class="r b">${fmtNum(tF, 0)}</td><td colspan="4"></td></tr></tbody></table>
-    <div class="p-foot"><span>I totali di kg e forme sono riportati nel registro lotti (Mod. 11-P) alla riga del lotto interno.</span><span>stampato il ${fmtData(oggiISO())}</span></div>`, 'landscape');
-}
-
-$('btn-excel').addEventListener('click', () => {
-  if (!window.XLSX) { toast('Libreria Excel non disponibile (serve internet)', true); return; }
-  const rows = lottiFiltrati();
-  const aoa = [['Data arrivo', 'Fornitore', 'Nr. DDT / Nr. CMR', 'Prodotto / Matricola / Mese-anno produzione', 'Nr. Lotto Fornitore', 'Scadenza / TMC', 'Q.tà (kg)', 'Quantità', 'Unità', 'Temp. prodotto (°C)', 'Nr. Lotto Trentin', 'Stato igienico mezzo di trasporto e assenza infestanti', 'Integrità imballo / prodotto / bancali di legno', 'Addetto (sigla)', 'Registrato da']]
-    .concat(rows.map(l => [fmtData(l.data_arrivo), l.fornitore, l.frazionata ? 'CONSEGNA FRAZIONATA' : (l.ddt || ''), l.prodotto, l.lotto_fornitore || '', l.scadenza ? fmtData(l.scadenza) : '',
-      Number(l.qta_kg), Number(l.qta), UM[l.um], l.temp === null ? '' : Number(l.temp), l.lotto_trentin, l.igiene === 'reg' ? 'reg.' : 'non reg.', l.integrita === 'reg' ? 'reg.' : 'non reg.', l.addetto || '', magLabel(l.magazzino)]));
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [12, 28, 16, 40, 16, 12, 10, 10, 9, 10, 16, 18, 18, 10, 14].map(w => ({ wch: w }));
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, REG.serie === 'all' ? 'Registro' : 'Registro ' + REG.serie + 'P');
-  XLSX.writeFile(wb, 'Registro_lotti_' + (REG.serie === 'all' ? 'tutti' : REG.serie + 'P') + '_' + oggiISO() + '.xlsx');
-});
-
-// ---------- avvio ----------
-async function init(){
-  paintPostazione(); route(); refreshAll(); segnaEsiti();
-  if (!sb) { showLogin('Impossibile caricare la libreria di collegamento: controlla la connessione a internet e ricarica la pagina.'); return; }
-  const { data } = await sb.auth.getSession();
-  if (data.session) { hideLogin(); await startApp(); } else showLogin();
-}
-init();
+function drawChart(id,key,labels,data,color){const ctx=document.getElementById(id);if(charts[key])charts[key].destroy();charts[key]=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'20',fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:color,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>key==='spend'?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'}).format(ctx.parsed.y):ctx.parsed.y.toLocaleString('it-IT',{maximumFractionDigits:2})}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:6,color:'#748198'}},y:{grid:{color:'#edf1f6'},ticks:{color:'#748198',callback:value=>key==='spend'?new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(value):value}}}}})}
+load();
+// La schermata iniziale è direttamente il modulo di inserimento.
+setView('form');
 </script>
 </body>
 </html>
