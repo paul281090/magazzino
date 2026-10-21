@@ -150,6 +150,16 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 .migrate-banner button{background:none;border:1px solid #1C2630;border-radius:6px;padding:5px 12px;color:#1C2630;cursor:pointer;font-size:.8rem;font-weight:600;margin-left:6px;}
 .panel h3{margin:24px 0 4px;font-size:1rem;font-weight:600;}
 
+.tabs-sep{margin:14px 14px 4px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:#7F90A1;}
+.view-bilancio .col-right,.view-bilancio .kpis{display:none;}
+.mini-row{display:flex;gap:8px;align-items:stretch;}
+.mini-row input{flex:1 1 auto;min-width:0;}
+.mini-row select{flex:0 0 auto;width:auto;min-width:96px;max-width:48%;}
+.bm-mat{grid-column:span 2;}
+#panel-bpr table,#panel-bgp table{min-width:0;}
+@media (max-width:520px){.bm-mat{grid-column:1/-1;}}
+.bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
+
 /* ===== Contenuto su un'unica colonna, larghezza limitata ===== */
 .kpis,.layout,.migrate-banner{max-width:1100px;margin-left:auto;margin-right:auto;}
 .col-left .panel{margin-bottom:22px;}
@@ -160,6 +170,7 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
   .side{position:static;height:auto;flex:none;padding:18px 16px;gap:14px;}
   .tabs{flex-direction:row;flex-wrap:wrap;}
   .tab-btn{flex:1;text-align:center;}
+  .tabs-sep{flex:0 0 100%;margin:6px 4px 0;}
   .side-foot{margin-top:0;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;}
   .main-area{padding:20px 14px 60px;}
 }
@@ -196,6 +207,9 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
       <button class="tab-btn active" data-tab="carico">Carico merce</button>
       <button class="tab-btn" data-tab="scarico">Scarico merce</button>
       <button class="tab-btn" data-tab="pegno">Pegno</button>
+      <div class="tabs-sep">Bilancio di massa</div>
+      <button class="tab-btn" data-tab="bpr">Parmigiano Reggiano</button>
+      <button class="tab-btn" data-tab="bgp">Grana Padano</button>
     </nav>
     <div class="side-foot">
       <span id="sync-status">Non connesso</span>
@@ -223,6 +237,64 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 
   <div class="layout">
   <div class="col-left">
+
+  <!-- BILANCIO DI MASSA PARMIGIANO REGGIANO -->
+  <div class="panel" id="panel-bpr">
+    <h2>Bilancio di massa Parmigiano Reggiano</h2>
+    <div class="grid">
+      <div class="bm-mat"><label>Matricola</label>
+        <div class="mini-row">
+          <input id="bpr-matricola" type="text" inputmode="numeric" list="bpr-list" placeholder="scrivi o scegli" autocomplete="off">
+          <select id="bpr-select" aria-label="Scegli matricola dall'elenco" onchange="bmScegli('bpr')"><option value="">Elenco ▾</option></select>
+        </div>
+      </div>
+      <div><label>Produzione (Mese/Anno)</label><input id="bpr-mese" type="text" placeholder="M/AA es. 9/24" maxlength="5" inputmode="numeric"></div>
+      <div><label>Numero forme</label><input id="bpr-forme" type="number" min="1" placeholder="es. 30"></div>
+      <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
+    </div>
+    <datalist id="bpr-list"></datalist>
+    <p class="bm-note" id="bpr-elenco-info"></p>
+    <button class="btn" id="bpr-submit" onclick="bmCarica('bpr')">Carica</button>
+    <div class="msg" id="bpr-msg"></div>
+
+    <h3>Righe caricate</h3>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bpr-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="bpr-count"></div>
+  </div>
+
+  <!-- BILANCIO DI MASSA GRANA PADANO -->
+  <div class="panel" id="panel-bgp">
+    <h2>Bilancio di massa Grana Padano</h2>
+    <div class="grid">
+      <div class="bm-mat"><label>Matricola</label>
+        <div class="mini-row">
+          <input id="bgp-matricola" type="text" inputmode="numeric" list="bgp-list" placeholder="scrivi o scegli" autocomplete="off">
+          <select id="bgp-select" aria-label="Scegli matricola dall'elenco" onchange="bmScegli('bgp')"><option value="">Elenco ▾</option></select>
+        </div>
+      </div>
+      <div><label>Produzione (Mese/Anno)</label><input id="bgp-mese" type="text" placeholder="M/AA es. 9/24" maxlength="5" inputmode="numeric"></div>
+      <div><label>Numero forme</label><input id="bgp-forme" type="number" min="1" placeholder="es. 30"></div>
+      <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
+    </div>
+    <datalist id="bgp-list"></datalist>
+    <p class="bm-note" id="bgp-elenco-info"></p>
+    <button class="btn" id="bgp-submit" onclick="bmCarica('bgp')">Carica</button>
+    <div class="msg" id="bgp-msg"></div>
+
+    <h3>Righe caricate</h3>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bgp-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="bgp-count"></div>
+  </div>
 
   <!-- CARICO -->
   <div class="panel active" id="panel-carico">
@@ -391,6 +463,7 @@ async function loadData(){
     }
     DATA=all;
     refreshAll();
+    loadBilancio();
     setStatus('Dati aggiornati alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}));
     return true;
   }catch(e){
@@ -417,7 +490,7 @@ async function doLogin(ev){
 
 async function doLogout(){
   if(sb) await sb.auth.signOut();
-  DATA=[];
+  DATA=[]; BM_DATA={PR:[],GP:[]}; BM_ERRORE=null;
   refreshAll();
   setStatus('Non connesso');
   showLogin();
@@ -502,6 +575,7 @@ function dismissMigrate(){
 }
 
 function switchTab(tab){
+  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
   if(tab==='scarico') renderScaricoList();
@@ -917,6 +991,7 @@ function updateKpi(){
 }
 
 function refreshAll(){
+  renderBilancio('bpr'); renderBilancio('bgp');
   updateKpi();
   populateTipologiaOptions();
   applyFilters();
@@ -1129,6 +1204,114 @@ async function pegnoCarica(id){
   msg.className='msg ok';
   await loadData();
 }
+
+// ====== BILANCIO DI MASSA (Parmigiano Reggiano / Grana Padano) ======
+// Elenchi delle matricole selezionabili (da compilare): es. ['1737','1738','3088']
+const MATRICOLE_BM={ bpr:[], bgp:[] };
+const BM_TIPO={ bpr:'PR', bgp:'GP' };
+const BM_TABLE='bilancio_massa';
+let BM_DATA={ PR:[], GP:[] };
+let BM_ERRORE=null;
+
+function bmMatricole(tab){
+  // elenco fisso + matricole già usate in questa pagina (così compaiono anche dopo il primo inserimento)
+  const usate=BM_DATA[BM_TIPO[tab]].map(r=>String(r.matricola));
+  return [...new Set([...MATRICOLE_BM[tab].map(String), ...usate])]
+    .sort((a,b)=>a.localeCompare(b,'it',{numeric:true}));
+}
+
+async function loadBilancio(){
+  if(!sb) return;
+  try{
+    const all=[]; let from=0; const step=1000;
+    while(true){
+      const {data,error}=await sb.from(BM_TABLE).select('*')
+        .order('created_at',{ascending:true}).order('id',{ascending:true})
+        .range(from,from+step-1);
+      if(error) throw error;
+      all.push(...data);
+      if(data.length<step) break;
+      from+=step;
+    }
+    BM_DATA={ PR:all.filter(r=>r.tipo==='PR'), GP:all.filter(r=>r.tipo==='GP') };
+    BM_ERRORE=null;
+  }catch(e){
+    BM_ERRORE=(e && e.message) ? e.message : String(e);
+  }
+  renderBilancio('bpr'); renderBilancio('bgp');
+}
+
+function renderBilancio(tab){
+  const rows=BM_DATA[BM_TIPO[tab]];
+  const tbody=document.getElementById(tab+'-tbody');
+  const count=document.getElementById(tab+'-count');
+  const msg=document.getElementById(tab+'-msg');
+  // elenco matricole (datalist + menu a tendina per il cellulare)
+  const elenco=bmMatricole(tab);
+  document.getElementById(tab+'-list').innerHTML=elenco.map(m=>`<option value="${escapeHtml(m)}">`).join('');
+  const sel=document.getElementById(tab+'-select');
+  sel.innerHTML='<option value="">Elenco ▾</option>'+elenco.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  sel.style.display=elenco.length?'':'none';
+  document.getElementById(tab+'-elenco-info').textContent=elenco.length?'':'L\'elenco delle matricole non è ancora stato caricato: per ora scrivi la matricola a mano.';
+  if(BM_ERRORE){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="5">Tabella non raggiungibile.</td></tr>';
+    count.textContent='';
+    if(!msg.textContent || msg.className.includes('err')){
+      msg.textContent='Impossibile leggere i dati ('+BM_ERRORE+'). Se la tabella "bilancio_massa" non è ancora stata creata su Supabase, esegui lo script SQL.';
+      msg.className='msg err';
+    }
+    return;
+  }
+  if(!rows.length){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="5">Nessuna riga caricata.</td></tr>';
+    count.textContent='';
+    return;
+  }
+  const ord=[...rows].sort((a,b)=>String(a.matricola).localeCompare(String(b.matricola),'it',{numeric:true}) || String(a.mese||'').localeCompare(String(b.mese||'')));
+  tbody.innerHTML=ord.map(r=>`<tr>
+    <td><b>${escapeHtml(String(r.matricola))}</b></td>
+    <td>${fmtMeseTesto(r.mese)}</td>
+    <td><b>${fmtNum(r.forme)}</b></td>
+    <td>${highlightNote(r.note)}</td>
+    <td><button class="del-btn" onclick="bmElimina('${tab}','${r.id}')" title="Elimina riga">✕</button></td>
+  </tr>`).join('');
+  count.textContent=`${rows.length} righe · ${fmtNum(rows.reduce((t,r)=>t+(Number(r.forme)||0),0))} forme totali`;
+}
+
+function bmScegli(tab){
+  const sel=document.getElementById(tab+'-select');
+  if(sel.value){ document.getElementById(tab+'-matricola').value=sel.value; sel.value=''; document.getElementById(tab+'-mese').focus(); }
+}
+
+async function bmCarica(tab){
+  const matricola=document.getElementById(tab+'-matricola').value.trim();
+  const meseStr=document.getElementById(tab+'-mese').value;
+  const forme=parseInt(document.getElementById(tab+'-forme').value,10);
+  const note=up(document.getElementById(tab+'-note').value.trim());
+  const msg=document.getElementById(tab+'-msg');
+  if(!matricola){ msg.textContent='Inserisci la matricola.'; msg.className='msg err'; return; }
+  if(!meseStr){ msg.textContent='Inserisci la produzione (mese/anno).'; msg.className='msg err'; return; }
+  const mese=parseMese(meseStr);
+  if(!mese){ msg.textContent='Formato produzione non valido. Usa M/AA o MM/AA, es. 9/24.'; msg.className='msg err'; return; }
+  if(!forme || forme<=0){ msg.textContent='Inserisci un numero di forme valido.'; msg.className='msg err'; return; }
+  const btn=document.getElementById(tab+'-submit');
+  btn.disabled=true;
+  const {error}=await sb.from(BM_TABLE).insert({ tipo:BM_TIPO[tab], matricola, mese, forme, note });
+  btn.disabled=false;
+  if(error){ msg.textContent='Salvataggio non riuscito: '+error.message; msg.className='msg err'; return; }
+  msg.textContent=`Caricato: matricola ${matricola}, produzione ${fmtMeseTesto(mese)}, ${fmtNum(forme)} forme.`;
+  msg.className='msg ok';
+  ['matricola','mese','forme','note'].forEach(k=>document.getElementById(tab+'-'+k).value='');
+  document.getElementById(tab+'-matricola').focus();
+  await loadBilancio();
+}
+
+async function bmElimina(tab,id){
+  const {error}=await sb.from(BM_TABLE).delete().eq('id',id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadBilancio();
+}
+['bpr','bgp'].forEach(t=>{ attachMeseAutoFormat(t+'-mese'); attachUppercase(t+'-note'); });
 
 async function init(){
   ['sc','pg','pl'].forEach(paintSortHeaders);
