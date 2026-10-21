@@ -174,7 +174,10 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 .bm-det-t{font-weight:600;margin-bottom:4px;}
 .bm-detail ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 22px;}
 .bm-detail li span{color:var(--muted);}
-@media print{.bm-detail{display:none !important;}.bm-sum{border:0;}}
+@media print{.app:not(.print-exp) .bm-detail{display:none !important;}.bm-sum{border:0;color:inherit !important;}
+  .app.print-bm .print-this .bm-detail td:last-child{display:table-cell !important;}
+  .bm-exp-btn{display:none !important;}}
+.bm-exp-btn.on{border-color:var(--link);color:var(--link);}
 .bm-tot td{font-weight:700;border-top:2px solid var(--line);}
 #panel-bpr .editing-row input,#panel-bgp .editing-row input{min-width:0;width:80px;padding:6px 5px;}
 @media print{
@@ -321,6 +324,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <p class="print-date" id="bpr-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bpr')">📊 Scarica Excel</button>
+      <button class="print-btn bm-exp-btn" data-tab="bpr" onclick="bmEspandi('bpr')" title="Mostra il dettaglio di tutte le somme; la stampa le include">↕ Espandi calcoli</button>
       <button class="print-btn" onclick="bmStampa('bpr')" title="Apre la stampa: scegli «Salva come PDF» per ottenere un PDF">🖨️ Stampa / PDF</button>
     </div>
     <div class="table-wrap" style="margin-top:8px;">
@@ -344,6 +348,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <p class="print-date" id="bpr-q-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmqExcel('bpr')">📊 Scarica Excel</button>
+      <button class="print-btn bm-exp-btn" data-tab="bpr" onclick="bmEspandi('bpr')" title="Mostra il dettaglio di tutte le somme; la stampa le include">↕ Espandi calcoli</button>
       <button class="print-btn" onclick="bmqStampa('bpr')">🖨️ Stampa / PDF</button>
     </div>
     <div class="table-wrap" style="margin-top:8px;">
@@ -394,6 +399,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <p class="print-date" id="bgp-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bgp')">📊 Scarica Excel</button>
+      <button class="print-btn bm-exp-btn" data-tab="bgp" onclick="bmEspandi('bgp')" title="Mostra il dettaglio di tutte le somme; la stampa le include">↕ Espandi calcoli</button>
       <button class="print-btn" onclick="bmStampa('bgp')" title="Apre la stampa: scegli «Salva come PDF» per ottenere un PDF">🖨️ Stampa / PDF</button>
     </div>
     <div class="table-wrap" style="margin-top:8px;">
@@ -416,6 +422,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <p class="print-date" id="bgp-q-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmqExcel('bgp')">📊 Scarica Excel</button>
+      <button class="print-btn bm-exp-btn" data-tab="bgp" onclick="bmEspandi('bgp')" title="Mostra il dettaglio di tutte le somme; la stampa le include">↕ Espandi calcoli</button>
       <button class="print-btn" onclick="bmqStampa('bgp')">🖨️ Stampa / PDF</button>
     </div>
     <div class="table-wrap" style="margin-top:8px;">
@@ -433,7 +440,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <h2>Carica nuova merce in inventario</h2>
     <div class="grid">
       <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
-      <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
+      <div class="bm-mat"><label>Matricola</label><div class="mini-row"><select id="c-select" aria-label="Scegli matricola dall'elenco" onchange="caricoScegli()"><option value="">Elenco ▾</option></select><input id="c-matricola" type="text" placeholder="es. 703 o BS634" autocomplete="off" autocapitalize="characters"></div></div>
       <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Forme</label><input id="c-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
@@ -450,7 +457,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <h2>Scarica merce dall'inventario</h2>
     <div class="grid">
       <div><label>Cerca per Scalera</label><input id="sc-search-scalera" type="number" oninput="renderScaricoList()"></div>
-      <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="number" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="text" autocapitalize="characters" oninput="renderScaricoList()"></div>
       <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 325 o 24" maxlength="8"></div>
     </div>
     <button class="btn ghost" onclick="scaricoResetRicerca()">Azzera ricerca</button>
@@ -475,7 +482,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <h2>Pegno</h2>
     <div class="grid">
       <div><label>Cerca per Scalera</label><input id="pg-search-scalera" type="number" oninput="renderPegno()"></div>
-      <div><label>Cerca per Matricola</label><input id="pg-search-matricola" type="number" oninput="renderPegno()"></div>
+      <div><label>Cerca per Matricola</label><input id="pg-search-matricola" type="text" autocapitalize="characters" oninput="renderPegno()"></div>
       <div><label>Cerca per Produzione (Mese/Anno)</label><input id="pg-search-mese" type="text" placeholder="es. 325 o 24" maxlength="8"></div>
     </div>
     <button class="btn ghost" onclick="pegnoResetRicerca()">Azzera ricerca</button>
@@ -647,11 +654,18 @@ async function startApp(){
   setupAutoRefresh();
 }
 
+// matricola: numero se composta solo da cifre, altrimenti testo maiuscolo (es. BS634)
+function parseMatricola(v){
+  if(v===null||v===undefined) return null;
+  const t=String(v).trim().toUpperCase();
+  if(t==='') return null;
+  return /^\d+$/.test(t)?Number(t):t;
+}
 function normalizeRow(r){
   return {
     id: r.id ? String(r.id) : crypto.randomUUID(),
     scalera: Number(r.scalera),
-    matricola: (r.matricola===null||r.matricola===undefined||r.matricola==='') ? null : Number(r.matricola),
+    matricola: parseMatricola(r.matricola),
     mese: r.mese || null,
     forme: Number(r.forme),
     tipologia: (r.tipologia||'').toString().toUpperCase(),
@@ -822,7 +836,7 @@ function attachUppercase(id){
     if(pos!==null) el.setSelectionRange(pos,pos);
   });
 }
-attachUppercase('c-tipologia');
+attachUppercase('c-tipologia'); attachUppercase('c-matricola');
 attachUppercase('c-note');
 
 function up(s){ return (s||'').toString().toUpperCase(); }
@@ -916,7 +930,7 @@ let inlineEditId=null;
 
 async function caricaMerce(){
   const scalera=document.getElementById('c-scalera').value;
-  const matricola=document.getElementById('c-matricola').value;
+  const matricola=document.getElementById('c-matricola').value.trim().toUpperCase();
   const meseStr=document.getElementById('c-mese').value;
   const forme=leggiForme('c-forme');
   const tipologia=up(document.getElementById('c-tipologia').value.trim());
@@ -949,7 +963,7 @@ async function caricaMerce(){
   const btn=document.getElementById('c-submit-btn');
   btn.disabled=true;
   const {error}=await sb.from(TABLE).insert({
-    scalera:Number(scalera), matricola: matricola?Number(matricola):null,
+    scalera:Number(scalera), matricola: parseMatricola(matricola),
     mese, forme:Number(forme), tipologia, note
   });
   btn.disabled=false;
@@ -985,7 +999,7 @@ async function saveInlineEdit(id){
   const rec=DATA.find(r=>r.id===id);
   if(!rec) return;
   const scalera=document.getElementById('ir-scalera-'+id).value;
-  const matricola=document.getElementById('ir-matricola-'+id).value;
+  const matricola=document.getElementById('ir-matricola-'+id).value.trim().toUpperCase();
   const meseStr=document.getElementById('ir-mese-'+id).value;
   const forme=leggiForme('ir-forme-'+id);
   const tipologia=up(document.getElementById('ir-tipologia-'+id).value.trim());
@@ -1003,7 +1017,7 @@ async function saveInlineEdit(id){
     if(!mese){ alert('Formato Mese/Anno non valido. Scrivi ad esempio 325 oppure 3/25 (marzo 2025).'); return; }
   }
   const {error}=await sb.from(TABLE).update({
-    scalera:Number(scalera), matricola:matricola?Number(matricola):null, mese,
+    scalera:Number(scalera), matricola:parseMatricola(matricola), mese,
     forme:Number(forme), tipologia, note
   }).eq('id',id);
   if(error){ alert('Salvataggio non riuscito: '+error.message); return; }
@@ -1037,7 +1051,7 @@ function renderScaricoList(){
 
   let list=DATA.filter(r=>{
     if(fScalera && String(r.scalera)!==String(fScalera)) return false;
-    if(fMatricola && String(r.matricola)!==String(fMatricola)) return false;
+    if(fMatricola && String(r.matricola).toUpperCase()!==String(fMatricola).trim().toUpperCase()) return false;
     if(!meseCorrisponde(r,fMese)) return false;
     return true;
   });
@@ -1137,7 +1151,11 @@ function compareMatricolaAware(va, vb, dir){
   if(aNull && bNull) return 0;
   if(aNull) return 1;
   if(bNull) return -1;
-  return (Number(va)-Number(vb))*dir;
+  const na=typeof va==='number', nb=typeof vb==='number';
+  if(na&&nb) return (va-vb)*dir;
+  if(na) return -1*dir;      // prima i numeri, poi le matricole con lettere
+  if(nb) return 1*dir;
+  return String(va).localeCompare(String(vb),'it',{numeric:true})*dir;
 }
 
 function sortRows(rows, st){
@@ -1216,7 +1234,7 @@ function renderRow(r){
 function renderEditableRow(r){
   return `<tr class="editing-row">
     <td><input type="number" id="ir-scalera-${r.id}" value="${r.scalera}"></td>
-    <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
+    <td><input type="text" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—" autocapitalize="characters"></td>
     <td><input type="text" id="ir-mese-${r.id}" value="${r.mese?fmtMeseCorto(r.mese):''}" placeholder="es. 325" maxlength="8"></td>
     <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
     <td><input type="text" class="calc" autocomplete="off" id="ir-forme-${r.id}" value="${r.forme}"></td>
@@ -1267,7 +1285,7 @@ function exportExcel(){
   const head=['Scalera','Matricola','Mese/Anno','Stagionatura','Forme','Tipologia','Note'];
   const body=rows.map(r=>[
     Number(r.scalera),
-    (r.matricola!=null && r.matricola!=='') ? Number(r.matricola) : '',
+    (r.matricola!=null && r.matricola!=='') ? (/^\d+$/.test(String(r.matricola))?Number(r.matricola):String(r.matricola)) : '',
     r.mese ? fmtMeseTesto(r.mese).replace(/-\d{2}(\d{2})$/,'-$1') : '',
     r.mese ? stagionatura(r.mese)+' mesi' : '',
     Number(r.forme)||0,
@@ -1391,7 +1409,7 @@ function renderPegno(){
   const fP=document.getElementById('pg-search-mese').value.trim().toLowerCase();
   const match=r=>{
     if(fS && String(r.scalera)!==String(fS)) return false;
-    if(fM && String(r.matricola)!==String(fM)) return false;
+    if(fM && String(r.matricola).toUpperCase()!==String(fM).trim().toUpperCase()) return false;
     if(!meseCorrisponde(r,fP)) return false;
     return true;
   };
@@ -1483,6 +1501,8 @@ let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
 const BM_EDIT={ bpr:null, bgp:null };      // chiave del gruppo in modifica
+const BM_EXP={ bpr:false, bgp:false };   // «Espandi calcoli»: mostra tutti i dettagli (anche in stampa)
+function bmEspandi(tab){ BM_EXP[tab]=!BM_EXP[tab]; document.querySelectorAll('.bm-exp-btn[data-tab="'+tab+'"]').forEach(b=>{ b.classList.toggle('on',BM_EXP[tab]); b.textContent=BM_EXP[tab]?'↕ Comprimi calcoli':'↕ Espandi calcoli'; }); renderBilancio(tab); renderQuant(tab); }
 const BM_OPEN={ bpr:new Set(), bgp:new Set() };   // gruppi aperti per vedere i singoli carichi
 const bmApribile=g=>g.ids.length>1||g.items.some(it=>it.calcolo);
 function bmApri(tab,i){ const k=BM_GRUPPI[tab][i].key; if(BM_OPEN[tab].has(k)) BM_OPEN[tab].delete(k); else BM_OPEN[tab].add(k); renderBilancio(tab); }
@@ -1495,6 +1515,16 @@ function fmtMeseCorto(v){ return fmtMeseTesto(v).replace(/-\d{2}(\d{2})$/,'-$1')
 const bmParseMese=parseMese;
 
 
+// elenco a discesa nel Carico merce: matricole Parmigiano Reggiano e Grana Padano
+function caricoElenco(){
+  const sel=document.getElementById('c-select'); if(!sel) return;
+  const g=(tab,nome)=>{ const l=bmMatricole(tab); return l.length?`<optgroup label="${nome}">`+l.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')+'</optgroup>':''; };
+  sel.innerHTML='<option value="">Elenco ▾</option>'+g('bpr','Parmigiano Reggiano')+g('bgp','Grana Padano');
+}
+function caricoScegli(){
+  const sel=document.getElementById('c-select');
+  if(sel.value){ document.getElementById('c-matricola').value=sel.value; sel.value=''; document.getElementById('c-mese').focus(); }
+}
 function bmMatricole(tab){
   // elenco fisso + matricole già usate in questa pagina
   const usate=BM_DATA[BM_TIPO[tab]].map(r=>String(r.matricola));
@@ -1521,7 +1551,7 @@ async function loadBilancio(){
   }catch(e){
     BM_ERRORE=(e && e.message) ? e.message : String(e);
   }
-  renderBilancio('bpr'); renderBilancio('bgp');
+  renderBilancio('bpr'); renderBilancio('bgp'); caricoElenco();
   loadBilancioQuant();
 }
 
@@ -1612,11 +1642,11 @@ function renderBilancio(tab){
     return `<tr>
       <td>${escapeHtml(g.matricola)}</td>
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
-      <td>${bmApribile(g)?`<button class="bm-sum${BM_OPEN[tab].has(g.key)?' on':''}" onclick="bmApri('${tab}',${i})" title="${g.ids.length>1?'Vedi i singoli carichi':'Vedi il calcolo'}">${fmtNum(g.forme)}</button>`:fmtNum(g.forme)}${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
+      <td>${bmApribile(g)?`<button class="bm-sum${(BM_OPEN[tab].has(g.key)||BM_EXP[tab])?' on':''}" onclick="bmApri('${tab}',${i})" title="${g.ids.length>1?'Vedi i singoli carichi':'Vedi il calcolo'}">${fmtNum(g.forme)}</button>`:fmtNum(g.forme)}${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
       ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
-    </tr>`+(bmApribile(g)&&BM_OPEN[tab].has(g.key)?`<tr class="bm-detail"><td colspan="${bmCols(tab)}"><div class="bm-det-t">Forme inserite · matricola ${escapeHtml(g.matricola)}${g.mese?' · '+fmtMeseCorto(g.mese):''}</div><ul>${g.items.map(it=>`<li>${it.calcolo?`${escapeHtml(it.calcolo)} = `:''}${fmtNum(it.forme)} <span>${bmqData(it.data)}${it.note?' · '+escapeHtml(it.note):''}</span></li>`).join('')}</ul></td></tr>`:'');
+    </tr>`+(bmApribile(g)&&(BM_OPEN[tab].has(g.key)||BM_EXP[tab])?`<tr class="bm-detail"><td colspan="${bmCols(tab)}"><div class="bm-det-t">Forme inserite · matricola ${escapeHtml(g.matricola)}${g.mese?' · '+fmtMeseCorto(g.mese):''}</div><ul>${g.items.map(it=>`<li>${it.calcolo?`${escapeHtml(it.calcolo)} = `:''}${fmtNum(it.forme)} <span>${bmqData(it.data)}${it.note?' · '+escapeHtml(it.note):''}</span></li>`).join('')}</ul></td></tr>`:'');
   }).join('');
   if(BM_EDIT[tab]){
     const nt=document.getElementById(tab+'-e-note'); if(nt) attachUppercase(tab+'-e-note');
@@ -1772,9 +1802,9 @@ function bmStampa(tab){
   const app=document.querySelector('.app');
   const panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-print-date').textContent='Stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const pulisci=()=>{ app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  const pulisci=()=>{ app.classList.remove('print-bm','print-exp'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
   window.addEventListener('afterprint',pulisci);
-  app.classList.add('print-bm'); panel.classList.add('print-this');
+  app.classList.toggle('print-exp',BM_EXP[tab]); app.classList.add('print-bm'); panel.classList.add('print-this');
   window.print();
 }
 
@@ -1896,9 +1926,9 @@ function renderQuant(tab){
         `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note.replace(/ · /g,' '))}"></td>`+
         `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmqAnnulla('${tab}')" title="Annulla">✕</button></td></tr>`;
     }
-    const aperte=BMQ.filter(q=>r.cells[q.id]&&r.cells[q.id].calc&&BMQ_OPEN[tab].has(i+'|'+q.id));
+    const aperte=BMQ.filter(q=>r.cells[q.id]&&r.cells[q.id].calc&&(BMQ_OPEN[tab].has(i+'|'+q.id)||BM_EXP[tab]));
     return `<tr>`+BMQ.map(q=>{ const c=r.cells[q.id]; if(!c) return '<td class="bm-q">—</td>';
-        return `<td class="bm-q">${c.calc?`<button class="bm-sum${BMQ_OPEN[tab].has(i+'|'+q.id)?' on':''}" onclick="bmqDettaglio('${tab}',${i},'${q.id}')" title="Vedi il calcolo">${bmqVal(q,c.val)}</button>`:bmqVal(q,c.val)}</td>`; }).join('')+
+        return `<td class="bm-q">${c.calc?`<button class="bm-sum${(BMQ_OPEN[tab].has(i+'|'+q.id)||BM_EXP[tab])?' on':''}" onclick="bmqDettaglio('${tab}',${i},'${q.id}')" title="Vedi il calcolo">${bmqVal(q,c.val)}</button>`:bmqVal(q,c.val)}</td>`; }).join('')+
       `<td>${highlightNote(r.note)}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmqElimina('${tab}',${i})" title="Elimina riga">✕</button></td></tr>`+
       (aperte.length?`<tr class="bm-detail"><td colspan="${cols}"><ul>${aperte.map(q=>`<li>${escapeHtml(q.t)}: ${escapeHtml(r.cells[q.id].calc)} = ${bmqVal(q,r.cells[q.id].val)}</li>`).join('')}</ul></td></tr>`:'');
   }).join('')+
@@ -1979,9 +2009,9 @@ function bmqStampa(tab){
   const app=document.querySelector('.app'), panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-q-print-date').textContent='Altri quantitativi · '+BM_NOME[tab]+' · stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const pg=document.createElement('style'); pg.id='bm-page'; pg.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(pg);
-  const pulisci=()=>{ const x=document.getElementById('bm-page'); if(x) x.remove(); app.classList.remove('print-bm','print-q'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  const pulisci=()=>{ const x=document.getElementById('bm-page'); if(x) x.remove(); app.classList.remove('print-bm','print-q','print-exp'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
   window.addEventListener('afterprint',pulisci);
-  app.classList.add('print-bm','print-q'); panel.classList.add('print-this');
+  app.classList.toggle('print-exp',BM_EXP[tab]); app.classList.add('print-bm','print-q'); panel.classList.add('print-this');
   window.print();
 }
 // Invio = carica
