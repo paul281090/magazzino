@@ -161,6 +161,8 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 #panel-bpr table,#panel-bgp table{min-width:0;}
 @media (max-width:520px){.bm-mat{grid-column:1/-1;}}
 .bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
+.bm-conferma.inv-warn{background:#F7D9DB;}
+.inv-box .btn{margin-right:6px;}
 .bm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
 .bm-head h2{margin-bottom:10px;}
 .bm-chiudi-btn{padding:8px 14px;font-size:.85rem;}
@@ -264,6 +266,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="tab-btn active" data-tab="carico">Carico merce</button>
       <button class="tab-btn" data-tab="scarico">Scarico merce</button>
       <button class="tab-btn" data-tab="pegno">Pegno</button>
+      <button class="tab-btn" data-tab="inv">Inventari</button>
       <div class="tabs-sep">Bilancio di massa</div>
       <button class="tab-btn" data-tab="bpr">Parmigiano Reggiano</button>
       <button class="tab-btn" data-tab="bgp">Grana Padano</button>
@@ -465,6 +468,13 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
   </div>
 
+  <!-- INVENTARI CHIUSI -->
+  <div class="panel" id="panel-inv">
+    <h2>Inventari</h2>
+    <p class="bm-note" id="inv-info"></p>
+    <div id="inv-lista"></div>
+  </div>
+
   <!-- ARCHIVIO BILANCI -->
   <div class="panel" id="panel-arch">
     <h2>Archivio bilanci di massa</h2>
@@ -489,6 +499,30 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <datalist id="tip-list"></datalist>
     <button class="btn" id="c-submit-btn" onclick="caricaMerce()">Carica in inventario</button>
     <div class="msg" id="c-msg"></div>
+
+    <div class="bm-quant inv-box">
+      <div class="bm-quant-t">Inventario di fine mese <span>(la conta resta qui per gli aggiornamenti; la «foto» va nella pagina Inventari)</span></div>
+      <button class="btn" type="button" onclick="invChiudiApri()">🔒 Chiudi inventario</button>
+      <button class="btn ghost" type="button" onclick="invPulisciApri()">🗑️ Cancella rilevazione</button>
+      <p class="bm-note" id="inv-ultimo"></p>
+
+      <div class="bm-conferma" id="inv-chiudi" style="display:none">
+        <p id="inv-chiudi-txt"></p>
+        <div class="grid" style="max-width:520px;">
+          <div><label>Data della conta</label><input id="inv-chiudi-data" type="date"></div>
+          <div><label>Nome (facoltativo)</label><input id="inv-chiudi-nome" type="text" placeholder="es. Inventario ottobre 2026"></div>
+        </div>
+        <div style="margin-top:8px;"><button class="btn" onclick="invChiudiConferma()">Sì, chiudi inventario</button>
+        <button class="btn ghost" onclick="document.getElementById('inv-chiudi').style.display='none'">Annulla</button></div>
+      </div>
+
+      <div class="bm-conferma inv-warn" id="inv-pulisci" style="display:none">
+        <p id="inv-pulisci-txt"></p>
+        <div style="margin-top:8px;"><button class="btn" onclick="invPulisciConferma()">Sì, cancella la rilevazione</button>
+        <button class="btn ghost" onclick="document.getElementById('inv-pulisci').style.display='none'">Annulla</button></div>
+      </div>
+      <div class="msg" id="inv-msg"></div>
+    </div>
   </div>
 
   <!-- SCARICO -->
@@ -668,7 +702,7 @@ async function doLogin(ev){
 
 async function doLogout(){
   if(sb) await sb.auth.signOut();
-  DATA=[]; BM_DATA={PR:[],GP:[]}; BM_ERRORE=null; ARCH_DATA=[];
+  DATA=[]; BM_DATA={PR:[],GP:[]}; BM_ERRORE=null; ARCH_DATA=[]; INV_DATA=[];
   refreshAll();
   setStatus('Non connesso');
   showLogin();
@@ -760,12 +794,13 @@ function dismissMigrate(){
 }
 
 function switchTab(tab){
-  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp'||tab==='arch');
+  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp'||tab==='arch'||tab==='inv');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
   if(tab==='scarico') renderScaricoList();
   if(tab==='pegno') renderPegno();
   if(tab==='arch') renderArchivio();
+  if(tab==='inv') renderInventari();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
@@ -1594,7 +1629,7 @@ async function loadBilancio(){
     BM_ERRORE=(e && e.message) ? e.message : String(e);
   }
   renderBilancio('bpr'); renderBilancio('bgp'); caricoElenco();
-  loadBilancioQuant(); loadArchivio();
+  loadBilancioQuant(); loadArchivio(); loadInventari();
 }
 
 // Righe con stessa matricola e stessa produzione -> un'unica riga di riepilogo
@@ -2171,6 +2206,117 @@ function archExcel(id){
   }catch(e){
     const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
     const csv='﻿'+[hF,...bF,[],hQ,...bQ].map(r=>r.map(esc).join(';')).join('\r\n');
+    const el=document.createElement('a'); el.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); el.download=nomeFile+'.csv';
+    document.body.appendChild(el); el.click(); el.remove();
+  }
+}
+
+// ====== INVENTARI DI FINE MESE (la conta resta in inventario; qui se ne conserva la «foto»)
+const INV_TABLE='inventari';
+let INV_DATA=[], INV_ERRORE=null;
+const INV_APERTI=new Set();
+async function loadInventari(){
+  if(!sb) return;
+  try{
+    const {data,error}=await sb.from(INV_TABLE).select('*').order('data_conta',{ascending:false});
+    if(error) throw error;
+    INV_DATA=(data||[]).filter(x=>x && Array.isArray(x.righe)); INV_ERRORE=null;
+  }catch(e){ INV_ERRORE=(e&&e.message)?e.message:String(e); }
+  renderInventari(); invUltimo();
+}
+const invErrTxt=e=>{ const t=(e&&e.message)||String(e); return /does not exist|schema cache|inventari\b/i.test(t)?t+' — esegui lo script SQL «inventari.sql» su Supabase.':t; };
+const invData=iso=>{ if(!iso) return ''; const [y,m,d]=String(iso).slice(0,10).split('-'); return `${d}/${m}/${y}`; };
+function invTot(righe){ return { forme:righe.reduce((t,r)=>t+(Number(r.forme)||0),0), pegno:righe.filter(r=>up(r.tipologia)==='PEGNO').reduce((t,r)=>t+(Number(r.forme)||0),0) }; }
+function invUltimo(){
+  const el=document.getElementById('inv-ultimo'); if(!el) return;
+  const u=INV_DATA[0];
+  el.textContent=u?`Ultimo inventario chiuso: «${u.nome}», conta del ${invData(u.data_conta)} (${fmtNum(invTot(u.righe).forme)} forme).`:'Nessun inventario ancora chiuso.';
+}
+const MESI_LUNGHI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+function invChiudiApri(){
+  const msg=document.getElementById('inv-msg'); msg.textContent=''; msg.className='msg';
+  if(!DATA.length){ msg.textContent='L\'inventario è vuoto: non c\'è niente da chiudere.'; msg.className='msg err'; return; }
+  const t=invTot(DATA);
+  document.getElementById('inv-chiudi-txt').textContent=`Chiudi l'inventario? Viene salvata una copia della conta (${fmtNum(DATA.length)} righe, ${fmtNum(t.forme)} forme, di cui ${fmtNum(t.pegno)} in pegno) nella pagina Inventari. I dati restano qui, per gli aggiornamenti degli spostamenti.`;
+  const d=new Date(); document.getElementById('inv-chiudi-data').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  document.getElementById('inv-chiudi-nome').value='';
+  document.getElementById('inv-pulisci').style.display='none';
+  document.getElementById('inv-chiudi').style.display='';
+}
+async function invChiudiConferma(){
+  const msg=document.getElementById('inv-msg');
+  const data=document.getElementById('inv-chiudi-data').value;
+  if(!data){ msg.textContent='Indica la data della conta.'; msg.className='msg err'; return; }
+  const [y,m]=data.split('-').map(Number);
+  const nome=document.getElementById('inv-chiudi-nome').value.trim()||`Inventario ${MESI_LUNGHI[m-1]} ${y}`;
+  const righe=DATA.map(r=>({scalera:Number(r.scalera),matricola:r.matricola===null||r.matricola===undefined?'':String(r.matricola),mese:r.mese||'',forme:Number(r.forme)||0,tipologia:up(r.tipologia),note:up(r.note)}));
+  const t=invTot(righe);
+  document.getElementById('inv-chiudi').style.display='none';
+  const {error}=await sb.from(INV_TABLE).insert({nome,data_conta:data,righe,totale_forme:t.forme,forme_pegno:t.pegno});
+  if(error){ msg.textContent='Chiusura non riuscita: '+invErrTxt(error); msg.className='msg err'; return; }
+  msg.textContent=`Inventario «${nome}» salvato nella pagina Inventari (${fmtNum(righe.length)} righe, ${fmtNum(t.forme)} forme). I dati sono rimasti in inventario.`; msg.className='msg ok';
+  await loadInventari();
+}
+function invPulisciApri(){
+  const msg=document.getElementById('inv-msg'); msg.textContent=''; msg.className='msg';
+  if(!DATA.length){ msg.textContent='L\'inventario è già vuoto.'; msg.className='msg err'; return; }
+  const u=INV_DATA[0], t=invTot(DATA);
+  document.getElementById('inv-pulisci-txt').textContent=`Attenzione: vengono cancellate TUTTE le ${fmtNum(DATA.length)} righe dell'inventario (${fmtNum(t.forme)} forme, pegno compreso), per ripartire da una nuova conta. Gli inventari già chiusi nella pagina Inventari restano. `+(u?`Ultimo inventario chiuso: «${u.nome}» (conta del ${invData(u.data_conta)}).`:'Non hai ancora chiuso nessun inventario: se prosegui, questa conta andrà persa. Valuta prima «Chiudi inventario».');
+  document.getElementById('inv-chiudi').style.display='none';
+  document.getElementById('inv-pulisci').style.display='';
+}
+async function invPulisciConferma(){
+  const msg=document.getElementById('inv-msg');
+  document.getElementById('inv-pulisci').style.display='none';
+  const {error}=await sb.from(TABLE).delete().not('id','is',null);
+  if(error){ msg.textContent='Cancellazione non riuscita: '+error.message; msg.className='msg err'; await loadData(); return; }
+  msg.textContent='Rilevazione cancellata: l\'inventario è vuoto, pronto per caricare la nuova conta.'; msg.className='msg ok';
+  await loadData();
+}
+function renderInventari(){
+  const box=document.getElementById('inv-lista'); if(!box) return;
+  const info=document.getElementById('inv-info');
+  if(INV_ERRORE){ box.innerHTML=''; info.textContent='Non riesco a leggere gli inventari: '+invErrTxt({message:INV_ERRORE}); return; }
+  info.textContent=INV_DATA.length?'':'Nessun inventario chiuso. Usa «Chiudi inventario» nella pagina Carico merce.';
+  box.innerHTML=INV_DATA.map(a=>{
+    const t=invTot(a.righe), aperto=INV_APERTI.has(String(a.id));
+    return `<div class="arch-card"><div class="arch-top"><div><b>${escapeHtml(a.nome)}</b><span class="arch-sub">Conta del ${invData(a.data_conta)}</span></div>
+      <div class="arch-tot">${fmtNum(a.righe.length)} righe · ${fmtNum(t.forme)} forme · ${fmtNum(t.pegno)} in pegno</div>
+      <div class="arch-act"><button class="print-btn" onclick="invApri('${a.id}')">${aperto?'Chiudi dettaglio':'Apri dettaglio'}</button><button class="print-btn" onclick="invExcel('${a.id}')">📊 Excel</button><button class="del-btn" onclick="invElimina('${a.id}')" title="Elimina inventario">✕</button></div></div>
+      ${aperto?`<div class="arch-det">${invDettaglioHtml(a)}</div>`:''}</div>`;
+  }).join('');
+}
+function invRighe(a){
+  const rif=new Date(String(a.data_conta).slice(0,10)+'T12:00:00');
+  return a.righe.map(r=>({...r,stag:r.mese?stagionatura(r.mese,rif):null})).sort((x,y)=>compareMatricolaAware(parseMatricola(x.matricola),parseMatricola(y.matricola),1)||(x.mese<y.mese?-1:x.mese>y.mese?1:0));
+}
+function invDettaglioHtml(a){
+  const righe=invRighe(a), t=invTot(a.righe);
+  return `<div class="table-wrap"><table><thead><tr><th>Scalera</th><th>Matricola</th><th>Mese/Anno</th><th>Stagionatura</th><th>Forme</th><th>Tipologia</th><th>Note</th></tr></thead><tbody>`+
+    righe.map(r=>`<tr><td>${r.scalera}</td><td>${r.matricola?escapeHtml(String(r.matricola)):'—'}</td><td>${r.mese?fmtMeseCorto(r.mese):'—'}</td><td>${r.stag===null?'—':r.stag+' mesi'}</td><td>${fmtNum(r.forme)}</td><td>${r.tipologia?`<span class="badge ${badgeClass(r.tipologia)}">${escapeHtml(r.tipologia)}</span>`:'—'}</td><td>${highlightNote(r.note||'')}</td></tr>`).join('')+
+    `<tr class="bm-tot"><td>Totale</td><td></td><td></td><td></td><td>${fmtNum(t.forme)}</td><td></td><td></td></tr></tbody></table></div>`;
+}
+function invApri(id){ id=String(id); if(INV_APERTI.has(id)) INV_APERTI.delete(id); else INV_APERTI.add(id); renderInventari(); }
+async function invElimina(id){
+  const a=INV_DATA.find(x=>String(x.id)===String(id)); if(!a) return;
+  if(!confirm(`Eliminare definitivamente «${a.nome}» dalla pagina Inventari? Non si può annullare.`)) return;
+  const {error}=await sb.from(INV_TABLE).delete().eq('id',a.id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadInventari();
+}
+function invExcel(id){
+  const a=INV_DATA.find(x=>String(x.id)===String(id)); if(!a) return;
+  const head=['Scalera','Matricola','Mese/Anno','Stagionatura','Forme','Tipologia','Note'];
+  const body=invRighe(a).map(r=>[Number(r.scalera),r.matricola?(/^\d+$/.test(String(r.matricola))?Number(r.matricola):String(r.matricola)):'',r.mese?fmtMeseCorto(r.mese):'',r.stag===null?'':r.stag+' mesi',Number(r.forme)||0,up(r.tipologia),up(r.note)]);
+  body.push(['Totale','','','',invTot(a.righe).forme,'','']);
+  const nomeFile='inventario-'+String(a.data_conta).slice(0,10);
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const ws=XLSX.utils.aoa_to_sheet([head,...body]); ws['!cols']=[{wch:9},{wch:10},{wch:11},{wch:14},{wch:8},{wch:12},{wch:24}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Inventario'); XLSX.writeFile(wb,nomeFile+'.xlsx');
+  }catch(e){
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='﻿'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
     const el=document.createElement('a'); el.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); el.download=nomeFile+'.csv';
     document.body.appendChild(el); el.click(); el.remove();
   }
