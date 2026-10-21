@@ -269,7 +269,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <input id="bpr-matricola" type="text" list="bpr-list" placeholder="scrivi o scegli" autocomplete="off" autocapitalize="characters">
         </div>
       </div>
-      <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 o 3/25" maxlength="5" inputmode="numeric"></div>
+      <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bpr-forme" type="number" min="1" placeholder="es. 30"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
     </div>
@@ -314,7 +314,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <input id="bgp-matricola" type="text" list="bgp-list" placeholder="scrivi o scegli" autocomplete="off" autocapitalize="characters">
         </div>
       </div>
-      <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 o 3/25" maxlength="5" inputmode="numeric"></div>
+      <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bgp-forme" type="number" min="1" placeholder="es. 30"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
     </div>
@@ -1279,7 +1279,14 @@ function fmtMeseCorto(v){ return fmtMeseTesto(v).replace(/-\d{2}(\d{2})$/,'-$1')
 
 // Produzione: accetta 3/25, 03/25, 325 (= mar-25) e 1225 (= dic-25)
 function bmParseMese(str){
-  const t=(str||'').trim();
+  const t=(str||'').trim().toLowerCase();
+  const tx=t.match(/^([a-z]{3})-?(\d{2}|\d{4})$/);
+  if(tx){
+    const mi=MESI_BREVI.indexOf(tx[1]);
+    if(mi<0) return null;
+    const yy=tx[2].length===4?parseInt(tx[2],10):2000+parseInt(tx[2],10);
+    return yy+'-'+String(mi+1).padStart(2,'0');
+  }
   if(/^\d{1,2}\/\d{2}$/.test(t)) return parseMese(t);
   let m=null;
   if(/^\d{3}$/.test(t)) m=[t.slice(0,1),t.slice(1)];
@@ -1289,14 +1296,26 @@ function bmParseMese(str){
   if(mese<1||mese>12) return null;
   return (2000+parseInt(m[1],10))+'-'+String(mese).padStart(2,'0');
 }
-function bmMeseInput(id){   // solo cifre e un'unica "/", niente barra automatica
+// Campo produzione: scrivendo 325 (o 3/25, 1225) mostra subito mar-25 / dic-25
+function bmMeseInput(id){
   const el=document.getElementById(id);
+  const mostra=(forza)=>{
+    const raw=el.value.trim();
+    const m=bmParseMese(raw);
+    if(!m) return;
+    const cifre=/^\d+$/.test(raw);
+    // 3 cifre con le prime due valide come mese (es. 125) sono ambigue: si attende l'uscita dal campo
+    const ambiguo=cifre && raw.length===3 && parseInt(raw.slice(0,2),10)<=12;
+    const completo=(cifre && (raw.length===4 || (raw.length===3 && !ambiguo))) || /^\d{1,2}\/\d{2}$/.test(raw) || /^[a-z]{3}-?\d{2,4}$/i.test(raw);
+    if(forza || completo) el.value=fmtMeseCorto(m);
+  };
   el.addEventListener('input',()=>{
-    let raw=el.value.replace(/[^0-9/]/g,'');
-    const k=raw.indexOf('/');
-    if(k!==-1) raw=raw.slice(0,k+1)+raw.slice(k+1).replace(/\//g,'');
-    el.value=raw.slice(0,5);
+    let v=el.value.toLowerCase().replace(/[^0-9a-z/-]/g,'').slice(0,8);
+    el.value=v;
+    mostra(false);
   });
+  el.addEventListener('blur',()=>mostra(true));
+  el.addEventListener('keydown',e=>{ if(e.key==='Enter') mostra(true); });
 }
 
 function bmMatricole(tab){
@@ -1397,7 +1416,7 @@ function renderBilancio(tab){
     if(BM_EDIT[tab]===g.key){
       return `<tr class="editing-row">
         <td><input type="text" id="${tab}-e-matricola" value="${escapeHtml(g.matricola)}" list="${tab}-list" autocapitalize="characters"></td>
-        <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseInput(g.mese):''}" placeholder="es. 325" maxlength="5" inputmode="numeric"></td>
+        <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseCorto(g.mese):''}" placeholder="es. 325" maxlength="8"></td>
         <td><input type="number" id="${tab}-e-forme" min="1" value="${g.forme}"></td>
         <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
         <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
