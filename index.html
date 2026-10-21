@@ -355,7 +355,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="grid">
       <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
       <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
-      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="M/AA o MM/AA es. 9/24" maxlength="5"></div>
+      <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Forme</label><input id="c-forme" type="number" min="0" placeholder="es. 30"></div>
       <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="c-note" type="text" placeholder="facoltativo"></div>
@@ -372,7 +372,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="grid">
       <div><label>Cerca per Scalera</label><input id="sc-search-scalera" type="number" oninput="renderScaricoList()"></div>
       <div><label>Cerca per Matricola</label><input id="sc-search-matricola" type="number" oninput="renderScaricoList()"></div>
-      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderScaricoList()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="sc-search-mese" type="text" placeholder="es. 325 o 24" maxlength="8"></div>
     </div>
     <button class="btn ghost" onclick="scaricoResetRicerca()">Azzera ricerca</button>
     <div class="msg" id="s-msg"></div>
@@ -397,7 +397,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="grid">
       <div><label>Cerca per Scalera</label><input id="pg-search-scalera" type="number" oninput="renderPegno()"></div>
       <div><label>Cerca per Matricola</label><input id="pg-search-matricola" type="number" oninput="renderPegno()"></div>
-      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="pg-search-mese" type="text" placeholder="es. 9/24 o 24" oninput="renderPegno()"></div>
+      <div><label>Cerca per Produzione (Mese/Anno)</label><input id="pg-search-mese" type="text" placeholder="es. 325 o 24" maxlength="8"></div>
     </div>
     <button class="btn ghost" onclick="pegnoResetRicerca()">Azzera ricerca</button>
     <div class="msg" id="pg-msg"></div>
@@ -660,14 +660,48 @@ function fmtMeseTesto(v){
   return (MESI_BREVI[parseInt(m,10)-1]||m)+'-'+y;
 }
 
+// Produzione: accetta 3/25, 03/25, 325, 0325, 1225 e anche mar-25 / mar-2025
 function parseMese(str){
-  if(!str) return null;
-  const m=str.trim().match(/^(\d{1,2})\/(\d{2})$/);
-  if(!m) return null;
-  const month=parseInt(m[1],10);
-  if(month<1||month>12) return null;
-  const year=2000+parseInt(m[2],10);
-  return year+'-'+String(month).padStart(2,'0');
+  const t=(str||'').trim().toLowerCase();
+  if(!t) return null;
+  let mese=null, anno=null, x;
+  if((x=t.match(/^([a-z]{3})-?(\d{2}|\d{4})$/))){
+    const mi=MESI_BREVI.indexOf(x[1]);
+    if(mi<0) return null;
+    mese=mi+1; anno=x[2].length===4?parseInt(x[2],10):2000+parseInt(x[2],10);
+  }else if((x=t.match(/^(\d{1,2})\/(\d{2})$/))){
+    mese=parseInt(x[1],10); anno=2000+parseInt(x[2],10);
+  }else if(/^\d{3}$/.test(t)){
+    mese=parseInt(t.slice(0,1),10); anno=2000+parseInt(t.slice(1),10);
+  }else if(/^\d{4}$/.test(t)){
+    mese=parseInt(t.slice(0,2),10); anno=2000+parseInt(t.slice(2),10);
+  }else return null;
+  if(mese<1||mese>12) return null;
+  return anno+'-'+String(mese).padStart(2,'0');
+}
+
+// Campo produzione (uguale in tutto il programma): scrivendo 325 o 0325 mostra subito mar-25
+function meseInput(id,onChange){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const mostra=(forza)=>{
+    const raw=el.value.trim();
+    const m=parseMese(raw);
+    if(!m) return false;
+    const cifre=/^\d+$/.test(raw);
+    // 3 cifre con le prime due valide come mese (es. 125) sono ambigue: si attende l'uscita dal campo
+    const ambiguo=cifre && raw.length===3 && parseInt(raw.slice(0,2),10)<=12;
+    const completo=(cifre && (raw.length===4 || (raw.length===3 && !ambiguo))) || /^\d{1,2}\/\d{2}$/.test(raw) || /^[a-z]{3}-?\d{2,4}$/i.test(raw);
+    if(forza || completo){ el.value=fmtMeseCorto(m); return true; }
+    return false;
+  };
+  el.addEventListener('input',()=>{
+    el.value=el.value.toLowerCase().replace(/[^0-9a-z/-]/g,'').slice(0,8);
+    mostra(false);
+    if(onChange) onChange();
+  });
+  el.addEventListener('blur',()=>{ if(mostra(true) && onChange) onChange(); });
+  el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ mostra(true); if(onChange) onChange(); } });
 }
 
 function fmtMeseInput(iso){
@@ -692,7 +726,9 @@ function attachMeseAutoFormat(id, onDone){
     if(onDone) onDone();
   });
 }
-attachMeseAutoFormat('c-mese');
+meseInput('c-mese');
+meseInput('sc-search-mese',()=>renderScaricoList());
+meseInput('pg-search-mese',()=>renderPegno());
 
 function attachUppercase(id){
   const el=document.getElementById(id);
@@ -742,7 +778,7 @@ async function caricaMerce(){
   if(meseStr){
     mese=parseMese(meseStr);
     if(!mese){
-      msg.textContent='Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.';
+      msg.textContent='Formato Mese/Anno non valido. Scrivi ad esempio 325 oppure 3/25 (marzo 2025).';
       msg.className='msg err'; return;
     }
   }
@@ -800,7 +836,7 @@ async function saveInlineEdit(id){
   let mese=null;
   if(meseStr){
     mese=parseMese(meseStr);
-    if(!mese){ alert('Formato Mese/Anno non valido. Usa M/AA o MM/AA, es. 9/24 o 09/24.'); return; }
+    if(!mese){ alert('Formato Mese/Anno non valido. Scrivi ad esempio 325 oppure 3/25 (marzo 2025).'); return; }
   }
   const {error}=await sb.from(TABLE).update({
     scalera:Number(scalera), matricola:matricola?Number(matricola):null, mese,
@@ -818,6 +854,15 @@ function scaricoResetRicerca(){
   renderScaricoList();
 }
 
+// Filtro produzione: se il testo è un mese completo (325, mar-25...) cerca quel mese, altrimenti cerca il testo (es. 24 = anno 2024)
+function meseCorrisponde(r,filtro){
+  if(!filtro) return true;
+  const m=parseMese(filtro);
+  if(m) return r.mese===m;
+  const hay=(fmtMese(r.mese)+' '+fmtMeseCorto(r.mese)+' '+fmtMeseTesto(r.mese)).toLowerCase();
+  return hay.includes(filtro.toLowerCase());
+}
+
 function renderScaricoList(){
   const tbody=document.getElementById('scarico-tbody');
   if(!tbody) return;
@@ -829,7 +874,7 @@ function renderScaricoList(){
   let list=DATA.filter(r=>{
     if(fScalera && String(r.scalera)!==String(fScalera)) return false;
     if(fMatricola && String(r.matricola)!==String(fMatricola)) return false;
-    if(fMese && !fmtMese(r.mese).toLowerCase().includes(fMese)) return false;
+    if(!meseCorrisponde(r,fMese)) return false;
     return true;
   });
 
@@ -1008,7 +1053,7 @@ function renderEditableRow(r){
   return `<tr class="editing-row">
     <td><input type="number" id="ir-scalera-${r.id}" value="${r.scalera}"></td>
     <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
-    <td><input type="text" id="ir-mese-${r.id}" value="${fmtMeseInput(r.mese)}" placeholder="M/AA"></td>
+    <td><input type="text" id="ir-mese-${r.id}" value="${r.mese?fmtMeseCorto(r.mese):''}" placeholder="es. 325" maxlength="8"></td>
     <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
     <td><input type="number" id="ir-forme-${r.id}" value="${r.forme}"></td>
     <td><input type="text" id="ir-tipologia-${r.id}" value="${escapeHtml(up(r.tipologia))}" list="tip-list"></td>
@@ -1029,7 +1074,7 @@ function renderTable(rows){
     if(inlineEditId){
       attachUppercase('ir-tipologia-'+inlineEditId);
       attachUppercase('ir-note-'+inlineEditId);
-      attachMeseAutoFormat('ir-mese-'+inlineEditId);
+      meseInput('ir-mese-'+inlineEditId);
     }
   }
   const totForme=rows.reduce((s,r)=>s+r.forme,0);
@@ -1183,7 +1228,7 @@ function renderPegno(){
   const match=r=>{
     if(fS && String(r.scalera)!==String(fS)) return false;
     if(fM && String(r.matricola)!==String(fM)) return false;
-    if(fP && !fmtMese(r.mese).toLowerCase().includes(fP)) return false;
+    if(!meseCorrisponde(r,fP)) return false;
     return true;
   };
   const q1=captureQty('pg-qty-'), q2=captureQty('pl-qty-');
@@ -1277,46 +1322,8 @@ const BM_PENDING={ bpr:null, bgp:null };   // carico in attesa di conferma matri
 const bmNat=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true});
 function fmtMeseCorto(v){ return fmtMeseTesto(v).replace(/-\d{2}(\d{2})$/,'-$1'); }   // gen-25
 
-// Produzione: accetta 3/25, 03/25, 325 (= mar-25) e 1225 (= dic-25)
-function bmParseMese(str){
-  const t=(str||'').trim().toLowerCase();
-  const tx=t.match(/^([a-z]{3})-?(\d{2}|\d{4})$/);
-  if(tx){
-    const mi=MESI_BREVI.indexOf(tx[1]);
-    if(mi<0) return null;
-    const yy=tx[2].length===4?parseInt(tx[2],10):2000+parseInt(tx[2],10);
-    return yy+'-'+String(mi+1).padStart(2,'0');
-  }
-  if(/^\d{1,2}\/\d{2}$/.test(t)) return parseMese(t);
-  let m=null;
-  if(/^\d{3}$/.test(t)) m=[t.slice(0,1),t.slice(1)];
-  else if(/^\d{4}$/.test(t)) m=[t.slice(0,2),t.slice(2)];
-  if(!m) return null;
-  const mese=parseInt(m[0],10);
-  if(mese<1||mese>12) return null;
-  return (2000+parseInt(m[1],10))+'-'+String(mese).padStart(2,'0');
-}
-// Campo produzione: scrivendo 325 (o 3/25, 1225) mostra subito mar-25 / dic-25
-function bmMeseInput(id){
-  const el=document.getElementById(id);
-  const mostra=(forza)=>{
-    const raw=el.value.trim();
-    const m=bmParseMese(raw);
-    if(!m) return;
-    const cifre=/^\d+$/.test(raw);
-    // 3 cifre con le prime due valide come mese (es. 125) sono ambigue: si attende l'uscita dal campo
-    const ambiguo=cifre && raw.length===3 && parseInt(raw.slice(0,2),10)<=12;
-    const completo=(cifre && (raw.length===4 || (raw.length===3 && !ambiguo))) || /^\d{1,2}\/\d{2}$/.test(raw) || /^[a-z]{3}-?\d{2,4}$/i.test(raw);
-    if(forza || completo) el.value=fmtMeseCorto(m);
-  };
-  el.addEventListener('input',()=>{
-    let v=el.value.toLowerCase().replace(/[^0-9a-z/-]/g,'').slice(0,8);
-    el.value=v;
-    mostra(false);
-  });
-  el.addEventListener('blur',()=>mostra(true));
-  el.addEventListener('keydown',e=>{ if(e.key==='Enter') mostra(true); });
-}
+const bmParseMese=parseMese;
+const bmMeseInput=meseInput;
 
 function bmMatricole(tab){
   // elenco fisso + matricole già usate in questa pagina
