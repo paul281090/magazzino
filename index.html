@@ -159,6 +159,13 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 #panel-bpr table,#panel-bgp table{min-width:0;}
 @media (max-width:520px){.bm-mat{grid-column:1/-1;}}
 .bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
+.bm-quant{margin-top:14px;padding:12px 14px 14px;border:1px dashed var(--line);border-radius:8px;}
+.bm-quant-t{font-size:.85rem;font-weight:600;margin-bottom:8px;}
+.bm-quant-t span{font-weight:400;color:var(--muted);}
+.bm-q{font-variant-numeric:tabular-nums;}
+#panel-bpr table,#panel-bgp table{font-size:.88rem;}
+#panel-bpr th,#panel-bpr td,#panel-bgp th,#panel-bgp td{padding:10px 7px;}
+#panel-bpr .editing-row input,#panel-bgp .editing-row input{min-width:0;width:78px;padding:6px 5px;}
 
 /* ===== Contenuto su un'unica colonna, larghezza limitata ===== */
 .kpis,.layout,.migrate-banner{max-width:1100px;margin-left:auto;margin-right:auto;}
@@ -272,6 +279,12 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bpr-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div><label>Tipologia</label><input id="bpr-tipologia" type="text" list="bpr-tip-list" placeholder="es. BIO" autocomplete="off"></div>
+    </div>
+    <div class="bm-quant">
+      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bpr-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bpr-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bpr-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bpr-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bpr-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div></div>
+    </div>
+    <div class="grid" style="margin-top:12px;">
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bpr-list"></datalist>
@@ -298,6 +311,11 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <th class="bm-th" data-tab="bpr" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="forme">Forme<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="prodotto_finito_kg">Prodotto finito kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="semilavorato_kg">Semilavorato kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="conto_lavoro_forme">Conto lavoro forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="sfridi_kg">Sfridi kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="cella_resi_kg">Cella resi kg<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="note">Note<span class="arrow">▲▼</span></th>
           <th></th>
         </tr></thead>
@@ -319,6 +337,12 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       </div>
       <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bgp-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
+    </div>
+    <div class="bm-quant">
+      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bgp-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bgp-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bgp-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bgp-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bgp-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div></div>
+    </div>
+    <div class="grid" style="margin-top:12px;">
       <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bgp-list"></datalist>
@@ -343,6 +367,11 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <th class="bm-th" data-tab="bgp" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="prodotto_finito_kg">Prodotto finito kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="semilavorato_kg">Semilavorato kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="conto_lavoro_forme">Conto lavoro forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="sfridi_kg">Sfridi kg<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="cella_resi_kg">Cella resi kg<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="note">Note<span class="arrow">▲▼</span></th>
           <th></th>
         </tr></thead>
@@ -785,15 +814,36 @@ function calcForme(testo){
     return v;
   }catch(e){ return NaN; }
 }
+// Stessa logica per i kg: virgola decimale, 1.250,5 con il punto delle migliaia, risultato a 2 decimali
+function calcKg(testo){
+  let t=String(testo==null?'':testo).trim();
+  if(t.startsWith('=')) t=t.slice(1);
+  t=t.replace(/\s+/g,'').replace(/×/g,'*').replace(/÷/g,'/');
+  if(!t || !/^[0-9+\-*/().,]+$/.test(t)) return NaN;
+  t=t.replace(/\d[\d.,]*/g,tok=>/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(tok)?tok.replace(/\./g,'').replace(',','.'):tok.replace(',','.'));
+  let i=0;
+  const peek=()=>t[i];
+  function numero(){ const m=t.slice(i).match(/^\d+(\.\d+)?/); if(!m) throw 0; i+=m[0].length; return parseFloat(m[0]); }
+  function fattore(){
+    if(peek()==='-'){ i++; return -fattore(); }
+    if(peek()==='+'){ i++; return fattore(); }
+    if(peek()==='('){ i++; const v=somma(); if(peek()!==')') throw 0; i++; return v; }
+    return numero();
+  }
+  function prodotto(){ let v=fattore(); while(peek()==='*'||peek()==='/'){ const op=t[i++]; const f=fattore(); if(op==='/'){ if(f===0) throw 0; v/=f; } else v*=f; } return v; }
+  function somma(){ let v=prodotto(); while(peek()==='+'||peek()==='-'){ const op=t[i++]; const f=prodotto(); v=op==='+'?v+f:v-f; } return v; }
+  try{ const v=somma(); if(i!==t.length || !isFinite(v)) return NaN; return Math.round(v*100)/100; }catch(e){ return NaN; }
+}
 function leggiForme(id){ const el=document.getElementById(id); return el?calcForme(el.value):NaN; }
 // quando si esce dal campo (o si preme Invio) l'operazione viene sostituita dal risultato
 function applicaCalcolo(el){
   if(!el.classList.contains('calc')) return;
   const v=el.value.trim();
   if(!/[+\-*/=×÷()]/.test(v.replace(/^-/,''))) return;     // niente operazioni: nulla da fare
-  const n=calcForme(v);
-  if(!isNaN(n)){ el.value=String(n); el.title=''; el.style.outline=''; }
-  else { el.style.outline='2px solid var(--danger)'; el.title='Operazione non valida: usa solo numeri interi, + e -'; }
+  const kg=el.classList.contains('calc-kg');
+  const n=kg?calcKg(v):calcForme(v);
+  if(!isNaN(n)){ el.value=kg?String(n).replace('.',','):String(n); el.title=''; el.style.outline=''; }
+  else { el.style.outline='2px solid var(--danger)'; el.title=kg?'Operazione non valida':'Operazione non valida: le forme devono essere un numero intero'; }
 }
 document.addEventListener('focusout',e=>{ if(e.target.classList) applicaCalcolo(e.target); });
 document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList) applicaCalcolo(e.target); });
@@ -1370,7 +1420,17 @@ const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
 const BM_TABLE='bilancio_massa';
 const BM_TIP_BASE=['BIO','MEZZANO','PEGNO'];   // suggerimenti per la tipologia (solo Parmigiano Reggiano)
 const bmHasTip=tab=>tab==='bpr';
-const bmCols=tab=>bmHasTip(tab)?6:5;
+// quantitativi aggiuntivi: sigla campo, colonna su Supabase, titolo, kg (true) o numero forme (false)
+const BM_QUANT=[
+  {id:'pf',k:'prodotto_finito_kg',t:'Prodotto finito (kg)',kg:true},
+  {id:'sl',k:'semilavorato_kg',t:'Semilavorato (kg)',kg:true},
+  {id:'cl',k:'conto_lavoro_forme',t:'Forme in conto lavoro',kg:false},
+  {id:'sf',k:'sfridi_kg',t:'Sfridi di lavorazione (kg)',kg:true},
+  {id:'cr',k:'cella_resi_kg',t:'Cella resi (kg)',kg:true}
+];
+const bmCols=tab=>(bmHasTip(tab)?6:5)+BM_QUANT.length;
+const fmtKg=n=>Number(n).toLocaleString('it-IT',{maximumFractionDigits:2});
+const bmQNum=(v)=>Math.round((Number(v)||0)*100)/100;
 let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
@@ -1419,9 +1479,10 @@ function bmGruppi(tab){
   BM_DATA[BM_TIPO[tab]].forEach(r=>{
     const tip=bmHasTip(tab)?up(r.tipologia).trim():'';
     const key=String(r.matricola)+'|'+(r.mese||'')+'|'+tip;
-    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[]});
+    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[],...Object.fromEntries(BM_QUANT.map(q=>[q.k,0]))});
     const g=map.get(key);
     g.forme+=Number(r.forme)||0;
+    BM_QUANT.forEach(q=>{ g[q.k]=bmQNum(g[q.k]+(Number(r[q.k])||0)); });
     g.ids.push(r.id);
     const n=up(r.note).trim();
     if(n && !g.note.includes(n)) g.note.push(n);
@@ -1432,6 +1493,7 @@ function bmGruppi(tab){
     if(st.col==='matricola') c=bmNat(a.matricola,b.matricola);
     else if(st.col==='mese'){ c=(!a.mese&&!b.mese)?0:!a.mese?1:!b.mese?-1:(a.mese<b.mese?-1:a.mese>b.mese?1:0); }
     else if(st.col==='forme') c=a.forme-b.forme;
+    else if(BM_QUANT.some(q=>q.k===st.col)) c=a[st.col]-b[st.col];
     else if(st.col==='tipologia'){ c=(!a.tipologia&&!b.tipologia)?0:!a.tipologia?1:!b.tipologia?-1:a.tipologia.localeCompare(b.tipologia,'it'); if(c!==0) return c*d; }
     else c=a.note.toLowerCase().localeCompare(b.note.toLowerCase(),'it');
     if(c===0) c=bmNat(a.matricola,b.matricola)||(a.mese<b.mese?-1:a.mese>b.mese?1:0);
@@ -1492,6 +1554,7 @@ function renderBilancio(tab){
         <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseCorto(g.mese):''}" placeholder="es. 325" maxlength="8"></td>
         <td><input type="text" class="calc" autocomplete="off" id="${tab}-e-forme" value="${g.forme}"></td>
         ${bmHasTip(tab)?`<td><input type="text" id="${tab}-e-tipologia" value="${escapeHtml(g.tipologia)}" list="${tab}-tip-list"></td>`:''}
+        ${BM_QUANT.map(q=>`<td><input type="text" class="calc${q.kg?' calc-kg':''}" autocomplete="off" id="${tab}-e-${q.id}" value="${g[q.k]?String(g[q.k]).replace('.',','):''}" placeholder="0"></td>`).join('')}
         <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
         <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
       </tr>`;
@@ -1501,6 +1564,7 @@ function renderBilancio(tab){
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
       <td><b>${fmtNum(g.forme)}</b>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
       ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
+      ${BM_QUANT.map(q=>`<td class="bm-q">${g[q.k]?(q.kg?fmtKg(g[q.k]):fmtNum(g[q.k])):'—'}</td>`).join('')}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
     </tr>`;
@@ -1510,7 +1574,9 @@ function renderBilancio(tab){
     const mm=document.getElementById(tab+'-e-mese'); if(mm) meseInput(tab+'-e-mese');
     const tt=document.getElementById(tab+'-e-tipologia'); if(tt) attachUppercase(tab+'-e-tipologia');
   }
-  count.textContent=`${gruppi.length} righe · ${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))} forme totali`;
+  const tot=k=>gruppi.reduce((t,g)=>t+(Number(g[k])||0),0);
+  const extra=BM_QUANT.filter(q=>tot(q.k)).map(q=>`${q.t.replace(' (kg)','')}: ${q.kg?fmtKg(tot(q.k))+' kg':fmtNum(tot(q.k))}`);
+  count.textContent=`${gruppi.length} righe · ${fmtNum(tot('forme'))} forme totali`+(extra.length?' · '+extra.join(' · '):'');
 }
 
 function bmScegli(tab){
@@ -1531,7 +1597,13 @@ function bmLeggiForm(tab){
   if(!mese) return err('Formato produzione non valido. Usa ad esempio 325 oppure 3/25 (marzo 2025).');
   if(!forme || forme<=0) return err('Inserisci un numero di forme valido.');
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-tipologia').value.trim()):'';
-  return { matricola, mese, forme, note, tipologia };
+  const quant={};
+  for(const q of BM_QUANT){
+    const v=bmLeggiQuant(tab+'-'+q.id,q);
+    if(Number.isNaN(v)) return err(`Valore non valido in «${q.t}». Scrivi un numero${q.kg?' (anche con la virgola)':' intero'} oppure un\'operazione come =10+5.`);
+    quant[q.k]=v;
+  }
+  return { matricola, mese, forme, note, tipologia, quant };
 }
 
 async function bmCarica(tab){
@@ -1564,19 +1636,31 @@ async function bmSalva(tab,d){
   btn.disabled=true;
   const riga={ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note };
   if(bmHasTip(tab) && d.tipologia) riga.tipologia=d.tipologia;
+  BM_QUANT.forEach(q=>{ if(d.quant[q.k]) riga[q.k]=d.quant[q.k]; });
   const {error}=await sb.from(BM_TABLE).insert(riga);
   btn.disabled=false;
   if(error){ msg.textContent='Salvataggio non riuscito: '+bmErroreTxt(error); msg.className='msg err'; return; }
   msg.textContent=`Caricato: matricola ${d.matricola}, produzione ${fmtMeseCorto(d.mese)}, ${fmtNum(d.forme)} forme.`;
   msg.className='msg ok';
-  ['matricola','mese','forme','note','tipologia'].forEach(k=>{ const e=document.getElementById(tab+'-'+k); if(e) e.value=''; });
+  ['matricola','mese','forme','note','tipologia',...BM_QUANT.map(q=>q.id)].forEach(k=>{ const e=document.getElementById(tab+'-'+k); if(e) e.value=''; });
   await loadBilancio();
   document.getElementById(tab+'-matricola').focus();
 }
 
+// legge un quantitativo: vuoto = 0; kg con virgola e operazioni; forme in conto lavoro intere
+function bmLeggiQuant(id,q){
+  const el=document.getElementById(id);
+  if(!el) return 0;
+  const t=el.value.trim();
+  if(t==='') return 0;
+  const v=q.kg?calcKg(t):calcForme(t);
+  if(Number.isNaN(v)) return NaN;
+  return v<0?NaN:v;
+}
+
 function bmErroreTxt(e){
   const t=(e&&e.message)||String(e);
-  return /tipologia/i.test(t) ? t+' — esegui lo script SQL che aggiunge la colonna Tipologia su Supabase.' : t;
+  return /tipologia|_kg|conto_lavoro/i.test(t) ? t+' — esegui lo script SQL che aggiunge le nuove colonne su Supabase.' : t;
 }
 
 function bmModifica(tab,i){ BM_EDIT[tab]=BM_GRUPPI[tab][i].key; renderBilancio(tab); const el=document.getElementById(tab+'-e-matricola'); if(el) el.focus(); }
@@ -1589,6 +1673,12 @@ async function bmSalvaModifica(tab,i){
   const forme=leggiForme(tab+'-e-forme');
   const note=up(document.getElementById(tab+'-e-note').value.trim());
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-e-tipologia').value.trim()):'';
+  const quant={};
+  for(const q of BM_QUANT){
+    const v=bmLeggiQuant(tab+'-e-'+q.id,q);
+    if(Number.isNaN(v)){ alert(`Valore non valido in «${q.t}».`); return; }
+    quant[q.k]=v;
+  }
   if(!matricola){ alert('Inserisci la matricola.'); return; }
   if(!mese){ alert('Formato produzione non valido. Usa ad esempio 325 oppure 3/25.'); return; }
   if(!forme || forme<=0){ alert('Inserisci un numero di forme valido.'); return; }
@@ -1597,6 +1687,7 @@ async function bmSalvaModifica(tab,i){
   }
   const upd={ matricola, mese, forme, note };
   if(bmHasTip(tab) && (tipologia || g.tipologia)) upd.tipologia=tipologia;
+  BM_QUANT.forEach(q=>{ if(quant[q.k] || g[q.k]) upd[q.k]=quant[q.k]; });
   const {error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0]);
   if(error){ alert('Modifica non riuscita: '+bmErroreTxt(error)); return; }
   // se la riga era un gruppo di più carichi, diventa un'unica riga con i nuovi valori
@@ -1622,10 +1713,12 @@ function bmExcel(tab){
   const rows=BM_GRUPPI[tab];
   if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
   const tip=bmHasTip(tab);
-  const head=tip?['Matricola','Produzione','Forme','Tipologia','Note']:['Matricola','Produzione','Forme','Note'];
+  const hq=['Prodotto finito (kg)','Semilavorato (kg)','Forme in conto lavoro','Sfridi di lavorazione (kg)','Cella resi (kg)'];
+  const head=['Matricola','Produzione','Forme',...(tip?['Tipologia']:[]),...hq,'Note'];
   const body=rows.map(g=>{
     const base=[/^\d+$/.test(g.matricola) ? Number(g.matricola) : g.matricola, g.mese ? fmtMeseCorto(g.mese) : '', g.forme];
     if(tip) base.push(g.tipologia);
+    BM_QUANT.forEach(q=>base.push(g[q.k]||''));
     base.push(g.note.replace(/ · /g,', '));
     return base;
   });
@@ -1634,7 +1727,7 @@ function bmExcel(tab){
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
     const ws=XLSX.utils.aoa_to_sheet([head,...body]);
-    ws['!cols']=tip?[{wch:11},{wch:12},{wch:8},{wch:12},{wch:28}]:[{wch:11},{wch:12},{wch:8},{wch:28}];
+    ws['!cols']=[{wch:11},{wch:12},{wch:8},...(tip?[{wch:12}]:[]),{wch:19},{wch:17},{wch:20},{wch:24},{wch:15},{wch:28}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Bilancio di massa');
     XLSX.writeFile(wb,nomeFile+'.xlsx');
@@ -1653,8 +1746,9 @@ function bmStampa(tab){
   const app=document.querySelector('.app');
   const panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-print-date').textContent='Stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const pulisci=()=>{ app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  const pulisci=()=>{ const pgs=document.getElementById('bm-page'); if(pgs) pgs.remove(); app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
   window.addEventListener('afterprint',pulisci);
+  const pg=document.createElement('style'); pg.id='bm-page'; pg.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(pg);
   app.classList.add('print-bm'); panel.classList.add('print-this');
   window.print();
 }
@@ -1666,6 +1760,11 @@ function bmVai(id){ const e=document.getElementById(id); if(e){ e.focus(); if(e.
   meseInput(t+'-mese',null,()=>bmVai(t+'-forme'));
   attachUppercase(t+'-note'); attachUppercase(t+'-matricola');
   if(bmHasTip(t)) attachUppercase(t+'-tipologia');
+  // Invio nei campi forme, tipologia, quantitativi e note = Carica (resta anche il tasto)
+  [t+'-forme',t+'-tipologia',t+'-note',...BM_QUANT.map(q=>t+'-'+q.id)].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); bmCarica(t); } });
+  });
   const mat=document.getElementById(t+'-matricola');
   mat.addEventListener('input',ev=>{
     const v=mat.value.trim();
