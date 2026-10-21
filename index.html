@@ -271,9 +271,11 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       </div>
       <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bpr-forme" type="number" min="1" placeholder="es. 30"></div>
+      <div><label>Tipologia</label><input id="bpr-tipologia" type="text" list="bpr-tip-list" placeholder="es. BIO" autocomplete="off"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bpr-list"></datalist>
+    <datalist id="bpr-tip-list"></datalist>
     <p class="bm-note" id="bpr-elenco-info"></p>
     <button class="btn" id="bpr-submit" onclick="bmCarica('bpr')">Carica</button>
     <div class="bm-conferma" id="bpr-conferma" style="display:none">
@@ -295,6 +297,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <th class="bm-th" data-tab="bpr" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="note">Note<span class="arrow">▲▼</span></th>
           <th></th>
         </tr></thead>
@@ -681,7 +684,7 @@ function parseMese(str){
 }
 
 // Campo produzione (uguale in tutto il programma): scrivendo 325 o 0325 mostra subito mar-25
-function meseInput(id,onChange){
+function meseInput(id,onChange,onDone){
   const el=document.getElementById(id);
   if(!el) return;
   const mostra=(forza)=>{
@@ -692,16 +695,20 @@ function meseInput(id,onChange){
     // 3 cifre con le prime due valide come mese (es. 125) sono ambigue: si attende l'uscita dal campo
     const ambiguo=cifre && raw.length===3 && parseInt(raw.slice(0,2),10)<=12;
     const completo=(cifre && (raw.length===4 || (raw.length===3 && !ambiguo))) || /^\d{1,2}\/\d{2}$/.test(raw) || /^[a-z]{3}-?\d{2,4}$/i.test(raw);
+    // mentre si scrive, converte solo se l'anno è plausibile (es. 1425 non diventa gen-2042)
+    const anno=parseInt(m.slice(0,4),10);
+    if(!forza && (anno<2010 || anno>new Date().getFullYear()+1)) return false;
     if(forza || completo){ el.value=fmtMeseCorto(m); return true; }
     return false;
   };
   el.addEventListener('input',()=>{
     el.value=el.value.toLowerCase().replace(/[^0-9a-z/-]/g,'').slice(0,8);
-    mostra(false);
+    const fatto=mostra(false);
     if(onChange) onChange();
+    if(fatto && onDone) onDone();
   });
   el.addEventListener('blur',()=>{ if(mostra(true) && onChange) onChange(); });
-  el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ mostra(true); if(onChange) onChange(); } });
+  el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const fatto=mostra(true); if(onChange) onChange(); if(fatto && onDone){ e.preventDefault(); onDone(); } } });
 }
 
 function fmtMeseInput(iso){
@@ -1312,6 +1319,9 @@ const MATRICOLE_BM={
 const BM_TIPO={ bpr:'PR', bgp:'GP' };
 const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
 const BM_TABLE='bilancio_massa';
+const BM_TIP_BASE=['BIO','MEZZANO','PEGNO'];   // suggerimenti per la tipologia (solo Parmigiano Reggiano)
+const bmHasTip=tab=>tab==='bpr';
+const bmCols=tab=>bmHasTip(tab)?6:5;
 let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
@@ -1323,7 +1333,7 @@ const bmNat=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true});
 function fmtMeseCorto(v){ return fmtMeseTesto(v).replace(/-\d{2}(\d{2})$/,'-$1'); }   // gen-25
 
 const bmParseMese=parseMese;
-const bmMeseInput=meseInput;
+
 
 function bmMatricole(tab){
   // elenco fisso + matricole già usate in questa pagina
@@ -1358,8 +1368,9 @@ async function loadBilancio(){
 function bmGruppi(tab){
   const map=new Map();
   BM_DATA[BM_TIPO[tab]].forEach(r=>{
-    const key=String(r.matricola)+'|'+(r.mese||'');
-    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',forme:0,note:[],ids:[]});
+    const tip=bmHasTip(tab)?up(r.tipologia).trim():'';
+    const key=String(r.matricola)+'|'+(r.mese||'')+'|'+tip;
+    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[]});
     const g=map.get(key);
     g.forme+=Number(r.forme)||0;
     g.ids.push(r.id);
@@ -1372,6 +1383,7 @@ function bmGruppi(tab){
     if(st.col==='matricola') c=bmNat(a.matricola,b.matricola);
     else if(st.col==='mese'){ c=(!a.mese&&!b.mese)?0:!a.mese?1:!b.mese?-1:(a.mese<b.mese?-1:a.mese>b.mese?1:0); }
     else if(st.col==='forme') c=a.forme-b.forme;
+    else if(st.col==='tipologia'){ c=(!a.tipologia&&!b.tipologia)?0:!a.tipologia?1:!b.tipologia?-1:a.tipologia.localeCompare(b.tipologia,'it'); if(c!==0) return c*d; }
     else c=a.note.toLowerCase().localeCompare(b.note.toLowerCase(),'it');
     if(c===0) c=bmNat(a.matricola,b.matricola)||(a.mese<b.mese?-1:a.mese>b.mese?1:0);
     return c*d;
@@ -1401,10 +1413,15 @@ function renderBilancio(tab){
   sel.innerHTML='<option value="">Elenco ▾</option>'+elenco.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
   sel.style.display=elenco.length?'':'none';
   document.getElementById(tab+'-elenco-info').textContent=elenco.length?'':'L\'elenco delle matricole non è ancora stato caricato: per ora scrivi la matricola a mano.';
+  if(bmHasTip(tab)){
+    const usate=BM_DATA[BM_TIPO[tab]].map(x=>up(x.tipologia).trim()).filter(Boolean);
+    const lista=[...new Set([...BM_TIP_BASE,...usate.sort()])];
+    document.getElementById(tab+'-tip-list').innerHTML=lista.map(t=>`<option value="${escapeHtml(t)}">`).join('');
+  }
   bmPaintSort(tab);
   if(BM_ERRORE){
     BM_GRUPPI[tab]=[];
-    tbody.innerHTML='<tr class="empty-row"><td colspan="5">Tabella non raggiungibile.</td></tr>';
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="${bmCols(tab)}">Tabella non raggiungibile.</td></tr>`;
     count.textContent='';
     if(!msg.textContent || msg.className.includes('err')){
       msg.textContent='Impossibile leggere i dati ('+BM_ERRORE+'). Se la tabella "bilancio_massa" non è ancora stata creata su Supabase, esegui lo script SQL.';
@@ -1415,7 +1432,7 @@ function renderBilancio(tab){
   const gruppi=bmGruppi(tab);
   BM_GRUPPI[tab]=gruppi;
   if(!gruppi.length){
-    tbody.innerHTML='<tr class="empty-row"><td colspan="5">Nessuna riga caricata.</td></tr>';
+    tbody.innerHTML=`<tr class="empty-row"><td colspan="${bmCols(tab)}">Nessuna riga caricata.</td></tr>`;
     count.textContent='';
     return;
   }
@@ -1425,6 +1442,7 @@ function renderBilancio(tab){
         <td><input type="text" id="${tab}-e-matricola" value="${escapeHtml(g.matricola)}" list="${tab}-list" autocapitalize="characters"></td>
         <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseCorto(g.mese):''}" placeholder="es. 325" maxlength="8"></td>
         <td><input type="number" id="${tab}-e-forme" min="1" value="${g.forme}"></td>
+        ${bmHasTip(tab)?`<td><input type="text" id="${tab}-e-tipologia" value="${escapeHtml(g.tipologia)}" list="${tab}-tip-list"></td>`:''}
         <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
         <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
       </tr>`;
@@ -1433,13 +1451,15 @@ function renderBilancio(tab){
       <td><b>${escapeHtml(g.matricola)}</b></td>
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
       <td><b>${fmtNum(g.forme)}</b>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
+      ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
     </tr>`;
   }).join('');
   if(BM_EDIT[tab]){
     const nt=document.getElementById(tab+'-e-note'); if(nt) attachUppercase(tab+'-e-note');
-    const mm=document.getElementById(tab+'-e-mese'); if(mm) bmMeseInput(tab+'-e-mese');
+    const mm=document.getElementById(tab+'-e-mese'); if(mm) meseInput(tab+'-e-mese');
+    const tt=document.getElementById(tab+'-e-tipologia'); if(tt) attachUppercase(tab+'-e-tipologia');
   }
   count.textContent=`${gruppi.length} righe · ${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))} forme totali`;
 }
@@ -1461,7 +1481,8 @@ function bmLeggiForm(tab){
   const mese=bmParseMese(meseStr);
   if(!mese) return err('Formato produzione non valido. Usa ad esempio 325 oppure 3/25 (marzo 2025).');
   if(!forme || forme<=0) return err('Inserisci un numero di forme valido.');
-  return { matricola, mese, forme, note };
+  const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-tipologia').value.trim()):'';
+  return { matricola, mese, forme, note, tipologia };
 }
 
 async function bmCarica(tab){
@@ -1492,14 +1513,21 @@ async function bmSalva(tab,d){
   const msg=document.getElementById(tab+'-msg');
   const btn=document.getElementById(tab+'-submit');
   btn.disabled=true;
-  const {error}=await sb.from(BM_TABLE).insert({ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note });
+  const riga={ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note };
+  if(bmHasTip(tab) && d.tipologia) riga.tipologia=d.tipologia;
+  const {error}=await sb.from(BM_TABLE).insert(riga);
   btn.disabled=false;
-  if(error){ msg.textContent='Salvataggio non riuscito: '+error.message; msg.className='msg err'; return; }
+  if(error){ msg.textContent='Salvataggio non riuscito: '+bmErroreTxt(error); msg.className='msg err'; return; }
   msg.textContent=`Caricato: matricola ${d.matricola}, produzione ${fmtMeseCorto(d.mese)}, ${fmtNum(d.forme)} forme.`;
   msg.className='msg ok';
-  ['matricola','mese','forme','note'].forEach(k=>document.getElementById(tab+'-'+k).value='');
+  ['matricola','mese','forme','note','tipologia'].forEach(k=>{ const e=document.getElementById(tab+'-'+k); if(e) e.value=''; });
   await loadBilancio();
   document.getElementById(tab+'-matricola').focus();
+}
+
+function bmErroreTxt(e){
+  const t=(e&&e.message)||String(e);
+  return /tipologia/i.test(t) ? t+' — esegui lo script SQL che aggiunge la colonna Tipologia su Supabase.' : t;
 }
 
 function bmModifica(tab,i){ BM_EDIT[tab]=BM_GRUPPI[tab][i].key; renderBilancio(tab); const el=document.getElementById(tab+'-e-matricola'); if(el) el.focus(); }
@@ -1511,14 +1539,17 @@ async function bmSalvaModifica(tab,i){
   const mese=bmParseMese(document.getElementById(tab+'-e-mese').value);
   const forme=parseInt(document.getElementById(tab+'-e-forme').value,10);
   const note=up(document.getElementById(tab+'-e-note').value.trim());
+  const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-e-tipologia').value.trim()):'';
   if(!matricola){ alert('Inserisci la matricola.'); return; }
   if(!mese){ alert('Formato produzione non valido. Usa ad esempio 325 oppure 3/25.'); return; }
   if(!forme || forme<=0){ alert('Inserisci un numero di forme valido.'); return; }
   if(matricola!==g.matricola && !bmEraNota(tab,matricola)){
     if(!confirm(`La matricola ${matricola} non è nell'elenco: è nuova. Sei sicuro di averla inserita correttamente?`)) return;
   }
-  const {error}=await sb.from(BM_TABLE).update({ matricola, mese, forme, note }).eq('id',g.ids[0]);
-  if(error){ alert('Modifica non riuscita: '+error.message); return; }
+  const upd={ matricola, mese, forme, note };
+  if(bmHasTip(tab) && (tipologia || g.tipologia)) upd.tipologia=tipologia;
+  const {error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0]);
+  if(error){ alert('Modifica non riuscita: '+bmErroreTxt(error)); return; }
   // se la riga era un gruppo di più carichi, diventa un'unica riga con i nuovi valori
   for(const id of g.ids.slice(1)){
     const r=await sb.from(BM_TABLE).delete().eq('id',id);
@@ -1541,19 +1572,20 @@ async function bmElimina(tab,i){
 function bmExcel(tab){
   const rows=BM_GRUPPI[tab];
   if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
-  const head=['Matricola','Produzione','Forme','Note'];
-  const body=rows.map(g=>[
-    /^\d+$/.test(g.matricola) ? Number(g.matricola) : g.matricola,
-    g.mese ? fmtMeseCorto(g.mese) : '',
-    g.forme,
-    g.note.replace(/ · /g,', ')
-  ]);
+  const tip=bmHasTip(tab);
+  const head=tip?['Matricola','Produzione','Forme','Tipologia','Note']:['Matricola','Produzione','Forme','Note'];
+  const body=rows.map(g=>{
+    const base=[/^\d+$/.test(g.matricola) ? Number(g.matricola) : g.matricola, g.mese ? fmtMeseCorto(g.mese) : '', g.forme];
+    if(tip) base.push(g.tipologia);
+    base.push(g.note.replace(/ · /g,', '));
+    return base;
+  });
   const oggi=new Date().toISOString().slice(0,10);
   const nomeFile='bilancio-massa-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+oggi;
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
     const ws=XLSX.utils.aoa_to_sheet([head,...body]);
-    ws['!cols']=[{wch:11},{wch:12},{wch:8},{wch:28}];
+    ws['!cols']=tip?[{wch:11},{wch:12},{wch:8},{wch:12},{wch:28}]:[{wch:11},{wch:12},{wch:8},{wch:28}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Bilancio di massa');
     XLSX.writeFile(wb,nomeFile+'.xlsx');
@@ -1578,7 +1610,21 @@ function bmStampa(tab){
   window.print();
 }
 
-['bpr','bgp'].forEach(t=>{ bmMeseInput(t+'-mese'); attachUppercase(t+'-note'); attachUppercase(t+'-matricola'); });
+// Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
+const BM_LUNG_MATRICOLA={ bpr:4, bgp:5 };   // PR: 4 cifre; GP: 5 caratteri (es. BG508)
+function bmVai(id){ const e=document.getElementById(id); if(e){ e.focus(); if(e.select) e.select(); } }
+['bpr','bgp'].forEach(t=>{
+  meseInput(t+'-mese',null,()=>bmVai(t+'-forme'));
+  attachUppercase(t+'-note'); attachUppercase(t+'-matricola');
+  if(bmHasTip(t)) attachUppercase(t+'-tipologia');
+  const mat=document.getElementById(t+'-matricola');
+  mat.addEventListener('input',ev=>{
+    const v=mat.value.trim();
+    const daElenco=ev.inputType==='insertReplacementText' || (ev.inputType===undefined && v!=='');   // scelta dal suggerimento
+    const lungOk = t==='bpr' ? /^\d{4}$/.test(v) : /^[A-Za-z0-9]{5}$/.test(v);
+    if(lungOk || (daElenco && bmMatricole(t).includes(v.toUpperCase()))) bmVai(t+'-mese');
+  });
+});
 
 async function init(){
   ['sc','pg','pl'].forEach(paintSortHeaders);
