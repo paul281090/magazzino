@@ -161,6 +161,17 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 #panel-bpr table,#panel-bgp table{min-width:0;}
 @media (max-width:520px){.bm-mat{grid-column:1/-1;}}
 .bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
+.bm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.bm-head h2{margin-bottom:10px;}
+.bm-chiudi-btn{padding:8px 14px;font-size:.85rem;}
+.arch-card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px;}
+.arch-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.arch-top b{font-size:1rem;}
+.arch-top .arch-sub{display:block;color:var(--muted);font-size:.8rem;margin-top:2px;}
+.arch-tot{font-size:.85rem;color:var(--muted);}
+.arch-act{display:flex;gap:6px;flex-wrap:wrap;}
+.arch-det{margin-top:12px;}
+.arch-det h4{margin:14px 0 6px;font-size:.9rem;}
 .bm-quant{margin-top:18px;padding:12px 14px 14px;border:1px dashed var(--line);border-radius:8px;}
 .bm-quant-t{font-size:.85rem;font-weight:600;margin-bottom:8px;}
 .bm-quant-t span{font-weight:400;color:var(--muted);}
@@ -256,6 +267,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <div class="tabs-sep">Bilancio di massa</div>
       <button class="tab-btn" data-tab="bpr">Parmigiano Reggiano</button>
       <button class="tab-btn" data-tab="bgp">Grana Padano</button>
+      <button class="tab-btn" data-tab="arch">Archivio bilanci</button>
     </nav>
     <div class="side-foot">
       <span id="sync-status">Non connesso</span>
@@ -286,7 +298,16 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
 
   <!-- BILANCIO DI MASSA PARMIGIANO REGGIANO -->
   <div class="panel" id="panel-bpr">
-    <h2>Bilancio di massa Parmigiano Reggiano</h2>
+    <div class="bm-head"><h2>Bilancio di massa Parmigiano Reggiano</h2>
+      <button class="btn ghost bm-chiudi-btn" type="button" onclick="bmChiudiApri('bpr')" title="Archivia il bilancio e svuota le tabelle per il successivo">🔒 Chiudi bilancio</button></div>
+    <div class="bm-conferma" id="bpr-chiudi" style="display:none">
+      <p id="bpr-chiudi-txt"></p>
+      <label style="display:block;margin:6px 0 2px;font-size:.8rem;">Nome del bilancio (facoltativo)</label>
+      <input id="bpr-chiudi-nome" type="text" placeholder="es. Bilancio ottobre 2026" style="max-width:360px;">
+      <div style="margin-top:8px;"><button class="btn" onclick="bmChiudiConferma('bpr')">Sì, chiudi e archivia</button>
+      <button class="btn ghost" onclick="bmChiudiAnnulla('bpr')">Annulla</button></div>
+    </div>
+    <div class="msg" id="bpr-chiudi-msg"></div>
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
@@ -363,7 +384,16 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
 
   <!-- BILANCIO DI MASSA GRANA PADANO -->
   <div class="panel" id="panel-bgp">
-    <h2>Bilancio di massa Grana Padano</h2>
+    <div class="bm-head"><h2>Bilancio di massa Grana Padano</h2>
+      <button class="btn ghost bm-chiudi-btn" type="button" onclick="bmChiudiApri('bgp')" title="Archivia il bilancio e svuota le tabelle per il successivo">🔒 Chiudi bilancio</button></div>
+    <div class="bm-conferma" id="bgp-chiudi" style="display:none">
+      <p id="bgp-chiudi-txt"></p>
+      <label style="display:block;margin:6px 0 2px;font-size:.8rem;">Nome del bilancio (facoltativo)</label>
+      <input id="bgp-chiudi-nome" type="text" placeholder="es. Bilancio ottobre 2026" style="max-width:360px;">
+      <div style="margin-top:8px;"><button class="btn" onclick="bmChiudiConferma('bgp')">Sì, chiudi e archivia</button>
+      <button class="btn ghost" onclick="bmChiudiAnnulla('bgp')">Annulla</button></div>
+    </div>
+    <div class="msg" id="bgp-chiudi-msg"></div>
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
@@ -433,6 +463,15 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="count" id="bgp-q-count"></div>
     </div>
+  </div>
+
+  <!-- ARCHIVIO BILANCI -->
+  <div class="panel" id="panel-arch">
+    <h2>Archivio bilanci di massa</h2>
+    <div class="grid" style="max-width:360px;"><div><label>Mostra</label>
+      <select id="arch-filtro" onchange="renderArchivio()"><option value="">Tutti</option><option value="PR">Parmigiano Reggiano</option><option value="GP">Grana Padano</option></select></div></div>
+    <p class="bm-note" id="arch-info"></p>
+    <div id="arch-lista"></div>
   </div>
 
   <!-- CARICO -->
@@ -629,7 +668,7 @@ async function doLogin(ev){
 
 async function doLogout(){
   if(sb) await sb.auth.signOut();
-  DATA=[]; BM_DATA={PR:[],GP:[]}; BM_ERRORE=null;
+  DATA=[]; BM_DATA={PR:[],GP:[]}; BM_ERRORE=null; ARCH_DATA=[];
   refreshAll();
   setStatus('Non connesso');
   showLogin();
@@ -721,11 +760,12 @@ function dismissMigrate(){
 }
 
 function switchTab(tab){
-  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp');
+  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp'||tab==='arch');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
   if(tab==='scarico') renderScaricoList();
   if(tab==='pegno') renderPegno();
+  if(tab==='arch') renderArchivio();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
 
@@ -1554,13 +1594,14 @@ async function loadBilancio(){
     BM_ERRORE=(e && e.message) ? e.message : String(e);
   }
   renderBilancio('bpr'); renderBilancio('bgp'); caricoElenco();
-  loadBilancioQuant();
+  loadBilancioQuant(); loadArchivio();
 }
 
 // Righe con stessa matricola e stessa produzione -> un'unica riga di riepilogo
-function bmGruppi(tab){
+function bmGruppi(tab){ return bmGruppiDa(BM_DATA[BM_TIPO[tab]],tab,BM_SORT[tab]); }
+function bmGruppiDa(rows,tab,st){
   const map=new Map();
-  BM_DATA[BM_TIPO[tab]].forEach(r=>{
+  rows.forEach(r=>{
     const tip=bmHasTip(tab)?up(r.tipologia).trim():'';
     const key=String(r.matricola)+'|'+(r.mese||'')+'|'+tip;
     if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[],items:[]});
@@ -1571,7 +1612,7 @@ function bmGruppi(tab){
     const n=up(r.note).trim();
     if(n && !g.note.includes(n)) g.note.push(n);
   });
-  const st=BM_SORT[tab], d=st.dir;
+  const d=st.dir;
   return [...map.values()].map(g=>({...g,note:g.note.join(' · ')})).sort((a,b)=>{
     let c=0;
     if(st.col==='matricola') c=bmNat(a.matricola,b.matricola);
@@ -1826,8 +1867,8 @@ function bmqDettaglio(tab,ri,qid){ const k=ri+'|'+qid; if(BMQ_OPEN[tab].has(k)) 
 // Riepilogo compatto: ogni colonna elenca i propri valori uno dopo l'altro, senza buchi
 // (la riga 1 ha il primo valore di ogni colonna, la riga 2 il secondo, ecc.)
 const BMQ_VIEW={ bpr:[], bgp:[] };
-function bmqRighe(tab){
-  const entries=BMQ_DATA[BM_TIPO[tab]];
+function bmqRighe(tab){ return bmqRigheDa(BMQ_DATA[BM_TIPO[tab]]); }
+function bmqRigheDa(entries){
   const liste=Object.fromEntries(BMQ.map(q=>[q.id,entries.filter(e=>Number(e[q.k])>0).map(e=>({id:e.id,val:Number(e[q.k]),calc:(e.calcoli&&e.calcoli[q.k])||'',note:e.note||''}))]));
   const n=Math.max(0,...BMQ.map(q=>liste[q.id].length));
   const out=[];
@@ -2021,6 +2062,119 @@ function bmqStampa(tab){
   bmqResetRighe(t);
   [t+'-forme',t+'-tipologia',t+'-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); bmCarica(t); } }); });
 });
+
+
+// ====== CHIUSURA BILANCIO E ARCHIVIO
+const ARCH_TABLE='bilancio_massa_archivio';
+let ARCH_DATA=[], ARCH_ERRORE=null;
+const ARCH_APERTI=new Set();
+async function loadArchivio(){
+  if(!sb) return;
+  try{
+    const {data,error}=await sb.from(ARCH_TABLE).select('*').order('chiuso_il',{ascending:false});
+    if(error) throw error;
+    ARCH_DATA=(data||[]).filter(a=>a && Array.isArray(a.forme)); ARCH_ERRORE=null;
+  }catch(e){ ARCH_ERRORE=(e&&e.message)?e.message:String(e); }
+  renderArchivio();
+}
+const archErrTxt=e=>{ const t=(e&&e.message)||String(e); return /bilancio_massa_archivio|relation|schema cache/i.test(t)?t+' — esegui lo script SQL «bilancio-massa-archivio.sql» su Supabase.':t; };
+
+function bmChiudiApri(tab){
+  const tipo=BM_TIPO[tab];
+  const nf=BM_DATA[tipo].length, nq=BMQ_DATA[tipo].length;
+  const msg=document.getElementById(tab+'-chiudi-msg'); msg.textContent=''; msg.className='msg';
+  if(!nf && !nq){ msg.textContent='Il bilancio è vuoto: non c\'è niente da chiudere.'; msg.className='msg err'; return; }
+  document.getElementById(tab+'-chiudi-txt').textContent=`Chiudi il bilancio di massa ${BM_NOME[tab]}? Le ${nf} righe di forme e i ${nq} inserimenti di altri quantitativi vengono archiviati nell'Archivio bilanci e le tabelle si svuotano, pronte per il bilancio successivo.`;
+  document.getElementById(tab+'-chiudi').style.display='';
+  const n=document.getElementById(tab+'-chiudi-nome'); n.value=''; n.focus();
+}
+function bmChiudiAnnulla(tab){ document.getElementById(tab+'-chiudi').style.display='none'; }
+async function bmChiudiConferma(tab){
+  const tipo=BM_TIPO[tab], msg=document.getElementById(tab+'-chiudi-msg');
+  const forme=BM_DATA[tipo].map(r=>({matricola:String(r.matricola),mese:r.mese||'',forme:Number(r.forme)||0,tipologia:r.tipologia||'',note:r.note||'',calcolo:r.calcolo||'',created_at:r.created_at||null}));
+  const quantita=BMQ_DATA[tipo].map(r=>({...Object.fromEntries(BMQ.map(q=>[q.k,Number(r[q.k])||0])),calcoli:r.calcoli||{},note:r.note||'',created_at:r.created_at||null}));
+  const oggi=new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const nome=document.getElementById(tab+'-chiudi-nome').value.trim()||`Bilancio chiuso il ${oggi}`;
+  document.getElementById(tab+'-chiudi').style.display='none';
+  const ins=await sb.from(ARCH_TABLE).insert({tipo,nome,forme,quantita});
+  if(ins.error){ msg.textContent='Chiusura non riuscita, nulla è stato cancellato: '+archErrTxt(ins.error); msg.className='msg err'; return; }
+  const d1=await sb.from(BM_TABLE).delete().eq('tipo',tipo);
+  const d2=await sb.from(BMQ_TABLE).delete().eq('tipo',tipo);
+  if(d1.error||d2.error){ msg.textContent='Il bilancio è stato archiviato ma non sono riuscito a svuotare le tabelle ('+((d1.error||d2.error).message)+'). Controlla prima di ricaricare dati.'; msg.className='msg err'; }
+  else { msg.textContent=`Bilancio chiuso e archiviato come «${nome}». Le tabelle sono vuote per il bilancio successivo.`; msg.className='msg ok'; }
+  BM_OPEN[tab].clear(); BMQ_OPEN[tab].clear(); BM_EDIT[tab]=null; BMQ_EDIT[tab]=null;
+  await loadBilancio(); await loadArchivio();
+}
+
+function archTotali(a){
+  const q=bmqRigheDa(a.quantita||[]);
+  const somma=id=>Math.round(q.reduce((t,r)=>t+(r.cells[id]?r.cells[id].val:0),0)*100)/100;
+  return { forme:(a.forme||[]).reduce((t,r)=>t+(Number(r.forme)||0),0), q:Object.fromEntries(BMQ.map(x=>[x.id,somma(x.id)])), righeQ:q };
+}
+function archDettaglioHtml(a){
+  const tab=a.tipo==='PR'?'bpr':'bgp', tip=bmHasTip(tab);
+  const g=bmGruppiDa(a.forme||[],tab,{col:'matricola',dir:1});
+  const tot=archTotali(a);
+  let h='<h4>Forme</h4>';
+  if(!g.length) h+='<p class="bm-note">Nessuna riga di forme.</p>';
+  else h+=`<div class="table-wrap"><table><thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th>${tip?'<th>Tipologia</th>':''}<th>Note</th></tr></thead><tbody>`+
+    g.map(x=>`<tr><td>${escapeHtml(x.matricola)}</td><td>${x.mese?fmtMeseCorto(x.mese):'—'}</td><td>${fmtNum(x.forme)}${x.ids.length>1?`<span class="bm-n">(${x.ids.length} carichi)</span>`:''}</td>${tip?`<td>${x.tipologia?`<span class="badge ${badgeClass(x.tipologia)}">${escapeHtml(x.tipologia)}</span>`:'—'}</td>`:''}<td>${highlightNote(x.note)}</td></tr>`).join('')+
+    `<tr class="bm-tot"><td>Totale</td><td></td><td>${fmtNum(tot.forme)}</td>${tip?'<td></td>':''}<td></td></tr></tbody></table></div>`;
+  h+='<h4>Altri quantitativi</h4>';
+  if(!tot.righeQ.length) h+='<p class="bm-note">Nessun quantitativo.</p>';
+  else h+=`<div class="table-wrap"><table><thead><tr>${BMQ.map(q=>`<th>${q.h}</th>`).join('')}<th>Note</th></tr></thead><tbody>`+
+    tot.righeQ.map(r=>`<tr>${BMQ.map(q=>`<td class="bm-q">${r.cells[q.id]?bmqVal(q,r.cells[q.id].val):'—'}</td>`).join('')}<td>${highlightNote(r.note)}</td></tr>`).join('')+
+    `<tr class="bm-tot">${BMQ.map(q=>`<td class="bm-q">${bmqVal(q,tot.q[q.id])}</td>`).join('')}<td>Totale</td></tr></tbody></table></div>`;
+  return h;
+}
+function renderArchivio(){
+  const box=document.getElementById('arch-lista'); if(!box) return;
+  const info=document.getElementById('arch-info');
+  if(ARCH_ERRORE){ box.innerHTML=''; info.textContent='Non riesco a leggere l\'archivio: '+archErrTxt({message:ARCH_ERRORE}); return; }
+  const f=document.getElementById('arch-filtro').value;
+  const lista=ARCH_DATA.filter(a=>!f||a.tipo===f);
+  info.textContent=lista.length?'':'Nessun bilancio archiviato. Usa «Chiudi bilancio» nelle pagine del Parmigiano Reggiano o del Grana Padano.';
+  box.innerHTML=lista.map(a=>{
+    const t=archTotali(a), aperto=ARCH_APERTI.has(String(a.id));
+    const extra=BMQ.filter(q=>t.q[q.id]).map(q=>`${q.t.replace(' (kg)','')} ${fmtKg(t.q[q.id])} kg`).join(' · ');
+    return `<div class="arch-card"><div class="arch-top"><div><b>${escapeHtml(a.nome||'Bilancio')}</b><span class="arch-sub">${a.tipo==='PR'?'Parmigiano Reggiano':'Grana Padano'} · chiuso il ${bmqData(a.chiuso_il)}</span></div>
+      <div class="arch-tot">${fmtNum(t.forme)} forme${extra?' · '+extra:''}</div>
+      <div class="arch-act"><button class="print-btn" onclick="archApri('${a.id}')">${aperto?'Chiudi dettaglio':'Apri dettaglio'}</button><button class="print-btn" onclick="archExcel('${a.id}')">📊 Excel</button><button class="del-btn" onclick="archElimina('${a.id}')" title="Elimina dall'archivio">✕</button></div></div>
+      ${aperto?`<div class="arch-det">${archDettaglioHtml(a)}</div>`:''}</div>`;
+  }).join('');
+}
+function archApri(id){ id=String(id); if(ARCH_APERTI.has(id)) ARCH_APERTI.delete(id); else ARCH_APERTI.add(id); renderArchivio(); }
+async function archElimina(id){
+  const a=ARCH_DATA.find(x=>String(x.id)===String(id)); if(!a) return;
+  if(!confirm(`Eliminare definitivamente «${a.nome}» dall'archivio? Non si può annullare.`)) return;
+  const {error}=await sb.from(ARCH_TABLE).delete().eq('id',a.id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadArchivio();
+}
+function archExcel(id){
+  const a=ARCH_DATA.find(x=>String(x.id)===String(id)); if(!a) return;
+  const tab=a.tipo==='PR'?'bpr':'bgp', tip=bmHasTip(tab);
+  const g=bmGruppiDa(a.forme||[],tab,{col:'matricola',dir:1}), t=archTotali(a);
+  const hF=['Matricola','Produzione','Forme',...(tip?['Tipologia']:[]),'Note'];
+  const bF=g.map(x=>[/^\d+$/.test(x.matricola)?Number(x.matricola):x.matricola,x.mese?fmtMeseCorto(x.mese):'',x.forme,...(tip?[x.tipologia]:[]),x.note.replace(/ · /g,', ')]);
+  bF.push(['Totale','',t.forme,...(tip?['']:[]),'']);
+  const hQ=[...BMQ.map(q=>q.t),'Note'];
+  const bQ=t.righeQ.map(r=>[...BMQ.map(q=>r.cells[q.id]?r.cells[q.id].val:''),r.note.replace(/ · /g,', ')]);
+  bQ.push([...BMQ.map(q=>t.q[q.id]||''),'Totale']);
+  const nomeFile='archivio-'+String(a.nome||'bilancio').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([hF,...bF]),'Forme');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([hQ,...bQ]),'Altri quantitativi');
+    XLSX.writeFile(wb,nomeFile+'.xlsx');
+  }catch(e){
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='﻿'+[hF,...bF,[],hQ,...bQ].map(r=>r.map(esc).join(';')).join('\r\n');
+    const el=document.createElement('a'); el.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); el.download=nomeFile+'.csv';
+    document.body.appendChild(el); el.click(); el.remove();
+  }
+}
 
 // Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
 const BM_LUNG_MATRICOLA={ bgp:5 };   // GP: 5 caratteri (es. BG508); PR ha matricole di 3 o 4 cifre
