@@ -837,6 +837,8 @@ function attachUppercase(id){
   });
 }
 attachUppercase('c-tipologia'); attachUppercase('c-matricola');
+// Invio nelle celle forme, tipologia e note = Carica in inventario (resta anche il tasto)
+['c-forme','c-tipologia','c-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); caricaMerce(); } }); });
 attachUppercase('c-note');
 
 function up(s){ return (s||'').toString().toUpperCase(); }
@@ -2021,17 +2023,19 @@ function bmqStampa(tab){
 });
 
 // Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
-const BM_LUNG_MATRICOLA={ bpr:4, bgp:5 };   // PR: 4 cifre; GP: 5 caratteri (es. BG508)
+const BM_LUNG_MATRICOLA={ bgp:5 };   // GP: 5 caratteri (es. BG508); PR ha matricole di 3 o 4 cifre
 function bmVai(id){ const e=document.getElementById(id); if(e){ e.focus(); if(e.select) e.select(); } }
 ['bpr','bgp'].forEach(t=>{
   meseInput(t+'-mese',null,()=>bmVai(t+'-forme'));
   attachUppercase(t+'-note'); attachUppercase(t+'-matricola');
   if(bmHasTip(t)) attachUppercase(t+'-tipologia');
   const mat=document.getElementById(t+'-matricola');
+  mat.addEventListener('keydown',e=>{ if(e.key==='Enter' && t==='bpr' && mat.value.trim()){ e.preventDefault(); bmVai(t+'-mese'); } });
   mat.addEventListener('input',ev=>{
     const v=mat.value.trim();
     const daElenco=ev.inputType==='insertReplacementText' || (ev.inputType===undefined && v!=='');   // scelta dal suggerimento
-    const lungOk = t==='bpr' ? /^\d{4}$/.test(v) : /^[A-Za-z0-9]{5}$/.test(v);
+    // Parmigiano Reggiano: matricole di 3 o 4 cifre, quindi niente salto automatico mentre si scrive (solo scelta dall'elenco o Invio)
+    const lungOk = t==='bpr' ? false : /^[A-Za-z0-9]{5}$/.test(v);
     if(lungOk || (daElenco && bmMatricole(t).includes(v.toUpperCase()))) bmVai(t+'-mese');
   });
 });
