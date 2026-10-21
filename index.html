@@ -175,7 +175,19 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
   .main-area{padding:20px 14px 60px;}
 }
 
+.print-date{display:none;}
 @media print{
+  .app.print-bm .col-left{display:block !important;}
+  .app.print-bm .panel.print-this{display:block !important;padding:0;margin:0;background:#fff;}
+  .app.print-bm .print-this .grid,.app.print-bm .print-this .btn,.app.print-bm .print-this .msg,
+  .app.print-bm .print-this .bm-note,.app.print-bm .print-this .bm-actions,
+  .app.print-bm .print-this h3{display:none !important;}
+  .app.print-bm .print-this .print-date{display:block;margin:0 0 12px;color:#444;font-size:.9rem;}
+  .app.print-bm .print-this th:last-child,.app.print-bm .print-this td:last-child{display:none !important;}
+  .app.print-bm .print-this table{min-width:0;font-size:11pt;}
+  .app.print-bm .print-this .table-wrap{overflow:visible;background:#fff;}
+  .app.print-bm .print-this .count{display:block !important;color:#444;}
+  .app.print-bm .print-this tr{break-inside:avoid;}
   body{background:#fff;}
   .side,.kpis,.panel,.col-left,.table-toolbar,.count,.del-btn,.edit-btn,.print-btn,.back-to-top,.migrate-banner,.overlay{display:none !important;}
   .app,.layout{display:block;}
@@ -258,6 +270,11 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     <div class="msg" id="bpr-msg"></div>
 
     <h3>Righe caricate</h3>
+    <p class="print-date" id="bpr-print-date"></p>
+    <div class="table-toolbar bm-actions" style="margin-top:8px;">
+      <button class="print-btn" onclick="bmExcel('bpr')">📊 Scarica Excel</button>
+      <button class="print-btn" onclick="bmStampa('bpr')" title="Apre la stampa: scegli «Salva come PDF» per ottenere un PDF">🖨️ Stampa / PDF</button>
+    </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
         <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
@@ -287,6 +304,11 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     <div class="msg" id="bgp-msg"></div>
 
     <h3>Righe caricate</h3>
+    <p class="print-date" id="bgp-print-date"></p>
+    <div class="table-toolbar bm-actions" style="margin-top:8px;">
+      <button class="print-btn" onclick="bmExcel('bgp')">📊 Scarica Excel</button>
+      <button class="print-btn" onclick="bmStampa('bgp')" title="Apre la stampa: scegli «Salva come PDF» per ottenere un PDF">🖨️ Stampa / PDF</button>
+    </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
         <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
@@ -1270,7 +1292,7 @@ function renderBilancio(tab){
     count.textContent='';
     return;
   }
-  const ord=[...rows].sort((a,b)=>String(a.matricola).localeCompare(String(b.matricola),'it',{numeric:true}) || String(a.mese||'').localeCompare(String(b.mese||'')));
+  const ord=bmRigheOrdinate(tab);
   tbody.innerHTML=ord.map(r=>`<tr>
     <td><b>${escapeHtml(String(r.matricola))}</b></td>
     <td>${fmtMeseTesto(r.mese)}</td>
@@ -1279,6 +1301,52 @@ function renderBilancio(tab){
     <td><button class="del-btn" onclick="bmElimina('${tab}','${r.id}')" title="Elimina riga">✕</button></td>
   </tr>`).join('');
   count.textContent=`${rows.length} righe · ${fmtNum(rows.reduce((t,r)=>t+(Number(r.forme)||0),0))} forme totali`;
+}
+
+const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
+function bmRigheOrdinate(tab){
+  const rows=BM_DATA[BM_TIPO[tab]];
+  return [...rows].sort((a,b)=>String(a.matricola).localeCompare(String(b.matricola),'it',{numeric:true}) || String(a.mese||'').localeCompare(String(b.mese||'')));
+}
+
+function bmExcel(tab){
+  const rows=bmRigheOrdinate(tab);
+  if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
+  const head=['Matricola','Produzione','Forme','Note'];
+  const body=rows.map(r=>[
+    /^\d+$/.test(String(r.matricola)) ? Number(r.matricola) : String(r.matricola),
+    r.mese ? fmtMeseTesto(r.mese).replace(/-\d{2}(\d{2})$/,'-$1') : '',
+    Number(r.forme)||0,
+    up(r.note)
+  ]);
+  const oggi=new Date().toISOString().slice(0,10);
+  const nomeFile='bilancio-massa-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+oggi;
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const ws=XLSX.utils.aoa_to_sheet([head,...body]);
+    ws['!cols']=[{wch:11},{wch:12},{wch:8},{wch:28}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Bilancio di massa');
+    XLSX.writeFile(wb,nomeFile+'.xlsx');
+  }catch(e){
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='\uFEFF'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download=nomeFile+'.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+}
+
+function bmStampa(tab){
+  if(!BM_DATA[BM_TIPO[tab]].length){ alert('Nessuna riga da stampare.'); return; }
+  const app=document.querySelector('.app');
+  const panel=document.getElementById('panel-'+tab);
+  document.getElementById(tab+'-print-date').textContent='Stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const pulisci=()=>{ app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  window.addEventListener('afterprint',pulisci);
+  app.classList.add('print-bm'); panel.classList.add('print-this');
+  window.print();
 }
 
 function bmScegli(tab){
