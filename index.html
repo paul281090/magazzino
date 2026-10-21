@@ -95,6 +95,8 @@ th{background:var(--head);color:var(--muted);font-weight:600;font-size:.8rem;}
 tbody tr:hover{background:var(--head);}
 tbody tr.row-pegno,tbody tr.row-pegno:hover{background:var(--pegno-bg);}
 td:nth-child(2), td:nth-child(4){font-weight:700;}
+#panel-bpr td,#panel-bgp td{font-weight:400 !important;}
+#panel-bpr .bm-tot td,#panel-bgp .bm-tot td{font-weight:700 !important;}
 .badge{display:inline-block;padding:3px 10px;border-radius:4px;background:var(--amber);color:#1C2630;font-size:.75rem;font-weight:700;}
 .badge.badge-pegno{background:#B3261E;color:#fff;}
 .badge.badge-bio{background:#1E7A47;color:#fff;}
@@ -303,8 +305,8 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="msg" id="bpr-msg"></div>
 
     <div class="bm-quant">
-      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro · si caricano da soli, senza matricola e produzione)</span></div>
-      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bpr-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bpr-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bpr-q-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bpr-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bpr-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
+      <div class="bm-quant-t">Altri quantitativi <span>(kg · si caricano da soli, senza matricola e produzione)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bpr-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bpr-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bpr-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bpr-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
         <div style="grid-column:1/-1"><label>Note</label><input id="bpr-q-note" type="text" placeholder="facoltativo"></div>
       </div>
       <button class="btn" id="bpr-q-submit" onclick="bmqCarica('bpr')">Carica quantitativi</button>
@@ -343,7 +345,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
         <tbody id="bpr-q-tbody"></tbody>
       </table>
     </div>
@@ -376,8 +378,8 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="msg" id="bgp-msg"></div>
 
     <div class="bm-quant">
-      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro · si caricano da soli, senza matricola e produzione)</span></div>
-      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bgp-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bgp-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bgp-q-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bgp-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bgp-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
+      <div class="bm-quant-t">Altri quantitativi <span>(kg · si caricano da soli, senza matricola e produzione)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bgp-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bgp-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bgp-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bgp-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
         <div style="grid-column:1/-1"><label>Note</label><input id="bgp-q-note" type="text" placeholder="facoltativo"></div>
       </div>
       <button class="btn" id="bgp-q-submit" onclick="bmqCarica('bgp')">Carica quantitativi</button>
@@ -415,7 +417,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
         <tbody id="bgp-q-tbody"></tbody>
       </table>
     </div>
@@ -877,6 +879,16 @@ function calcKg(testo){
   try{ const v=somma(); if(i!==t.length || !isFinite(v)) return NaN; return Math.round(v*100)/100; }catch(e){ return NaN; }
 }
 function leggiForme(id){ const el=document.getElementById(id); return el?calcForme(el.value):NaN; }
+// operazione scritta nel campo (es. 100+50), oppure quella già calcolata all'uscita dal campo; '' se era un numero semplice
+const haOperatore=v=>/[+\-*/=×÷()]/.test(String(v).trim().replace(/^-/,''));
+function exprDi(el){
+  if(!el) return '';
+  const v=el.value.trim();
+  if(v==='') return '';
+  if(haOperatore(v)) return v.replace(/^=/,'').replace(/\s+/g,'');
+  if(el.dataset.expr && el.dataset.res===v) return el.dataset.expr;
+  return '';
+}
 // quando si esce dal campo (o si preme Invio) l'operazione viene sostituita dal risultato
 function applicaCalcolo(el){
   if(!el.classList.contains('calc')) return;
@@ -884,12 +896,12 @@ function applicaCalcolo(el){
   if(!/[+\-*/=×÷()]/.test(v.replace(/^-/,''))) return;     // niente operazioni: nulla da fare
   const kg=el.classList.contains('calc-kg');
   const n=kg?calcKg(v):calcForme(v);
-  if(!isNaN(n)){ el.value=kg?String(n).replace('.',','):String(n); el.title=''; el.style.outline=''; }
+  if(!isNaN(n)){ const res=kg?String(n).replace('.',','):String(n); el.dataset.expr=v.replace(/^=/,'').replace(/\s+/g,''); el.dataset.res=res; el.value=res; el.title=''; el.style.outline=''; }
   else { el.style.outline='2px solid var(--danger)'; el.title=kg?'Operazione non valida':'Operazione non valida: usa solo numeri interi, + e -'; }
 }
 document.addEventListener('focusout',e=>{ if(e.target.classList) applicaCalcolo(e.target); });
 document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList) applicaCalcolo(e.target); });
-document.addEventListener('input',e=>{ if(e.target.classList && e.target.classList.contains('calc')){ e.target.style.outline=''; e.target.title=''; } });
+document.addEventListener('input',e=>{ if(e.target.classList && e.target.classList.contains('calc')){ delete e.target.dataset.expr; e.target.style.outline=''; e.target.title=''; } });
 
 // separatore delle migliaia sempre (anche 1.710): punto per le migliaia, virgola per i decimali
 function fmtNum(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}).replace(/[,.]/g,c=>c===','?'.':','); }
@@ -1469,6 +1481,7 @@ let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
 const BM_EDIT={ bpr:null, bgp:null };      // chiave del gruppo in modifica
 const BM_OPEN={ bpr:new Set(), bgp:new Set() };   // gruppi aperti per vedere i singoli carichi
+const bmApribile=g=>g.ids.length>1||g.items.some(it=>it.calcolo);
 function bmApri(tab,i){ const k=BM_GRUPPI[tab][i].key; if(BM_OPEN[tab].has(k)) BM_OPEN[tab].delete(k); else BM_OPEN[tab].add(k); renderBilancio(tab); }
 const BM_GRUPPI={ bpr:[], bgp:[] };        // gruppi attualmente mostrati (stesso ordine della tabella)
 const BM_PENDING={ bpr:null, bgp:null };   // carico in attesa di conferma matricola nuova
@@ -1519,7 +1532,7 @@ function bmGruppi(tab){
     const g=map.get(key);
     g.forme+=Number(r.forme)||0;
     g.ids.push(r.id);
-    g.items.push({forme:Number(r.forme)||0,note:up(r.note).trim(),data:r.created_at});
+    g.items.push({forme:Number(r.forme)||0,note:up(r.note).trim(),data:r.created_at,calcolo:r.calcolo||''});
     const n=up(r.note).trim();
     if(n && !g.note.includes(n)) g.note.push(n);
   });
@@ -1594,19 +1607,20 @@ function renderBilancio(tab){
       </tr>`;
     }
     return `<tr>
-      <td><b>${escapeHtml(g.matricola)}</b></td>
+      <td>${escapeHtml(g.matricola)}</td>
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
-      <td><button class="bm-sum${BM_OPEN[tab].has(g.key)?' on':''}" onclick="bmApri('${tab}',${i})" title="Vedi i valori inseriti"><b>${fmtNum(g.forme)}</b></button>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
+      <td>${bmApribile(g)?`<button class="bm-sum${BM_OPEN[tab].has(g.key)?' on':''}" onclick="bmApri('${tab}',${i})" title="${g.ids.length>1?'Vedi i singoli carichi':'Vedi il calcolo'}">${fmtNum(g.forme)}</button>`:fmtNum(g.forme)}${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
       ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
-    </tr>`+(BM_OPEN[tab].has(g.key)?`<tr class="bm-detail"><td colspan="${bmCols(tab)}"><div class="bm-det-t">Forme inserite · matricola ${escapeHtml(g.matricola)}${g.mese?' · '+fmtMeseCorto(g.mese):''}</div><ul>${g.items.map(it=>`<li><b>${fmtNum(it.forme)}</b> <span>${bmqData(it.data)}${it.note?' · '+escapeHtml(it.note):''}</span></li>`).join('')}</ul></td></tr>`:'');
+    </tr>`+(bmApribile(g)&&BM_OPEN[tab].has(g.key)?`<tr class="bm-detail"><td colspan="${bmCols(tab)}"><div class="bm-det-t">Forme inserite · matricola ${escapeHtml(g.matricola)}${g.mese?' · '+fmtMeseCorto(g.mese):''}</div><ul>${g.items.map(it=>`<li>${it.calcolo?`${escapeHtml(it.calcolo)} = `:''}${fmtNum(it.forme)} <span>${bmqData(it.data)}${it.note?' · '+escapeHtml(it.note):''}</span></li>`).join('')}</ul></td></tr>`:'');
   }).join('');
   if(BM_EDIT[tab]){
     const nt=document.getElementById(tab+'-e-note'); if(nt) attachUppercase(tab+'-e-note');
     const mm=document.getElementById(tab+'-e-mese'); if(mm) meseInput(tab+'-e-mese');
     const tt=document.getElementById(tab+'-e-tipologia'); if(tt) attachUppercase(tab+'-e-tipologia');
   }
+  tbody.insertAdjacentHTML('beforeend',`<tr class="bm-tot"><td>Totale</td><td></td><td>${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))}</td>${bmHasTip(tab)?'<td></td>':''}<td></td><td></td></tr>`);
   count.textContent=`${gruppi.length} righe · ${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))} forme totali`;
 }
 
@@ -1621,6 +1635,7 @@ function bmLeggiForm(tab){
   const matricola=bmNota(document.getElementById(tab+'-matricola').value);
   const meseStr=document.getElementById(tab+'-mese').value;
   const forme=leggiForme(tab+'-forme');
+  const calcolo=exprDi(document.getElementById(tab+'-forme'));
   const note=up(document.getElementById(tab+'-note').value.trim());
   if(!matricola) return err('Inserisci la matricola.');
   if(!meseStr) return err('Inserisci la produzione (mese/anno).');
@@ -1628,7 +1643,7 @@ function bmLeggiForm(tab){
   if(!mese) return err('Formato produzione non valido. Usa ad esempio 325 oppure 3/25 (marzo 2025).');
   if(!forme || forme<=0) return err('Inserisci un numero di forme valido.');
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-tipologia').value.trim()):'';
-  return { matricola, mese, forme, note, tipologia };
+  return { matricola, mese, forme, note, tipologia, calcolo };
 }
 
 async function bmCarica(tab){
@@ -1661,7 +1676,9 @@ async function bmSalva(tab,d){
   btn.disabled=true;
   const riga={ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note };
   if(bmHasTip(tab) && d.tipologia) riga.tipologia=d.tipologia;
-  const {error}=await sb.from(BM_TABLE).insert(riga);
+  if(d.calcolo) riga.calcolo=d.calcolo;
+  let {error}=await sb.from(BM_TABLE).insert(riga);
+  if(error && /calcolo/i.test(error.message||'') && riga.calcolo){ delete riga.calcolo; ({error}=await sb.from(BM_TABLE).insert(riga)); }   // colonna non ancora creata: salva comunque
   btn.disabled=false;
   if(error){ msg.textContent='Salvataggio non riuscito: '+bmErroreTxt(error); msg.className='msg err'; return; }
   msg.textContent=`Caricato: matricola ${d.matricola}, produzione ${fmtMeseCorto(d.mese)}, ${fmtNum(d.forme)} forme.`;
@@ -1684,6 +1701,7 @@ async function bmSalvaModifica(tab,i){
   const matricola=bmNota(document.getElementById(tab+'-e-matricola').value);
   const mese=bmParseMese(document.getElementById(tab+'-e-mese').value);
   const forme=leggiForme(tab+'-e-forme');
+  const calcolo=exprDi(document.getElementById(tab+'-e-forme')) || ((g.items.length===1 && forme===g.forme)?(g.items[0].calcolo||''):'');
   const note=up(document.getElementById(tab+'-e-note').value.trim());
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-e-tipologia').value.trim()):'';
   if(!matricola){ alert('Inserisci la matricola.'); return; }
@@ -1692,9 +1710,10 @@ async function bmSalvaModifica(tab,i){
   if(matricola!==g.matricola && !bmEraNota(tab,matricola)){
     if(!confirm(`La matricola ${matricola} non è nell'elenco: è nuova. Sei sicuro di averla inserita correttamente?`)) return;
   }
-  const upd={ matricola, mese, forme, note };
+  const upd={ matricola, mese, forme, note, calcolo };
   if(bmHasTip(tab) && (tipologia || g.tipologia)) upd.tipologia=tipologia;
-  const {error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0]);
+  let {error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0]);
+  if(error && /calcolo/i.test(error.message||'')){ delete upd.calcolo; ({error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0])); }
   if(error){ alert('Modifica non riuscita: '+bmErroreTxt(error)); return; }
   // se la riga era un gruppo di più carichi, diventa un'unica riga con i nuovi valori
   for(const id of g.ids.slice(1)){
@@ -1762,18 +1781,16 @@ const BMQ_TABLE='bilancio_massa_quantita';
 const BMQ=[
   {id:'pf',k:'prodotto_finito_kg',t:'Prodotto finito (kg)',h:'Prodotto finito kg',kg:true},
   {id:'sl',k:'semilavorato_kg',t:'Semilavorato (kg)',h:'Semilavorato kg',kg:true},
-  {id:'cl',k:'conto_lavoro_forme',t:'Forme in conto lavoro',h:'Forme in conto lavoro',kg:false},
   {id:'sf',k:'sfridi_kg',t:'Sfridi di lavorazione (kg)',h:'Sfridi di lavorazione kg',kg:true},
   {id:'cr',k:'cella_resi_kg',t:'Cella resi (kg)',h:'Cella resi kg',kg:true}
 ];
 let BMQ_DATA={ PR:[], GP:[] }, BMQ_ERRORE=null;
 const BMQ_EDIT={ bpr:null, bgp:null };
-const BMQ_OPEN={ bpr:null, bgp:null };   // colonna dei totali aperta per vedere i valori inseriti
-function bmqDettaglio(tab,id){ BMQ_OPEN[tab]=BMQ_OPEN[tab]===id?null:id; renderQuant(tab); }
-function bmqDettaglioRiga(tab,rows,cols){
-  const q=BMQ.find(x=>x.id===BMQ_OPEN[tab]); if(!q) return '';
-  const voci=rows.filter(r=>Number(r[q.k])).map(r=>`<li><b>${bmqVal(q,Number(r[q.k]))}</b> <span>${bmqData(r.created_at)}${r.note?' · '+escapeHtml(r.note):''}</span></li>`).join('');
-  return `<tr class="bm-detail"><td colspan="${cols}"><div class="bm-det-t">${escapeHtml(q.t)} — valori inseriti</div><ul>${voci}</ul></td></tr>`;
+const BMQ_OPEN={ bpr:new Set(), bgp:new Set() };   // celle (riga|colonna) aperte per vedere il calcolo
+function bmqDettaglio(tab,rid,qid){ const k=rid+'|'+qid; if(BMQ_OPEN[tab].has(k)) BMQ_OPEN[tab].delete(k); else BMQ_OPEN[tab].add(k); renderQuant(tab); }
+function bmqRigaCalcoli(tab,r,cols){
+  const voci=BMQ.filter(q=>BMQ_OPEN[tab].has(r.id+'|'+q.id) && r.calcoli && r.calcoli[q.k]).map(q=>`<li>${escapeHtml(q.t)}: ${escapeHtml(r.calcoli[q.k])} = ${bmqVal(q,Number(r[q.k])||0)}</li>`).join('');
+  return voci?`<tr class="bm-detail"><td colspan="${cols}"><ul>${voci}</ul></td></tr>`:'';
 }
 const fmtKg=fmtNum;
 const bmqVal=(q,v)=>v?(q.kg?fmtKg(v):fmtNum(v)):'—';
@@ -1797,7 +1814,7 @@ async function loadBilancioQuant(){
 }
 
 function bmqLeggi(idPrefix){
-  const out={};
+  const out={}, calcoli={};
   for(const q of BMQ){
     const el=document.getElementById(idPrefix+q.id);
     const t=el?el.value.trim():'';
@@ -1805,7 +1822,9 @@ function bmqLeggi(idPrefix){
     const v=q.kg?calcKg(t):calcForme(t);
     if(Number.isNaN(v) || v<0) return {errore:`Valore non valido in «${q.t}». Scrivi un numero${q.kg?' (anche con la virgola)':' intero'} oppure un'operazione come =10+5.`};
     out[q.k]=v;
+    const ex=exprDi(el); if(ex) calcoli[q.k]=ex;
   }
+  out.calcoli=calcoli;
   if(!BMQ.some(q=>out[q.k])) return {errore:'Inserisci almeno un quantitativo.'};
   return out;
 }
@@ -1820,7 +1839,8 @@ async function bmqCarica(tab){
   if(d.errore){ msg.textContent=d.errore; msg.className='msg err'; return; }
   const btn=document.getElementById(tab+'-q-submit'); btn.disabled=true;
   const riga={ tipo:BM_TIPO[tab], ...d, note:up(document.getElementById(tab+'-q-note').value.trim()) };
-  const {error}=await sb.from(BMQ_TABLE).insert(riga);
+  let {error}=await sb.from(BMQ_TABLE).insert(riga);
+  if(error && /calcoli/i.test(error.message||'')){ delete riga.calcoli; ({error}=await sb.from(BMQ_TABLE).insert(riga)); }
   btn.disabled=false;
   if(error){ msg.textContent='Salvataggio non riuscito: '+bmqErrTxt(error); msg.className='msg err'; return; }
   msg.textContent='Quantitativi caricati.'; msg.className='msg ok';
@@ -1845,11 +1865,10 @@ function renderQuant(tab){
         `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note||'')}"></td>`+
         `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}','${r.id}')">Salva</button><button class="edit-btn" onclick="bmqAnnulla('${tab}')">Annulla</button></td></tr>`;
     }
-    return `<tr>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Number(r[q.k])||0)}</td>`).join('')+
-      `<td>${highlightNote(r.note||'')}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}','${r.id}')">Modifica</button><button class="del-btn" onclick="bmqElimina('${tab}','${r.id}')" title="Elimina">✕</button></td></tr>`;
+    return `<tr>`+BMQ.map(q=>{ const ex=r.calcoli&&r.calcoli[q.k]; const key=r.id+'|'+q.id; return `<td class="bm-q">${ex?`<button class="bm-sum${BMQ_OPEN[tab].has(key)?' on':''}" onclick="bmqDettaglio('${tab}','${r.id}','${q.id}')" title="Vedi il calcolo">${bmqVal(q,Number(r[q.k])||0)}</button>`:bmqVal(q,Number(r[q.k])||0)}</td>`; }).join('')+
+      `<td>${highlightNote(r.note||'')}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}','${r.id}')">Modifica</button><button class="del-btn" onclick="bmqElimina('${tab}','${r.id}')" title="Elimina">✕</button></td></tr>`+bmqRigaCalcoli(tab,r,cols);
   }).join('')+
-  `<tr class="bm-tot">`+BMQ.map(q=>{ const t=Math.round(rows.reduce((a,r)=>a+(Number(r[q.k])||0),0)*100)/100; return `<td class="bm-q">${t?`<button class="bm-sum${BMQ_OPEN[tab]===q.id?' on':''}" onclick="bmqDettaglio('${tab}','${q.id}')" title="Vedi i valori inseriti">${bmqVal(q,t)}</button>`:'—'}</td>`; }).join('')+`<td>Totale</td><td></td></tr>`+
-  (BMQ_OPEN[tab]?bmqDettaglioRiga(tab,rows,cols):'');
+  `<tr class="bm-tot">`+BMQ.map(q=>{ const t=Math.round(rows.reduce((a,r)=>a+(Number(r[q.k])||0),0)*100)/100; return `<td class="bm-q">${bmqVal(q,t)}</td>`; }).join('')+`<td>Totale</td><td></td></tr>`;
   cnt.textContent=`${rows.length} ${rows.length===1?'inserimento':'inserimenti'}`;
 }
 
@@ -1859,7 +1878,11 @@ async function bmqSalvaModifica(tab,id){
   const d=bmqLeggi(tab+'-qe-');
   if(d.errore){ alert(d.errore); return; }
   const note=up(document.getElementById(tab+'-qe-note').value.trim());
-  const {error}=await sb.from(BMQ_TABLE).update({...d,note}).eq('id',id);
+  const old=(BMQ_DATA[BM_TIPO[tab]].find(x=>x.id===id)||{});
+  BMQ.forEach(q=>{ if(!d.calcoli[q.k] && old.calcoli && old.calcoli[q.k] && Number(old[q.k])===d[q.k]) d.calcoli[q.k]=old.calcoli[q.k]; });
+  const upd={...d,note};
+  let {error}=await sb.from(BMQ_TABLE).update(upd).eq('id',id);
+  if(error && /calcoli/i.test(error.message||'')){ delete upd.calcoli; ({error}=await sb.from(BMQ_TABLE).update(upd).eq('id',id)); }
   if(error){ alert('Modifica non riuscita: '+bmqErrTxt(error)); return; }
   BMQ_EDIT[tab]=null; await loadBilancioQuant();
 }
@@ -1879,7 +1902,7 @@ function bmqExcel(tab){
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
     const ws=XLSX.utils.aoa_to_sheet([head,...body,tot]);
-    ws['!cols']=[{wch:19},{wch:17},{wch:22},{wch:24},{wch:15},{wch:28}];
+    ws['!cols']=[{wch:19},{wch:17},{wch:24},{wch:15},{wch:28}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Altri quantitativi');
     XLSX.writeFile(wb,nomeFile+'.xlsx');
