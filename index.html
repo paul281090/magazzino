@@ -159,13 +159,16 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 #panel-bpr table,#panel-bgp table{min-width:0;}
 @media (max-width:520px){.bm-mat{grid-column:1/-1;}}
 .bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
-.bm-quant{margin-top:14px;padding:12px 14px 14px;border:1px dashed var(--line);border-radius:8px;}
+.bm-quant{margin-top:18px;padding:12px 14px 14px;border:1px dashed var(--line);border-radius:8px;}
 .bm-quant-t{font-size:.85rem;font-weight:600;margin-bottom:8px;}
 .bm-quant-t span{font-weight:400;color:var(--muted);}
 .bm-q{font-variant-numeric:tabular-nums;}
-#panel-bpr table,#panel-bgp table{font-size:.88rem;}
-#panel-bpr th,#panel-bpr td,#panel-bgp th,#panel-bgp td{padding:10px 7px;}
-#panel-bpr .editing-row input,#panel-bgp .editing-row input{min-width:0;width:78px;padding:6px 5px;}
+.bm-tot td{font-weight:700;border-top:2px solid var(--line);}
+#panel-bpr .editing-row input,#panel-bgp .editing-row input{min-width:0;width:80px;padding:6px 5px;}
+@media print{
+  .app.print-q .print-this .bm-sec-forme,.app.print-q .print-this .bm-quant{display:none !important;}
+  .app.print-bm:not(.print-q) .print-this .bm-sec-quant,.app.print-bm:not(.print-q) .print-this .bm-quant{display:none !important;}
+}
 
 /* ===== Contenuto su un'unica colonna, larghezza limitata ===== */
 .kpis,.layout,.migrate-banner{max-width:1100px;margin-left:auto;margin-right:auto;}
@@ -279,13 +282,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bpr-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div><label>Tipologia</label><input id="bpr-tipologia" type="text" list="bpr-tip-list" placeholder="es. BIO" autocomplete="off"></div>
-    </div>
-    <div class="grid" style="margin-top:12px;">
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
-    </div>
-    <div class="bm-quant">
-      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro)</span></div>
-      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bpr-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bpr-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bpr-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bpr-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bpr-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div></div>
     </div>
     <datalist id="bpr-list"></datalist>
     <datalist id="bpr-tip-list"></datalist>
@@ -298,7 +295,17 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="msg" id="bpr-msg"></div>
 
-    <h3>Riepilogo</h3>
+    <div class="bm-quant">
+      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro · si caricano da soli, senza matricola e produzione)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bpr-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bpr-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bpr-q-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bpr-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bpr-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
+        <div style="grid-column:1/-1"><label>Note</label><input id="bpr-q-note" type="text" placeholder="facoltativo"></div>
+      </div>
+      <button class="btn" id="bpr-q-submit" onclick="bmqCarica('bpr')">Carica quantitativi</button>
+      <div class="msg" id="bpr-q-msg"></div>
+    </div>
+
+    <div class="bm-sec-forme">
+    <h3>Riepilogo forme</h3>
     <p class="print-date" id="bpr-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bpr')">📊 Scarica Excel</button>
@@ -311,11 +318,6 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <th class="bm-th" data-tab="bpr" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="forme">Forme<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="tipologia">Tipologia<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bpr" data-col="prodotto_finito_kg">Prodotto finito kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bpr" data-col="semilavorato_kg">Semilavorato kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bpr" data-col="conto_lavoro_forme">Conto lavoro forme<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bpr" data-col="sfridi_kg">Sfridi kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bpr" data-col="cella_resi_kg">Cella resi kg<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bpr" data-col="note">Note<span class="arrow">▲▼</span></th>
           <th></th>
         </tr></thead>
@@ -323,6 +325,23 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       </table>
     </div>
     <div class="count" id="bpr-count"></div>
+    </div>
+
+    <div class="bm-sec-quant">
+    <h3>Riepilogo altri quantitativi</h3>
+    <p class="print-date" id="bpr-q-print-date"></p>
+    <div class="table-toolbar bm-actions" style="margin-top:8px;">
+      <button class="print-btn" onclick="bmqExcel('bpr')">📊 Scarica Excel</button>
+      <button class="print-btn" onclick="bmqStampa('bpr')">🖨️ Stampa / PDF</button>
+    </div>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Data</th><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bpr-q-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="bpr-q-count"></div>
+    </div>
   </div>
 
   <!-- BILANCIO DI MASSA GRANA PADANO -->
@@ -337,13 +356,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       </div>
       <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
       <div><label>Numero forme</label><input id="bgp-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
-    </div>
-    <div class="grid" style="margin-top:12px;">
       <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
-    </div>
-    <div class="bm-quant">
-      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro)</span></div>
-      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bgp-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bgp-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bgp-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bgp-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bgp-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div></div>
     </div>
     <datalist id="bgp-list"></datalist>
     <p class="bm-note" id="bgp-elenco-info"></p>
@@ -355,7 +368,17 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="msg" id="bgp-msg"></div>
 
-    <h3>Riepilogo</h3>
+    <div class="bm-quant">
+      <div class="bm-quant-t">Altri quantitativi <span>(kg, tranne le forme in conto lavoro · si caricano da soli, senza matricola e produzione)</span></div>
+      <div class="grid"><div><label>Prodotto finito (kg)</label><input id="bgp-q-pf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Semilavorato (kg)</label><input id="bgp-q-sl" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Forme in conto lavoro (n.)</label><input id="bgp-q-cl" class="calc" type="text" autocomplete="off" placeholder="0"></div><div><label>Sfridi di lavorazione (kg)</label><input id="bgp-q-sf" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div><div><label>Cella resi (kg)</label><input id="bgp-q-cr" class="calc calc-kg" type="text" autocomplete="off" placeholder="0"></div>
+        <div style="grid-column:1/-1"><label>Note</label><input id="bgp-q-note" type="text" placeholder="facoltativo"></div>
+      </div>
+      <button class="btn" id="bgp-q-submit" onclick="bmqCarica('bgp')">Carica quantitativi</button>
+      <div class="msg" id="bgp-q-msg"></div>
+    </div>
+
+    <div class="bm-sec-forme">
+    <h3>Riepilogo forme</h3>
     <p class="print-date" id="bgp-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bgp')">📊 Scarica Excel</button>
@@ -367,11 +390,6 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
           <th class="bm-th" data-tab="bgp" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="forme">Forme<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bgp" data-col="prodotto_finito_kg">Prodotto finito kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bgp" data-col="semilavorato_kg">Semilavorato kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bgp" data-col="conto_lavoro_forme">Conto lavoro forme<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bgp" data-col="sfridi_kg">Sfridi kg<span class="arrow">▲▼</span></th>
-          <th class="bm-th" data-tab="bgp" data-col="cella_resi_kg">Cella resi kg<span class="arrow">▲▼</span></th>
           <th class="bm-th" data-tab="bgp" data-col="note">Note<span class="arrow">▲▼</span></th>
           <th></th>
         </tr></thead>
@@ -379,6 +397,23 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       </table>
     </div>
     <div class="count" id="bgp-count"></div>
+    </div>
+
+    <div class="bm-sec-quant">
+    <h3>Riepilogo altri quantitativi</h3>
+    <p class="print-date" id="bgp-q-print-date"></p>
+    <div class="table-toolbar bm-actions" style="margin-top:8px;">
+      <button class="print-btn" onclick="bmqExcel('bgp')">📊 Scarica Excel</button>
+      <button class="print-btn" onclick="bmqStampa('bgp')">🖨️ Stampa / PDF</button>
+    </div>
+    <div class="table-wrap" style="margin-top:8px;">
+      <table>
+        <thead><tr><th>Data</th><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bgp-q-tbody"></tbody>
+      </table>
+    </div>
+    <div class="count" id="bgp-q-count"></div>
+    </div>
   </div>
 
   <!-- CARICO -->
@@ -843,7 +878,7 @@ function applicaCalcolo(el){
   const kg=el.classList.contains('calc-kg');
   const n=kg?calcKg(v):calcForme(v);
   if(!isNaN(n)){ el.value=kg?String(n).replace('.',','):String(n); el.title=''; el.style.outline=''; }
-  else { el.style.outline='2px solid var(--danger)'; el.title=kg?'Operazione non valida':'Operazione non valida: le forme devono essere un numero intero'; }
+  else { el.style.outline='2px solid var(--danger)'; el.title=kg?'Operazione non valida':'Operazione non valida: usa solo numeri interi, + e -'; }
 }
 document.addEventListener('focusout',e=>{ if(e.target.classList) applicaCalcolo(e.target); });
 document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList) applicaCalcolo(e.target); });
@@ -1420,17 +1455,7 @@ const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
 const BM_TABLE='bilancio_massa';
 const BM_TIP_BASE=['BIO','MEZZANO','PEGNO'];   // suggerimenti per la tipologia (solo Parmigiano Reggiano)
 const bmHasTip=tab=>tab==='bpr';
-// quantitativi aggiuntivi: sigla campo, colonna su Supabase, titolo, kg (true) o numero forme (false)
-const BM_QUANT=[
-  {id:'pf',k:'prodotto_finito_kg',t:'Prodotto finito (kg)',kg:true},
-  {id:'sl',k:'semilavorato_kg',t:'Semilavorato (kg)',kg:true},
-  {id:'cl',k:'conto_lavoro_forme',t:'Forme in conto lavoro',kg:false},
-  {id:'sf',k:'sfridi_kg',t:'Sfridi di lavorazione (kg)',kg:true},
-  {id:'cr',k:'cella_resi_kg',t:'Cella resi (kg)',kg:true}
-];
-const bmCols=tab=>(bmHasTip(tab)?6:5)+BM_QUANT.length;
-const fmtKg=n=>Number(n).toLocaleString('it-IT',{maximumFractionDigits:2});
-const bmQNum=(v)=>Math.round((Number(v)||0)*100)/100;
+const bmCols=tab=>bmHasTip(tab)?6:5;
 let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
@@ -1471,6 +1496,7 @@ async function loadBilancio(){
     BM_ERRORE=(e && e.message) ? e.message : String(e);
   }
   renderBilancio('bpr'); renderBilancio('bgp');
+  loadBilancioQuant();
 }
 
 // Righe con stessa matricola e stessa produzione -> un'unica riga di riepilogo
@@ -1479,10 +1505,9 @@ function bmGruppi(tab){
   BM_DATA[BM_TIPO[tab]].forEach(r=>{
     const tip=bmHasTip(tab)?up(r.tipologia).trim():'';
     const key=String(r.matricola)+'|'+(r.mese||'')+'|'+tip;
-    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[],...Object.fromEntries(BM_QUANT.map(q=>[q.k,0]))});
+    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[]});
     const g=map.get(key);
     g.forme+=Number(r.forme)||0;
-    BM_QUANT.forEach(q=>{ g[q.k]=bmQNum(g[q.k]+(Number(r[q.k])||0)); });
     g.ids.push(r.id);
     const n=up(r.note).trim();
     if(n && !g.note.includes(n)) g.note.push(n);
@@ -1493,7 +1518,6 @@ function bmGruppi(tab){
     if(st.col==='matricola') c=bmNat(a.matricola,b.matricola);
     else if(st.col==='mese'){ c=(!a.mese&&!b.mese)?0:!a.mese?1:!b.mese?-1:(a.mese<b.mese?-1:a.mese>b.mese?1:0); }
     else if(st.col==='forme') c=a.forme-b.forme;
-    else if(BM_QUANT.some(q=>q.k===st.col)) c=a[st.col]-b[st.col];
     else if(st.col==='tipologia'){ c=(!a.tipologia&&!b.tipologia)?0:!a.tipologia?1:!b.tipologia?-1:a.tipologia.localeCompare(b.tipologia,'it'); if(c!==0) return c*d; }
     else c=a.note.toLowerCase().localeCompare(b.note.toLowerCase(),'it');
     if(c===0) c=bmNat(a.matricola,b.matricola)||(a.mese<b.mese?-1:a.mese>b.mese?1:0);
@@ -1554,7 +1578,6 @@ function renderBilancio(tab){
         <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseCorto(g.mese):''}" placeholder="es. 325" maxlength="8"></td>
         <td><input type="text" class="calc" autocomplete="off" id="${tab}-e-forme" value="${g.forme}"></td>
         ${bmHasTip(tab)?`<td><input type="text" id="${tab}-e-tipologia" value="${escapeHtml(g.tipologia)}" list="${tab}-tip-list"></td>`:''}
-        ${BM_QUANT.map(q=>`<td><input type="text" class="calc${q.kg?' calc-kg':''}" autocomplete="off" id="${tab}-e-${q.id}" value="${g[q.k]?String(g[q.k]).replace('.',','):''}" placeholder="0"></td>`).join('')}
         <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
         <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
       </tr>`;
@@ -1564,7 +1587,6 @@ function renderBilancio(tab){
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
       <td><b>${fmtNum(g.forme)}</b>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
       ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
-      ${BM_QUANT.map(q=>`<td class="bm-q">${g[q.k]?(q.kg?fmtKg(g[q.k]):fmtNum(g[q.k])):'—'}</td>`).join('')}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
     </tr>`;
@@ -1574,9 +1596,7 @@ function renderBilancio(tab){
     const mm=document.getElementById(tab+'-e-mese'); if(mm) meseInput(tab+'-e-mese');
     const tt=document.getElementById(tab+'-e-tipologia'); if(tt) attachUppercase(tab+'-e-tipologia');
   }
-  const tot=k=>gruppi.reduce((t,g)=>t+(Number(g[k])||0),0);
-  const extra=BM_QUANT.filter(q=>tot(q.k)).map(q=>`${q.t.replace(' (kg)','')}: ${q.kg?fmtKg(tot(q.k))+' kg':fmtNum(tot(q.k))}`);
-  count.textContent=`${gruppi.length} righe · ${fmtNum(tot('forme'))} forme totali`+(extra.length?' · '+extra.join(' · '):'');
+  count.textContent=`${gruppi.length} righe · ${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))} forme totali`;
 }
 
 function bmScegli(tab){
@@ -1597,13 +1617,7 @@ function bmLeggiForm(tab){
   if(!mese) return err('Formato produzione non valido. Usa ad esempio 325 oppure 3/25 (marzo 2025).');
   if(!forme || forme<=0) return err('Inserisci un numero di forme valido.');
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-tipologia').value.trim()):'';
-  const quant={};
-  for(const q of BM_QUANT){
-    const v=bmLeggiQuant(tab+'-'+q.id,q);
-    if(Number.isNaN(v)) return err(`Valore non valido in «${q.t}». Scrivi un numero${q.kg?' (anche con la virgola)':' intero'} oppure un\'operazione come =10+5.`);
-    quant[q.k]=v;
-  }
-  return { matricola, mese, forme, note, tipologia, quant };
+  return { matricola, mese, forme, note, tipologia };
 }
 
 async function bmCarica(tab){
@@ -1636,31 +1650,19 @@ async function bmSalva(tab,d){
   btn.disabled=true;
   const riga={ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note };
   if(bmHasTip(tab) && d.tipologia) riga.tipologia=d.tipologia;
-  BM_QUANT.forEach(q=>{ if(d.quant[q.k]) riga[q.k]=d.quant[q.k]; });
   const {error}=await sb.from(BM_TABLE).insert(riga);
   btn.disabled=false;
   if(error){ msg.textContent='Salvataggio non riuscito: '+bmErroreTxt(error); msg.className='msg err'; return; }
   msg.textContent=`Caricato: matricola ${d.matricola}, produzione ${fmtMeseCorto(d.mese)}, ${fmtNum(d.forme)} forme.`;
   msg.className='msg ok';
-  ['matricola','mese','forme','note','tipologia',...BM_QUANT.map(q=>q.id)].forEach(k=>{ const e=document.getElementById(tab+'-'+k); if(e) e.value=''; });
+  ['matricola','mese','forme','note','tipologia'].forEach(k=>{ const e=document.getElementById(tab+'-'+k); if(e) e.value=''; });
   await loadBilancio();
   document.getElementById(tab+'-matricola').focus();
 }
 
-// legge un quantitativo: vuoto = 0; kg con virgola e operazioni; forme in conto lavoro intere
-function bmLeggiQuant(id,q){
-  const el=document.getElementById(id);
-  if(!el) return 0;
-  const t=el.value.trim();
-  if(t==='') return 0;
-  const v=q.kg?calcKg(t):calcForme(t);
-  if(Number.isNaN(v)) return NaN;
-  return v<0?NaN:v;
-}
-
 function bmErroreTxt(e){
   const t=(e&&e.message)||String(e);
-  return /tipologia|_kg|conto_lavoro/i.test(t) ? t+' — esegui lo script SQL che aggiunge le nuove colonne su Supabase.' : t;
+  return /tipologia/i.test(t) ? t+' — esegui lo script SQL che aggiunge la colonna Tipologia su Supabase.' : t;
 }
 
 function bmModifica(tab,i){ BM_EDIT[tab]=BM_GRUPPI[tab][i].key; renderBilancio(tab); const el=document.getElementById(tab+'-e-matricola'); if(el) el.focus(); }
@@ -1673,12 +1675,6 @@ async function bmSalvaModifica(tab,i){
   const forme=leggiForme(tab+'-e-forme');
   const note=up(document.getElementById(tab+'-e-note').value.trim());
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-e-tipologia').value.trim()):'';
-  const quant={};
-  for(const q of BM_QUANT){
-    const v=bmLeggiQuant(tab+'-e-'+q.id,q);
-    if(Number.isNaN(v)){ alert(`Valore non valido in «${q.t}».`); return; }
-    quant[q.k]=v;
-  }
   if(!matricola){ alert('Inserisci la matricola.'); return; }
   if(!mese){ alert('Formato produzione non valido. Usa ad esempio 325 oppure 3/25.'); return; }
   if(!forme || forme<=0){ alert('Inserisci un numero di forme valido.'); return; }
@@ -1687,7 +1683,6 @@ async function bmSalvaModifica(tab,i){
   }
   const upd={ matricola, mese, forme, note };
   if(bmHasTip(tab) && (tipologia || g.tipologia)) upd.tipologia=tipologia;
-  BM_QUANT.forEach(q=>{ if(quant[q.k] || g[q.k]) upd[q.k]=quant[q.k]; });
   const {error}=await sb.from(BM_TABLE).update(upd).eq('id',g.ids[0]);
   if(error){ alert('Modifica non riuscita: '+bmErroreTxt(error)); return; }
   // se la riga era un gruppo di più carichi, diventa un'unica riga con i nuovi valori
@@ -1713,12 +1708,10 @@ function bmExcel(tab){
   const rows=BM_GRUPPI[tab];
   if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
   const tip=bmHasTip(tab);
-  const hq=['Prodotto finito (kg)','Semilavorato (kg)','Forme in conto lavoro','Sfridi di lavorazione (kg)','Cella resi (kg)'];
-  const head=['Matricola','Produzione','Forme',...(tip?['Tipologia']:[]),...hq,'Note'];
+  const head=tip?['Matricola','Produzione','Forme','Tipologia','Note']:['Matricola','Produzione','Forme','Note'];
   const body=rows.map(g=>{
     const base=[/^\d+$/.test(g.matricola) ? Number(g.matricola) : g.matricola, g.mese ? fmtMeseCorto(g.mese) : '', g.forme];
     if(tip) base.push(g.tipologia);
-    BM_QUANT.forEach(q=>base.push(g[q.k]||''));
     base.push(g.note.replace(/ · /g,', '));
     return base;
   });
@@ -1727,7 +1720,7 @@ function bmExcel(tab){
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
     const ws=XLSX.utils.aoa_to_sheet([head,...body]);
-    ws['!cols']=[{wch:11},{wch:12},{wch:8},...(tip?[{wch:12}]:[]),{wch:19},{wch:17},{wch:20},{wch:24},{wch:15},{wch:28}];
+    ws['!cols']=tip?[{wch:11},{wch:12},{wch:8},{wch:12},{wch:28}]:[{wch:11},{wch:12},{wch:8},{wch:28}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Bilancio di massa');
     XLSX.writeFile(wb,nomeFile+'.xlsx');
@@ -1746,12 +1739,155 @@ function bmStampa(tab){
   const app=document.querySelector('.app');
   const panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-print-date').textContent='Stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const pulisci=()=>{ const pgs=document.getElementById('bm-page'); if(pgs) pgs.remove(); app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  const pulisci=()=>{ app.classList.remove('print-bm'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
   window.addEventListener('afterprint',pulisci);
-  const pg=document.createElement('style'); pg.id='bm-page'; pg.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(pg);
   app.classList.add('print-bm'); panel.classList.add('print-this');
   window.print();
 }
+
+
+// ====== ALTRI QUANTITATIVI (separati dal carico forme: nessuna matricola/produzione obbligatoria)
+const BMQ_TABLE='bilancio_massa_quantita';
+const BMQ=[
+  {id:'pf',k:'prodotto_finito_kg',t:'Prodotto finito (kg)',h:'Prodotto finito kg',kg:true},
+  {id:'sl',k:'semilavorato_kg',t:'Semilavorato (kg)',h:'Semilavorato kg',kg:true},
+  {id:'cl',k:'conto_lavoro_forme',t:'Forme in conto lavoro',h:'Forme in conto lavoro',kg:false},
+  {id:'sf',k:'sfridi_kg',t:'Sfridi di lavorazione (kg)',h:'Sfridi di lavorazione kg',kg:true},
+  {id:'cr',k:'cella_resi_kg',t:'Cella resi (kg)',h:'Cella resi kg',kg:true}
+];
+let BMQ_DATA={ PR:[], GP:[] }, BMQ_ERRORE=null;
+const BMQ_EDIT={ bpr:null, bgp:null };
+const fmtKg=n=>Number(n).toLocaleString('it-IT',{maximumFractionDigits:2});
+const bmqVal=(q,v)=>v?(q.kg?fmtKg(v):fmtNum(v)):'—';
+const bmqData=iso=>{ const d=iso?new Date(iso):null; return d&&!isNaN(d)?d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):''; };
+
+async function loadBilancioQuant(){
+  if(!sb) return;
+  try{
+    const all=[]; let from=0; const step=1000;
+    while(true){
+      const {data,error}=await sb.from(BMQ_TABLE).select('*').order('created_at',{ascending:true}).order('id',{ascending:true}).range(from,from+step-1);
+      if(error) throw error;
+      all.push(...data);
+      if(data.length<step) break;
+      from+=step;
+    }
+    BMQ_DATA={ PR:all.filter(r=>r.tipo==='PR'), GP:all.filter(r=>r.tipo==='GP') };
+    BMQ_ERRORE=null;
+  }catch(e){ BMQ_ERRORE=(e&&e.message)?e.message:String(e); }
+  renderQuant('bpr'); renderQuant('bgp');
+}
+
+function bmqLeggi(idPrefix){
+  const out={};
+  for(const q of BMQ){
+    const el=document.getElementById(idPrefix+q.id);
+    const t=el?el.value.trim():'';
+    if(t===''){ out[q.k]=0; continue; }
+    const v=q.kg?calcKg(t):calcForme(t);
+    if(Number.isNaN(v) || v<0) return {errore:`Valore non valido in «${q.t}». Scrivi un numero${q.kg?' (anche con la virgola)':' intero'} oppure un'operazione come =10+5.`};
+    out[q.k]=v;
+  }
+  if(!BMQ.some(q=>out[q.k])) return {errore:'Inserisci almeno un quantitativo.'};
+  return out;
+}
+function bmqErrTxt(e){
+  const t=(e&&e.message)||String(e);
+  return /bilancio_massa_quantita|relation|schema cache/i.test(t) ? t+' — esegui lo script SQL «bilancio-massa-quantita.sql» su Supabase.' : t;
+}
+
+async function bmqCarica(tab){
+  const msg=document.getElementById(tab+'-q-msg');
+  const d=bmqLeggi(tab+'-q-');
+  if(d.errore){ msg.textContent=d.errore; msg.className='msg err'; return; }
+  const btn=document.getElementById(tab+'-q-submit'); btn.disabled=true;
+  const riga={ tipo:BM_TIPO[tab], ...d, note:up(document.getElementById(tab+'-q-note').value.trim()) };
+  const {error}=await sb.from(BMQ_TABLE).insert(riga);
+  btn.disabled=false;
+  if(error){ msg.textContent='Salvataggio non riuscito: '+bmqErrTxt(error); msg.className='msg err'; return; }
+  msg.textContent='Quantitativi caricati.'; msg.className='msg ok';
+  BMQ.forEach(q=>{ document.getElementById(tab+'-q-'+q.id).value=''; });
+  document.getElementById(tab+'-q-note').value='';
+  await loadBilancioQuant();
+  document.getElementById(tab+'-q-pf').focus();
+}
+
+function renderQuant(tab){
+  const tb=document.getElementById(tab+'-q-tbody'), cnt=document.getElementById(tab+'-q-count');
+  const rows=BMQ_DATA[BM_TIPO[tab]];
+  const cols=BMQ.length+3;
+  if(BMQ_ERRORE){
+    tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Non riesco a leggere i quantitativi: ${escapeHtml(bmqErrTxt({message:BMQ_ERRORE}))}</td></tr>`; cnt.textContent=''; return;
+  }
+  if(!rows.length){ tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Nessun quantitativo caricato.</td></tr>`; cnt.textContent=''; return; }
+  tb.innerHTML=rows.map(r=>{
+    if(BMQ_EDIT[tab]===r.id){
+      return `<tr class="editing-row"><td>${bmqData(r.created_at)}</td>`+
+        BMQ.map(q=>`<td><input type="text" class="calc${q.kg?' calc-kg':''}" autocomplete="off" id="${tab}-qe-${q.id}" value="${r[q.k]?String(r[q.k]).replace('.',','):''}" placeholder="0"></td>`).join('')+
+        `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note||'')}"></td>`+
+        `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}','${r.id}')">Salva</button><button class="edit-btn" onclick="bmqAnnulla('${tab}')">Annulla</button></td></tr>`;
+    }
+    return `<tr><td>${bmqData(r.created_at)}</td>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Number(r[q.k])||0)}</td>`).join('')+
+      `<td>${highlightNote(r.note||'')}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}','${r.id}')">Modifica</button><button class="del-btn" onclick="bmqElimina('${tab}','${r.id}')" title="Elimina">✕</button></td></tr>`;
+  }).join('')+
+  `<tr class="bm-tot"><td>Totale</td>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100)}</td>`).join('')+`<td></td><td></td></tr>`;
+  cnt.textContent=`${rows.length} ${rows.length===1?'inserimento':'inserimenti'}`;
+}
+
+function bmqModifica(tab,id){ BMQ_EDIT[tab]=id; renderQuant(tab); const el=document.getElementById(tab+'-qe-pf'); if(el) el.focus(); }
+function bmqAnnulla(tab){ BMQ_EDIT[tab]=null; renderQuant(tab); }
+async function bmqSalvaModifica(tab,id){
+  const d=bmqLeggi(tab+'-qe-');
+  if(d.errore){ alert(d.errore); return; }
+  const note=up(document.getElementById(tab+'-qe-note').value.trim());
+  const {error}=await sb.from(BMQ_TABLE).update({...d,note}).eq('id',id);
+  if(error){ alert('Modifica non riuscita: '+bmqErrTxt(error)); return; }
+  BMQ_EDIT[tab]=null; await loadBilancioQuant();
+}
+async function bmqElimina(tab,id){
+  const {error}=await sb.from(BMQ_TABLE).delete().eq('id',id);
+  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
+  await loadBilancioQuant();
+}
+
+function bmqExcel(tab){
+  const rows=BMQ_DATA[BM_TIPO[tab]];
+  if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
+  const head=['Data',...BMQ.map(q=>q.t),'Note'];
+  const body=rows.map(r=>[bmqData(r.created_at),...BMQ.map(q=>Number(r[q.k])||''),r.note||'']);
+  const tot=['Totale',...BMQ.map(q=>Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100||''),''];
+  const nomeFile='bilancio-massa-quantitativi-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+new Date().toISOString().slice(0,10);
+  try{
+    if(!window.XLSX) throw new Error('libreria Excel non caricata');
+    const ws=XLSX.utils.aoa_to_sheet([head,...body,tot]);
+    ws['!cols']=[{wch:12},{wch:19},{wch:17},{wch:22},{wch:24},{wch:15},{wch:28}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Altri quantitativi');
+    XLSX.writeFile(wb,nomeFile+'.xlsx');
+  }catch(e){
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv='﻿'+[head,...body,tot].map(r=>r.map(esc).join(';')).join('\r\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=nomeFile+'.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+}
+function bmqStampa(tab){
+  if(!BMQ_DATA[BM_TIPO[tab]].length){ alert('Nessuna riga da stampare.'); return; }
+  const app=document.querySelector('.app'), panel=document.getElementById('panel-'+tab);
+  document.getElementById(tab+'-q-print-date').textContent='Altri quantitativi · '+BM_NOME[tab]+' · stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const pg=document.createElement('style'); pg.id='bm-page'; pg.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(pg);
+  const pulisci=()=>{ const x=document.getElementById('bm-page'); if(x) x.remove(); app.classList.remove('print-bm','print-q'); panel.classList.remove('print-this'); window.removeEventListener('afterprint',pulisci); };
+  window.addEventListener('afterprint',pulisci);
+  app.classList.add('print-bm','print-q'); panel.classList.add('print-this');
+  window.print();
+}
+// Invio = carica
+['bpr','bgp'].forEach(t=>{
+  attachUppercase(t+'-q-note');
+  [t+'-forme',t+'-tipologia',t+'-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); bmCarica(t); } }); });
+  [...BMQ.map(q=>t+'-q-'+q.id),t+'-q-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); bmqCarica(t); } }); });
+});
 
 // Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
 const BM_LUNG_MATRICOLA={ bpr:4, bgp:5 };   // PR: 4 cifre; GP: 5 caratteri (es. BG508)
@@ -1760,11 +1896,6 @@ function bmVai(id){ const e=document.getElementById(id); if(e){ e.focus(); if(e.
   meseInput(t+'-mese',null,()=>bmVai(t+'-forme'));
   attachUppercase(t+'-note'); attachUppercase(t+'-matricola');
   if(bmHasTip(t)) attachUppercase(t+'-tipologia');
-  // Invio nei campi forme, tipologia, quantitativi e note = Carica (resta anche il tasto)
-  [t+'-forme',t+'-tipologia',t+'-note',...BM_QUANT.map(q=>t+'-'+q.id)].forEach(id=>{
-    const el=document.getElementById(id); if(!el) return;
-    el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); bmCarica(t); } });
-  });
   const mat=document.getElementById(t+'-matricola');
   mat.addEventListener('input',ev=>{
     const v=mat.value.trim();
