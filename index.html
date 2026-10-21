@@ -1790,10 +1790,21 @@ const BMQ=[
 let BMQ_DATA={ PR:[], GP:[] }, BMQ_ERRORE=null;
 const BMQ_EDIT={ bpr:null, bgp:null };
 const BMQ_OPEN={ bpr:new Set(), bgp:new Set() };   // celle (riga|colonna) aperte per vedere il calcolo
-function bmqDettaglio(tab,rid,qid){ const k=rid+'|'+qid; if(BMQ_OPEN[tab].has(k)) BMQ_OPEN[tab].delete(k); else BMQ_OPEN[tab].add(k); renderQuant(tab); }
-function bmqRigaCalcoli(tab,r,cols){
-  const voci=BMQ.filter(q=>BMQ_OPEN[tab].has(r.id+'|'+q.id) && r.calcoli && r.calcoli[q.k]).map(q=>`<li>${escapeHtml(q.t)}: ${escapeHtml(r.calcoli[q.k])} = ${bmqVal(q,Number(r[q.k])||0)}</li>`).join('');
-  return voci?`<tr class="bm-detail"><td colspan="${cols}"><ul>${voci}</ul></td></tr>`:'';
+function bmqDettaglio(tab,ri,qid){ const k=ri+'|'+qid; if(BMQ_OPEN[tab].has(k)) BMQ_OPEN[tab].delete(k); else BMQ_OPEN[tab].add(k); renderQuant(tab); }
+// Riepilogo compatto: ogni colonna elenca i propri valori uno dopo l'altro, senza buchi
+// (la riga 1 ha il primo valore di ogni colonna, la riga 2 il secondo, ecc.)
+const BMQ_VIEW={ bpr:[], bgp:[] };
+function bmqRighe(tab){
+  const entries=BMQ_DATA[BM_TIPO[tab]];
+  const liste=Object.fromEntries(BMQ.map(q=>[q.id,entries.filter(e=>Number(e[q.k])>0).map(e=>({id:e.id,val:Number(e[q.k]),calc:(e.calcoli&&e.calcoli[q.k])||'',note:e.note||''}))]));
+  const n=Math.max(0,...BMQ.map(q=>liste[q.id].length));
+  const out=[];
+  for(let i=0;i<n;i++){
+    const cells={}; const note=[];
+    BMQ.forEach(q=>{ const c=liste[q.id][i]||null; cells[q.id]=c; if(c){ const t=up(c.note).trim(); if(t && !note.includes(t)) note.push(t); } });
+    out.push({cells,note:note.join(' · ')});
+  }
+  return out;
 }
 const fmtKg=fmtNum;
 const bmqVal=(q,v)=>v?(q.kg?fmtKg(v):fmtNum(v)):'—';
@@ -1871,52 +1882,82 @@ async function bmqCarica(tab){
 }
 function renderQuant(tab){
   const tb=document.getElementById(tab+'-q-tbody'), cnt=document.getElementById(tab+'-q-count');
-  const rows=BMQ_DATA[BM_TIPO[tab]];
   const cols=BMQ.length+2;
   if(BMQ_ERRORE){
+    BMQ_VIEW[tab]=[];
     tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Non riesco a leggere i quantitativi: ${escapeHtml(bmqErrTxt({message:BMQ_ERRORE}))}</td></tr>`; cnt.textContent=''; return;
   }
-  if(!rows.length){ tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Nessun quantitativo caricato.</td></tr>`; cnt.textContent=''; return; }
-  tb.innerHTML=rows.map(r=>{
-    if(BMQ_EDIT[tab]===r.id){
+  const righe=bmqRighe(tab); BMQ_VIEW[tab]=righe;
+  if(!righe.length){ tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Nessun quantitativo caricato.</td></tr>`; cnt.textContent=''; return; }
+  tb.innerHTML=righe.map((r,i)=>{
+    if(BMQ_EDIT[tab]===i){
       return `<tr class="editing-row">`+
-        BMQ.map(q=>`<td><input type="text" class="calc${q.kg?' calc-kg':''}" autocomplete="off" id="${tab}-qe-${q.id}" value="${r[q.k]?String(r[q.k]).replace('.',','):''}" placeholder="0"></td>`).join('')+
-        `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note||'')}"></td>`+
-        `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}','${r.id}')" title="Salva">💾</button><button class="del-btn" onclick="bmqAnnulla('${tab}')" title="Annulla">✕</button></td></tr>`;
+        BMQ.map(q=>{ const c=r.cells[q.id]; return `<td><input type="text" class="calc calc-kg" autocomplete="off" id="${tab}-qe-${q.id}" value="${c?String(c.val).replace('.',','):''}" placeholder="0"></td>`; }).join('')+
+        `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note.replace(/ · /g,' '))}"></td>`+
+        `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmqAnnulla('${tab}')" title="Annulla">✕</button></td></tr>`;
     }
-    return `<tr>`+BMQ.map(q=>{ const ex=r.calcoli&&r.calcoli[q.k]; const key=r.id+'|'+q.id; return `<td class="bm-q">${ex?`<button class="bm-sum${BMQ_OPEN[tab].has(key)?' on':''}" onclick="bmqDettaglio('${tab}','${r.id}','${q.id}')" title="Vedi il calcolo">${bmqVal(q,Number(r[q.k])||0)}</button>`:bmqVal(q,Number(r[q.k])||0)}</td>`; }).join('')+
-      `<td>${highlightNote(r.note||'')}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}','${r.id}')" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmqElimina('${tab}','${r.id}')" title="Elimina">✕</button></td></tr>`+bmqRigaCalcoli(tab,r,cols);
+    const aperte=BMQ.filter(q=>r.cells[q.id]&&r.cells[q.id].calc&&BMQ_OPEN[tab].has(i+'|'+q.id));
+    return `<tr>`+BMQ.map(q=>{ const c=r.cells[q.id]; if(!c) return '<td class="bm-q">—</td>';
+        return `<td class="bm-q">${c.calc?`<button class="bm-sum${BMQ_OPEN[tab].has(i+'|'+q.id)?' on':''}" onclick="bmqDettaglio('${tab}',${i},'${q.id}')" title="Vedi il calcolo">${bmqVal(q,c.val)}</button>`:bmqVal(q,c.val)}</td>`; }).join('')+
+      `<td>${highlightNote(r.note)}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmqElimina('${tab}',${i})" title="Elimina riga">✕</button></td></tr>`+
+      (aperte.length?`<tr class="bm-detail"><td colspan="${cols}"><ul>${aperte.map(q=>`<li>${escapeHtml(q.t)}: ${escapeHtml(r.cells[q.id].calc)} = ${bmqVal(q,r.cells[q.id].val)}</li>`).join('')}</ul></td></tr>`:'');
   }).join('')+
-  `<tr class="bm-tot">`+BMQ.map(q=>{ const t=Math.round(rows.reduce((a,r)=>a+(Number(r[q.k])||0),0)*100)/100; return `<td class="bm-q">${bmqVal(q,t)}</td>`; }).join('')+`<td>Totale</td><td></td></tr>`;
-  cnt.textContent=`${rows.length} ${rows.length===1?'inserimento':'inserimenti'}`;
+  `<tr class="bm-tot">`+BMQ.map(q=>{ const t=Math.round(righe.reduce((a,r)=>a+(r.cells[q.id]?r.cells[q.id].val:0),0)*100)/100; return `<td class="bm-q">${bmqVal(q,t)}</td>`; }).join('')+`<td>Totale</td><td></td></tr>`;
+  cnt.textContent=`${righe.length} ${righe.length===1?'riga':'righe'}`;
 }
 
-function bmqModifica(tab,id){ BMQ_EDIT[tab]=id; renderQuant(tab); const el=document.getElementById(tab+'-qe-pf'); if(el) el.focus(); }
+function bmqModifica(tab,i){ BMQ_EDIT[tab]=i; renderQuant(tab); const el=document.getElementById(tab+'-qe-pf'); if(el) el.focus(); }
 function bmqAnnulla(tab){ BMQ_EDIT[tab]=null; renderQuant(tab); }
-async function bmqSalvaModifica(tab,id){
-  const d=bmqLeggi(tab+'-qe-');
-  if(d.errore){ alert(d.errore); return; }
-  const note=up(document.getElementById(tab+'-qe-note').value.trim());
-  const old=(BMQ_DATA[BM_TIPO[tab]].find(x=>x.id===id)||{});
-  BMQ.forEach(q=>{ if(!d.calcoli[q.k] && old.calcoli && old.calcoli[q.k] && Number(old[q.k])===d[q.k]) d.calcoli[q.k]=old.calcoli[q.k]; });
-  const upd={...d,note};
-  let {error}=await sb.from(BMQ_TABLE).update(upd).eq('id',id);
-  if(error && /calcoli/i.test(error.message||'')){ delete upd.calcoli; ({error}=await sb.from(BMQ_TABLE).update(upd).eq('id',id)); }
-  if(error){ alert('Modifica non riuscita: '+bmqErrTxt(error)); return; }
-  BMQ_EDIT[tab]=null; await loadBilancioQuant();
+
+// applica le modifiche alle voci caricate: patch per id (valori e calcoli); la voce senza più valori viene eliminata
+async function bmqApplica(tab,patch,nuove){
+  const entries=BMQ_DATA[BM_TIPO[tab]];
+  for(const [id,pt] of Object.entries(patch)){
+    const e=entries.find(x=>String(x.id)===id); if(!e) continue;
+    const nuovo={...e,...pt.val,calcoli:{...(e.calcoli||{})}};
+    Object.entries(pt.calc).forEach(([k,v])=>{ if(v) nuovo.calcoli[k]=v; else delete nuovo.calcoli[k]; });
+    if(pt.note!==undefined) nuovo.note=pt.note;
+    const vuoto=!BMQ.some(q=>Number(nuovo[q.k])>0);
+    const r=vuoto?await sb.from(BMQ_TABLE).delete().eq('id',e.id)
+                 :await sb.from(BMQ_TABLE).update({...pt.val,calcoli:nuovo.calcoli,note:nuovo.note}).eq('id',e.id);
+    if(r.error) return r.error;
+  }
+  if(nuove.length){ const r=await sb.from(BMQ_TABLE).insert(nuove); if(r.error) return r.error; }
+  return null;
 }
-async function bmqElimina(tab,id){
-  const {error}=await sb.from(BMQ_TABLE).delete().eq('id',id);
-  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
-  await loadBilancioQuant();
+async function bmqSalvaModifica(tab,i){
+  const row=BMQ_VIEW[tab][i]; if(!row) return;
+  const note=up(document.getElementById(tab+'-qe-note').value.trim());
+  const patch={}; const nuova={ tipo:BM_TIPO[tab], note, calcoli:{} }; let haNuova=false;
+  const get=id=>(patch[id]=patch[id]||{val:{},calc:{}});
+  for(const q of BMQ){
+    const el=document.getElementById(`${tab}-qe-${q.id}`); const t=el.value.trim();
+    let v=0; if(t!==''){ v=calcKg(t); if(Number.isNaN(v)||v<0){ alert(`Valore non valido in «${q.t}».`); return; } }
+    const ex=exprDi(el), c=row.cells[q.id];
+    if(c){
+      if(v!==c.val || ex){ const g=get(String(c.id)); g.val[q.k]=v; g.calc[q.k]=v?ex:''; }
+    } else if(v>0){ nuova[q.k]=v; if(ex) nuova.calcoli[q.k]=ex; haNuova=true; }
+  }
+  if(note!==row.note.replace(/ · /g,' ')){ BMQ.forEach(q=>{ const c=row.cells[q.id]; if(c) get(String(c.id)).note=note; }); }
+  const err=await bmqApplica(tab,patch,haNuova?[nuova]:[]);
+  if(err){ alert('Modifica non riuscita: '+bmqErrTxt(err)); return; }
+  BMQ_EDIT[tab]=null; BMQ_OPEN[tab].clear(); await loadBilancioQuant();
+}
+async function bmqElimina(tab,i){
+  const row=BMQ_VIEW[tab][i]; if(!row) return;
+  const patch={};
+  BMQ.forEach(q=>{ const c=row.cells[q.id]; if(c){ const g=(patch[String(c.id)]=patch[String(c.id)]||{val:{},calc:{}}); g.val[q.k]=0; g.calc[q.k]=''; } });
+  const err=await bmqApplica(tab,patch,[]);
+  if(err){ alert('Eliminazione non riuscita: '+bmqErrTxt(err)); return; }
+  BMQ_OPEN[tab].clear(); await loadBilancioQuant();
 }
 
 function bmqExcel(tab){
-  const rows=BMQ_DATA[BM_TIPO[tab]];
-  if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
+  const righe=bmqRighe(tab);
+  if(!righe.length){ alert('Nessuna riga da esportare.'); return; }
   const head=[...BMQ.map(q=>q.t),'Note'];
-  const body=rows.map(r=>[...BMQ.map(q=>Number(r[q.k])||''),r.note||'']);
-  const tot=[...BMQ.map(q=>Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100||''),'Totale'];
+  const body=righe.map(r=>[...BMQ.map(q=>r.cells[q.id]?r.cells[q.id].val:''),r.note.replace(/ · /g,', ')]);
+  const tot=[...BMQ.map(q=>Math.round(righe.reduce((t,r)=>t+(r.cells[q.id]?r.cells[q.id].val:0),0)*100)/100||''),'Totale'];
   const nomeFile='bilancio-massa-quantitativi-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+new Date().toISOString().slice(0,10);
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
@@ -1934,7 +1975,7 @@ function bmqExcel(tab){
   }
 }
 function bmqStampa(tab){
-  if(!BMQ_DATA[BM_TIPO[tab]].length){ alert('Nessuna riga da stampare.'); return; }
+  if(!BMQ_VIEW[tab].length){ alert('Nessuna riga da stampare.'); return; }
   const app=document.querySelector('.app'), panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-q-print-date').textContent='Altri quantitativi · '+BM_NOME[tab]+' · stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
   const pg=document.createElement('style'); pg.id='bm-page'; pg.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(pg);
