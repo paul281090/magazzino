@@ -163,6 +163,13 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 .bm-quant-t{font-size:.85rem;font-weight:600;margin-bottom:8px;}
 .bm-quant-t span{font-weight:400;color:var(--muted);}
 .bm-q{font-variant-numeric:tabular-nums;}
+.bm-sum{background:none;border:0;border-bottom:1px dotted var(--muted);padding:0;font:inherit;color:inherit;cursor:pointer;}
+.bm-sum.on{color:var(--accent,#2f6fed);border-bottom-style:solid;}
+.bm-detail td{background:rgba(127,127,127,.08);font-size:.85rem;}
+.bm-det-t{font-weight:600;margin-bottom:4px;}
+.bm-detail ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:4px 22px;}
+.bm-detail li span{color:var(--muted);}
+@media print{.bm-detail{display:none !important;}.bm-sum{border:0;}}
 .bm-tot td{font-weight:700;border-top:2px solid var(--line);}
 #panel-bpr .editing-row input,#panel-bgp .editing-row input{min-width:0;width:80px;padding:6px 5px;}
 @media print{
@@ -336,7 +343,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Data</th><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
         <tbody id="bpr-q-tbody"></tbody>
       </table>
     </div>
@@ -408,7 +415,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Data</th><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
+        <thead><tr><th>Prodotto finito kg</th><th>Semilavorato kg</th><th>Forme in conto lavoro</th><th>Sfridi di lavorazione kg</th><th>Cella resi kg</th><th>Note</th><th></th></tr></thead>
         <tbody id="bgp-q-tbody"></tbody>
       </table>
     </div>
@@ -671,7 +678,7 @@ function checkLocalMigration(){
   try{ done=localStorage.getItem('magazzino_migrato')==='1'; }catch(e){}
   const rows=localRows();
   if(rows.length>0 && !done){
-    document.getElementById('migrate-count').textContent=rows.length.toLocaleString('it-IT');
+    document.getElementById('migrate-count').textContent=fmtNum(rows.length);
     banner.style.display='flex';
   }else{
     banner.style.display='none';
@@ -884,7 +891,8 @@ document.addEventListener('focusout',e=>{ if(e.target.classList) applicaCalcolo(
 document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList) applicaCalcolo(e.target); });
 document.addEventListener('input',e=>{ if(e.target.classList && e.target.classList.contains('calc')){ e.target.style.outline=''; e.target.title=''; } });
 
-function fmtNum(n){ return Number(n||0).toLocaleString('it-IT'); }
+// separatore delle migliaia sempre (anche 1.710): punto per le migliaia, virgola per i decimali
+function fmtNum(n){ return Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2}).replace(/[,.]/g,c=>c===','?'.':','); }
 
 const MATRICOLA_OPTIONAL=['GRAN BON','SBIANCATO','RETINATO'];
 const MESE_OPTIONAL=['SBIANCATO','RETINATO'];
@@ -1460,6 +1468,8 @@ let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
 const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
 const BM_EDIT={ bpr:null, bgp:null };      // chiave del gruppo in modifica
+const BM_OPEN={ bpr:new Set(), bgp:new Set() };   // gruppi aperti per vedere i singoli carichi
+function bmApri(tab,i){ const k=BM_GRUPPI[tab][i].key; if(BM_OPEN[tab].has(k)) BM_OPEN[tab].delete(k); else BM_OPEN[tab].add(k); renderBilancio(tab); }
 const BM_GRUPPI={ bpr:[], bgp:[] };        // gruppi attualmente mostrati (stesso ordine della tabella)
 const BM_PENDING={ bpr:null, bgp:null };   // carico in attesa di conferma matricola nuova
 
@@ -1505,10 +1515,11 @@ function bmGruppi(tab){
   BM_DATA[BM_TIPO[tab]].forEach(r=>{
     const tip=bmHasTip(tab)?up(r.tipologia).trim():'';
     const key=String(r.matricola)+'|'+(r.mese||'')+'|'+tip;
-    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[]});
+    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',tipologia:tip,forme:0,note:[],ids:[],items:[]});
     const g=map.get(key);
     g.forme+=Number(r.forme)||0;
     g.ids.push(r.id);
+    g.items.push({forme:Number(r.forme)||0,note:up(r.note).trim(),data:r.created_at});
     const n=up(r.note).trim();
     if(n && !g.note.includes(n)) g.note.push(n);
   });
@@ -1585,11 +1596,11 @@ function renderBilancio(tab){
     return `<tr>
       <td><b>${escapeHtml(g.matricola)}</b></td>
       <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
-      <td><b>${fmtNum(g.forme)}</b>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
+      <td><button class="bm-sum${BM_OPEN[tab].has(g.key)?' on':''}" onclick="bmApri('${tab}',${i})" title="Vedi i valori inseriti"><b>${fmtNum(g.forme)}</b></button>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
       ${bmHasTip(tab)?`<td>${g.tipologia?`<span class="badge ${badgeClass(g.tipologia)}">${escapeHtml(g.tipologia)}</span>`:'—'}</td>`:''}
       <td>${highlightNote(g.note)}</td>
       <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
-    </tr>`;
+    </tr>`+(BM_OPEN[tab].has(g.key)?`<tr class="bm-detail"><td colspan="${bmCols(tab)}"><div class="bm-det-t">Forme inserite · matricola ${escapeHtml(g.matricola)}${g.mese?' · '+fmtMeseCorto(g.mese):''}</div><ul>${g.items.map(it=>`<li><b>${fmtNum(it.forme)}</b> <span>${bmqData(it.data)}${it.note?' · '+escapeHtml(it.note):''}</span></li>`).join('')}</ul></td></tr>`:'');
   }).join('');
   if(BM_EDIT[tab]){
     const nt=document.getElementById(tab+'-e-note'); if(nt) attachUppercase(tab+'-e-note');
@@ -1757,7 +1768,14 @@ const BMQ=[
 ];
 let BMQ_DATA={ PR:[], GP:[] }, BMQ_ERRORE=null;
 const BMQ_EDIT={ bpr:null, bgp:null };
-const fmtKg=n=>Number(n).toLocaleString('it-IT',{maximumFractionDigits:2});
+const BMQ_OPEN={ bpr:null, bgp:null };   // colonna dei totali aperta per vedere i valori inseriti
+function bmqDettaglio(tab,id){ BMQ_OPEN[tab]=BMQ_OPEN[tab]===id?null:id; renderQuant(tab); }
+function bmqDettaglioRiga(tab,rows,cols){
+  const q=BMQ.find(x=>x.id===BMQ_OPEN[tab]); if(!q) return '';
+  const voci=rows.filter(r=>Number(r[q.k])).map(r=>`<li><b>${bmqVal(q,Number(r[q.k]))}</b> <span>${bmqData(r.created_at)}${r.note?' · '+escapeHtml(r.note):''}</span></li>`).join('');
+  return `<tr class="bm-detail"><td colspan="${cols}"><div class="bm-det-t">${escapeHtml(q.t)} — valori inseriti</div><ul>${voci}</ul></td></tr>`;
+}
+const fmtKg=fmtNum;
 const bmqVal=(q,v)=>v?(q.kg?fmtKg(v):fmtNum(v)):'—';
 const bmqData=iso=>{ const d=iso?new Date(iso):null; return d&&!isNaN(d)?d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):''; };
 
@@ -1815,22 +1833,23 @@ async function bmqCarica(tab){
 function renderQuant(tab){
   const tb=document.getElementById(tab+'-q-tbody'), cnt=document.getElementById(tab+'-q-count');
   const rows=BMQ_DATA[BM_TIPO[tab]];
-  const cols=BMQ.length+3;
+  const cols=BMQ.length+2;
   if(BMQ_ERRORE){
     tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Non riesco a leggere i quantitativi: ${escapeHtml(bmqErrTxt({message:BMQ_ERRORE}))}</td></tr>`; cnt.textContent=''; return;
   }
   if(!rows.length){ tb.innerHTML=`<tr><td colspan="${cols}" class="empty">Nessun quantitativo caricato.</td></tr>`; cnt.textContent=''; return; }
   tb.innerHTML=rows.map(r=>{
     if(BMQ_EDIT[tab]===r.id){
-      return `<tr class="editing-row"><td>${bmqData(r.created_at)}</td>`+
+      return `<tr class="editing-row">`+
         BMQ.map(q=>`<td><input type="text" class="calc${q.kg?' calc-kg':''}" autocomplete="off" id="${tab}-qe-${q.id}" value="${r[q.k]?String(r[q.k]).replace('.',','):''}" placeholder="0"></td>`).join('')+
         `<td><input type="text" id="${tab}-qe-note" value="${escapeHtml(r.note||'')}"></td>`+
         `<td class="row-actions"><button class="edit-btn" onclick="bmqSalvaModifica('${tab}','${r.id}')">Salva</button><button class="edit-btn" onclick="bmqAnnulla('${tab}')">Annulla</button></td></tr>`;
     }
-    return `<tr><td>${bmqData(r.created_at)}</td>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Number(r[q.k])||0)}</td>`).join('')+
+    return `<tr>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Number(r[q.k])||0)}</td>`).join('')+
       `<td>${highlightNote(r.note||'')}</td><td class="row-actions"><button class="edit-btn" onclick="bmqModifica('${tab}','${r.id}')">Modifica</button><button class="del-btn" onclick="bmqElimina('${tab}','${r.id}')" title="Elimina">✕</button></td></tr>`;
   }).join('')+
-  `<tr class="bm-tot"><td>Totale</td>`+BMQ.map(q=>`<td class="bm-q">${bmqVal(q,Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100)}</td>`).join('')+`<td></td><td></td></tr>`;
+  `<tr class="bm-tot">`+BMQ.map(q=>{ const t=Math.round(rows.reduce((a,r)=>a+(Number(r[q.k])||0),0)*100)/100; return `<td class="bm-q">${t?`<button class="bm-sum${BMQ_OPEN[tab]===q.id?' on':''}" onclick="bmqDettaglio('${tab}','${q.id}')" title="Vedi i valori inseriti">${bmqVal(q,t)}</button>`:'—'}</td>`; }).join('')+`<td>Totale</td><td></td></tr>`+
+  (BMQ_OPEN[tab]?bmqDettaglioRiga(tab,rows,cols):'');
   cnt.textContent=`${rows.length} ${rows.length===1?'inserimento':'inserimenti'}`;
 }
 
@@ -1853,14 +1872,14 @@ async function bmqElimina(tab,id){
 function bmqExcel(tab){
   const rows=BMQ_DATA[BM_TIPO[tab]];
   if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
-  const head=['Data',...BMQ.map(q=>q.t),'Note'];
-  const body=rows.map(r=>[bmqData(r.created_at),...BMQ.map(q=>Number(r[q.k])||''),r.note||'']);
-  const tot=['Totale',...BMQ.map(q=>Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100||''),''];
+  const head=[...BMQ.map(q=>q.t),'Note'];
+  const body=rows.map(r=>[...BMQ.map(q=>Number(r[q.k])||''),r.note||'']);
+  const tot=[...BMQ.map(q=>Math.round(rows.reduce((t,r)=>t+(Number(r[q.k])||0),0)*100)/100||''),'Totale'];
   const nomeFile='bilancio-massa-quantitativi-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+new Date().toISOString().slice(0,10);
   try{
     if(!window.XLSX) throw new Error('libreria Excel non caricata');
     const ws=XLSX.utils.aoa_to_sheet([head,...body,tot]);
-    ws['!cols']=[{wch:12},{wch:19},{wch:17},{wch:22},{wch:24},{wch:15},{wch:28}];
+    ws['!cols']=[{wch:19},{wch:17},{wch:22},{wch:24},{wch:15},{wch:28}];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Altri quantitativi');
     XLSX.writeFile(wb,nomeFile+'.xlsx');
