@@ -175,6 +175,15 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
   .main-area{padding:20px 14px 60px;}
 }
 
+th.bm-th{cursor:pointer;user-select:none;}
+th.bm-th:hover{color:var(--ink);}
+th.bm-th .arrow{opacity:.35;margin-left:4px;font-size:.7em;}
+th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
+.bm-conferma{margin-top:14px;background:var(--amber);color:#1C2630;border-radius:6px;padding:12px 14px;}
+.bm-conferma p{margin:0 0 4px;font-weight:600;}
+.bm-conferma .btn{margin:8px 8px 0 0;}
+.bm-conferma .btn.ghost{border-color:#1C2630;color:#1C2630;}
+.bm-n{font-weight:400;color:var(--muted);font-size:.75rem;margin-left:4px;}
 .print-date{display:none;}
 @media print{
   .app.print-bm .col-left{display:block !important;}
@@ -256,20 +265,25 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
-          <input id="bpr-matricola" type="text" inputmode="numeric" list="bpr-list" placeholder="scrivi o scegli" autocomplete="off">
           <select id="bpr-select" aria-label="Scegli matricola dall'elenco" onchange="bmScegli('bpr')"><option value="">Elenco ▾</option></select>
+          <input id="bpr-matricola" type="text" list="bpr-list" placeholder="scrivi o scegli" autocomplete="off" autocapitalize="characters">
         </div>
       </div>
-      <div><label>Produzione (Mese/Anno)</label><input id="bpr-mese" type="text" placeholder="M/AA es. 9/24" maxlength="5" inputmode="numeric"></div>
+      <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 o 3/25" maxlength="5" inputmode="numeric"></div>
       <div><label>Numero forme</label><input id="bpr-forme" type="number" min="1" placeholder="es. 30"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bpr-list"></datalist>
     <p class="bm-note" id="bpr-elenco-info"></p>
     <button class="btn" id="bpr-submit" onclick="bmCarica('bpr')">Carica</button>
+    <div class="bm-conferma" id="bpr-conferma" style="display:none">
+      <p id="bpr-conferma-txt"></p>
+      <button class="btn" onclick="bmConferma('bpr',true)">Sì, è corretta: salva</button>
+      <button class="btn ghost" onclick="bmConferma('bpr',false)">No, modifica la matricola</button>
+    </div>
     <div class="msg" id="bpr-msg"></div>
 
-    <h3>Righe caricate</h3>
+    <h3>Riepilogo</h3>
     <p class="print-date" id="bpr-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bpr')">📊 Scarica Excel</button>
@@ -277,7 +291,13 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
+        <thead><tr>
+          <th class="bm-th" data-tab="bpr" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bpr" data-col="note">Note<span class="arrow">▲▼</span></th>
+          <th></th>
+        </tr></thead>
         <tbody id="bpr-tbody"></tbody>
       </table>
     </div>
@@ -290,20 +310,25 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
-          <input id="bgp-matricola" type="text" inputmode="numeric" list="bgp-list" placeholder="scrivi o scegli" autocomplete="off">
           <select id="bgp-select" aria-label="Scegli matricola dall'elenco" onchange="bmScegli('bgp')"><option value="">Elenco ▾</option></select>
+          <input id="bgp-matricola" type="text" list="bgp-list" placeholder="scrivi o scegli" autocomplete="off" autocapitalize="characters">
         </div>
       </div>
-      <div><label>Produzione (Mese/Anno)</label><input id="bgp-mese" type="text" placeholder="M/AA es. 9/24" maxlength="5" inputmode="numeric"></div>
+      <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 o 3/25" maxlength="5" inputmode="numeric"></div>
       <div><label>Numero forme</label><input id="bgp-forme" type="number" min="1" placeholder="es. 30"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bgp-list"></datalist>
     <p class="bm-note" id="bgp-elenco-info"></p>
     <button class="btn" id="bgp-submit" onclick="bmCarica('bgp')">Carica</button>
+    <div class="bm-conferma" id="bgp-conferma" style="display:none">
+      <p id="bgp-conferma-txt"></p>
+      <button class="btn" onclick="bmConferma('bgp',true)">Sì, è corretta: salva</button>
+      <button class="btn ghost" onclick="bmConferma('bgp',false)">No, modifica la matricola</button>
+    </div>
     <div class="msg" id="bgp-msg"></div>
 
-    <h3>Righe caricate</h3>
+    <h3>Riepilogo</h3>
     <p class="print-date" id="bgp-print-date"></p>
     <div class="table-toolbar bm-actions" style="margin-top:8px;">
       <button class="print-btn" onclick="bmExcel('bgp')">📊 Scarica Excel</button>
@@ -311,7 +336,13 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
     </div>
     <div class="table-wrap" style="margin-top:8px;">
       <table>
-        <thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
+        <thead><tr>
+          <th class="bm-th" data-tab="bgp" data-col="matricola">Matricola<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="mese">Produzione<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="forme">Forme<span class="arrow">▲▼</span></th>
+          <th class="bm-th" data-tab="bgp" data-col="note">Note<span class="arrow">▲▼</span></th>
+          <th></th>
+        </tr></thead>
         <tbody id="bgp-tbody"></tbody>
       </table>
     </div>
@@ -1234,16 +1265,47 @@ const MATRICOLE_BM={
   bgp:['BG508','BG509','BS604','BS605','BS615','BS620','BS627','BS634','BS639','BS647','BS654','BS657','CN903','CN911','CR101','CR103','CR105','CR106','CR112','CR122','LO205','LO210','LO214','LO215','MN401','MN405','MN408','MN419','MN423','MN437','MN443','MN448','MN449','MN460','MN481','PC503','PC509','PC517','PC521','PC524','PC527','PC537','PC546','PC547','PC552','PD707','RO808','VI602','VI610','VI613','VR908']
 };
 const BM_TIPO={ bpr:'PR', bgp:'GP' };
+const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
 const BM_TABLE='bilancio_massa';
 let BM_DATA={ PR:[], GP:[] };
 let BM_ERRORE=null;
+const BM_SORT={ bpr:{col:'matricola',dir:1}, bgp:{col:'matricola',dir:1} };
+const BM_EDIT={ bpr:null, bgp:null };      // chiave del gruppo in modifica
+const BM_GRUPPI={ bpr:[], bgp:[] };        // gruppi attualmente mostrati (stesso ordine della tabella)
+const BM_PENDING={ bpr:null, bgp:null };   // carico in attesa di conferma matricola nuova
+
+const bmNat=(a,b)=>String(a).localeCompare(String(b),'it',{numeric:true});
+function fmtMeseCorto(v){ return fmtMeseTesto(v).replace(/-\d{2}(\d{2})$/,'-$1'); }   // gen-25
+
+// Produzione: accetta 3/25, 03/25, 325 (= mar-25) e 1225 (= dic-25)
+function bmParseMese(str){
+  const t=(str||'').trim();
+  if(/^\d{1,2}\/\d{2}$/.test(t)) return parseMese(t);
+  let m=null;
+  if(/^\d{3}$/.test(t)) m=[t.slice(0,1),t.slice(1)];
+  else if(/^\d{4}$/.test(t)) m=[t.slice(0,2),t.slice(2)];
+  if(!m) return null;
+  const mese=parseInt(m[0],10);
+  if(mese<1||mese>12) return null;
+  return (2000+parseInt(m[1],10))+'-'+String(mese).padStart(2,'0');
+}
+function bmMeseInput(id){   // solo cifre e un'unica "/", niente barra automatica
+  const el=document.getElementById(id);
+  el.addEventListener('input',()=>{
+    let raw=el.value.replace(/[^0-9/]/g,'');
+    const k=raw.indexOf('/');
+    if(k!==-1) raw=raw.slice(0,k+1)+raw.slice(k+1).replace(/\//g,'');
+    el.value=raw.slice(0,5);
+  });
+}
 
 function bmMatricole(tab){
-  // elenco fisso + matricole già usate in questa pagina (così compaiono anche dopo il primo inserimento)
+  // elenco fisso + matricole già usate in questa pagina
   const usate=BM_DATA[BM_TIPO[tab]].map(r=>String(r.matricola));
-  return [...new Set([...MATRICOLE_BM[tab].map(String), ...usate])]
-    .sort((a,b)=>a.localeCompare(b,'it',{numeric:true}));
+  return [...new Set([...MATRICOLE_BM[tab].map(String), ...usate])].sort(bmNat);
 }
+function bmNota(m){ return String(m||'').trim().toUpperCase(); }
+function bmEraNota(tab,m){ return bmMatricole(tab).includes(m); }
 
 async function loadBilancio(){
   if(!sb) return;
@@ -1266,8 +1328,43 @@ async function loadBilancio(){
   renderBilancio('bpr'); renderBilancio('bgp');
 }
 
+// Righe con stessa matricola e stessa produzione -> un'unica riga di riepilogo
+function bmGruppi(tab){
+  const map=new Map();
+  BM_DATA[BM_TIPO[tab]].forEach(r=>{
+    const key=String(r.matricola)+'|'+(r.mese||'');
+    if(!map.has(key)) map.set(key,{key,matricola:String(r.matricola),mese:r.mese||'',forme:0,note:[],ids:[]});
+    const g=map.get(key);
+    g.forme+=Number(r.forme)||0;
+    g.ids.push(r.id);
+    const n=up(r.note).trim();
+    if(n && !g.note.includes(n)) g.note.push(n);
+  });
+  const st=BM_SORT[tab], d=st.dir;
+  return [...map.values()].map(g=>({...g,note:g.note.join(' · ')})).sort((a,b)=>{
+    let c=0;
+    if(st.col==='matricola') c=bmNat(a.matricola,b.matricola);
+    else if(st.col==='mese'){ c=(!a.mese&&!b.mese)?0:!a.mese?1:!b.mese?-1:(a.mese<b.mese?-1:a.mese>b.mese?1:0); }
+    else if(st.col==='forme') c=a.forme-b.forme;
+    else c=a.note.toLowerCase().localeCompare(b.note.toLowerCase(),'it');
+    if(c===0) c=bmNat(a.matricola,b.matricola)||(a.mese<b.mese?-1:a.mese>b.mese?1:0);
+    return c*d;
+  });
+}
+
+function bmPaintSort(tab){
+  document.querySelectorAll('th.bm-th[data-tab="'+tab+'"]').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    if(th.dataset.col===BM_SORT[tab].col) th.classList.add(BM_SORT[tab].dir===1?'sort-asc':'sort-desc');
+  });
+}
+document.querySelectorAll('th.bm-th').forEach(th=>th.addEventListener('click',()=>{
+  const tab=th.dataset.tab, st=BM_SORT[tab];
+  if(st.col===th.dataset.col) st.dir*=-1; else { st.col=th.dataset.col; st.dir=1; }
+  renderBilancio(tab);
+}));
+
 function renderBilancio(tab){
-  const rows=BM_DATA[BM_TIPO[tab]];
   const tbody=document.getElementById(tab+'-tbody');
   const count=document.getElementById(tab+'-count');
   const msg=document.getElementById(tab+'-msg');
@@ -1278,7 +1375,9 @@ function renderBilancio(tab){
   sel.innerHTML='<option value="">Elenco ▾</option>'+elenco.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
   sel.style.display=elenco.length?'':'none';
   document.getElementById(tab+'-elenco-info').textContent=elenco.length?'':'L\'elenco delle matricole non è ancora stato caricato: per ora scrivi la matricola a mano.';
+  bmPaintSort(tab);
   if(BM_ERRORE){
+    BM_GRUPPI[tab]=[];
     tbody.innerHTML='<tr class="empty-row"><td colspan="5">Tabella non raggiungibile.</td></tr>';
     count.textContent='';
     if(!msg.textContent || msg.className.includes('err')){
@@ -1287,37 +1386,141 @@ function renderBilancio(tab){
     }
     return;
   }
-  if(!rows.length){
+  const gruppi=bmGruppi(tab);
+  BM_GRUPPI[tab]=gruppi;
+  if(!gruppi.length){
     tbody.innerHTML='<tr class="empty-row"><td colspan="5">Nessuna riga caricata.</td></tr>';
     count.textContent='';
     return;
   }
-  const ord=bmRigheOrdinate(tab);
-  tbody.innerHTML=ord.map(r=>`<tr>
-    <td><b>${escapeHtml(String(r.matricola))}</b></td>
-    <td>${fmtMeseTesto(r.mese)}</td>
-    <td><b>${fmtNum(r.forme)}</b></td>
-    <td>${highlightNote(r.note)}</td>
-    <td><button class="del-btn" onclick="bmElimina('${tab}','${r.id}')" title="Elimina riga">✕</button></td>
-  </tr>`).join('');
-  count.textContent=`${rows.length} righe · ${fmtNum(rows.reduce((t,r)=>t+(Number(r.forme)||0),0))} forme totali`;
+  tbody.innerHTML=gruppi.map((g,i)=>{
+    if(BM_EDIT[tab]===g.key){
+      return `<tr class="editing-row">
+        <td><input type="text" id="${tab}-e-matricola" value="${escapeHtml(g.matricola)}" list="${tab}-list" autocapitalize="characters"></td>
+        <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseInput(g.mese):''}" placeholder="es. 325" maxlength="5" inputmode="numeric"></td>
+        <td><input type="number" id="${tab}-e-forme" min="1" value="${g.forme}"></td>
+        <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
+        <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
+      </tr>`;
+    }
+    return `<tr>
+      <td><b>${escapeHtml(g.matricola)}</b></td>
+      <td>${g.mese?fmtMeseCorto(g.mese):'—'}</td>
+      <td><b>${fmtNum(g.forme)}</b>${g.ids.length>1?`<span class="bm-n">(${g.ids.length} carichi)</span>`:''}</td>
+      <td>${highlightNote(g.note)}</td>
+      <td><button class="edit-btn" onclick="bmModifica('${tab}',${i})" title="Modifica riga">✏️</button><button class="del-btn" onclick="bmElimina('${tab}',${i})" title="Elimina riga">✕</button></td>
+    </tr>`;
+  }).join('');
+  if(BM_EDIT[tab]){
+    const nt=document.getElementById(tab+'-e-note'); if(nt) attachUppercase(tab+'-e-note');
+    const mm=document.getElementById(tab+'-e-mese'); if(mm) bmMeseInput(tab+'-e-mese');
+  }
+  count.textContent=`${gruppi.length} righe · ${fmtNum(gruppi.reduce((t,g)=>t+g.forme,0))} forme totali`;
 }
 
-const BM_NOME={ bpr:'Parmigiano Reggiano', bgp:'Grana Padano' };
-function bmRigheOrdinate(tab){
-  const rows=BM_DATA[BM_TIPO[tab]];
-  return [...rows].sort((a,b)=>String(a.matricola).localeCompare(String(b.matricola),'it',{numeric:true}) || String(a.mese||'').localeCompare(String(b.mese||'')));
+function bmScegli(tab){
+  const sel=document.getElementById(tab+'-select');
+  if(sel.value){ document.getElementById(tab+'-matricola').value=sel.value; sel.value=''; document.getElementById(tab+'-mese').focus(); }
+}
+
+function bmLeggiForm(tab){
+  const msg=document.getElementById(tab+'-msg');
+  const err=t=>{ msg.textContent=t; msg.className='msg err'; return null; };
+  const matricola=bmNota(document.getElementById(tab+'-matricola').value);
+  const meseStr=document.getElementById(tab+'-mese').value;
+  const forme=parseInt(document.getElementById(tab+'-forme').value,10);
+  const note=up(document.getElementById(tab+'-note').value.trim());
+  if(!matricola) return err('Inserisci la matricola.');
+  if(!meseStr) return err('Inserisci la produzione (mese/anno).');
+  const mese=bmParseMese(meseStr);
+  if(!mese) return err('Formato produzione non valido. Usa ad esempio 325 oppure 3/25 (marzo 2025).');
+  if(!forme || forme<=0) return err('Inserisci un numero di forme valido.');
+  return { matricola, mese, forme, note };
+}
+
+async function bmCarica(tab){
+  const box=document.getElementById(tab+'-conferma');
+  box.style.display='none'; BM_PENDING[tab]=null;
+  const d=bmLeggiForm(tab);
+  if(!d) return;
+  if(!bmEraNota(tab,d.matricola)){
+    BM_PENDING[tab]=d;
+    document.getElementById(tab+'-conferma-txt').textContent=`La matricola ${d.matricola} non è nell'elenco: è nuova. Sei sicuro di averla inserita correttamente?`;
+    document.getElementById(tab+'-msg').textContent='';
+    box.style.display='';
+    return;
+  }
+  await bmSalva(tab,d);
+}
+
+async function bmConferma(tab,si){
+  const box=document.getElementById(tab+'-conferma');
+  box.style.display='none';
+  const d=BM_PENDING[tab]; BM_PENDING[tab]=null;
+  if(si && d){ await bmSalva(tab,d); return; }
+  const el=document.getElementById(tab+'-matricola');
+  el.focus(); el.select();
+}
+
+async function bmSalva(tab,d){
+  const msg=document.getElementById(tab+'-msg');
+  const btn=document.getElementById(tab+'-submit');
+  btn.disabled=true;
+  const {error}=await sb.from(BM_TABLE).insert({ tipo:BM_TIPO[tab], matricola:d.matricola, mese:d.mese, forme:d.forme, note:d.note });
+  btn.disabled=false;
+  if(error){ msg.textContent='Salvataggio non riuscito: '+error.message; msg.className='msg err'; return; }
+  msg.textContent=`Caricato: matricola ${d.matricola}, produzione ${fmtMeseCorto(d.mese)}, ${fmtNum(d.forme)} forme.`;
+  msg.className='msg ok';
+  ['matricola','mese','forme','note'].forEach(k=>document.getElementById(tab+'-'+k).value='');
+  await loadBilancio();
+  document.getElementById(tab+'-matricola').focus();
+}
+
+function bmModifica(tab,i){ BM_EDIT[tab]=BM_GRUPPI[tab][i].key; renderBilancio(tab); const el=document.getElementById(tab+'-e-matricola'); if(el) el.focus(); }
+function bmAnnullaModifica(tab){ BM_EDIT[tab]=null; renderBilancio(tab); }
+
+async function bmSalvaModifica(tab,i){
+  const g=BM_GRUPPI[tab][i]; if(!g) return;
+  const matricola=bmNota(document.getElementById(tab+'-e-matricola').value);
+  const mese=bmParseMese(document.getElementById(tab+'-e-mese').value);
+  const forme=parseInt(document.getElementById(tab+'-e-forme').value,10);
+  const note=up(document.getElementById(tab+'-e-note').value.trim());
+  if(!matricola){ alert('Inserisci la matricola.'); return; }
+  if(!mese){ alert('Formato produzione non valido. Usa ad esempio 325 oppure 3/25.'); return; }
+  if(!forme || forme<=0){ alert('Inserisci un numero di forme valido.'); return; }
+  if(matricola!==g.matricola && !bmEraNota(tab,matricola)){
+    if(!confirm(`La matricola ${matricola} non è nell'elenco: è nuova. Sei sicuro di averla inserita correttamente?`)) return;
+  }
+  const {error}=await sb.from(BM_TABLE).update({ matricola, mese, forme, note }).eq('id',g.ids[0]);
+  if(error){ alert('Modifica non riuscita: '+error.message); return; }
+  // se la riga era un gruppo di più carichi, diventa un'unica riga con i nuovi valori
+  for(const id of g.ids.slice(1)){
+    const r=await sb.from(BM_TABLE).delete().eq('id',id);
+    if(r.error){ alert('Modifica non completata: '+r.error.message); break; }
+  }
+  BM_EDIT[tab]=null;
+  await loadBilancio();
+}
+
+async function bmElimina(tab,i){
+  const g=BM_GRUPPI[tab][i]; if(!g) return;
+  if(g.ids.length>1 && !confirm(`Questa riga raggruppa ${g.ids.length} carichi (matricola ${g.matricola}, produzione ${g.mese?fmtMeseCorto(g.mese):'—'}). Eliminarli tutti?`)) return;
+  for(const id of g.ids){
+    const {error}=await sb.from(BM_TABLE).delete().eq('id',id);
+    if(error){ alert('Eliminazione non riuscita: '+error.message); break; }
+  }
+  await loadBilancio();
 }
 
 function bmExcel(tab){
-  const rows=bmRigheOrdinate(tab);
+  const rows=BM_GRUPPI[tab];
   if(!rows.length){ alert('Nessuna riga da esportare.'); return; }
   const head=['Matricola','Produzione','Forme','Note'];
-  const body=rows.map(r=>[
-    /^\d+$/.test(String(r.matricola)) ? Number(r.matricola) : String(r.matricola),
-    r.mese ? fmtMeseTesto(r.mese).replace(/-\d{2}(\d{2})$/,'-$1') : '',
-    Number(r.forme)||0,
-    up(r.note)
+  const body=rows.map(g=>[
+    /^\d+$/.test(g.matricola) ? Number(g.matricola) : g.matricola,
+    g.mese ? fmtMeseCorto(g.mese) : '',
+    g.forme,
+    g.note.replace(/ · /g,', ')
   ]);
   const oggi=new Date().toISOString().slice(0,10);
   const nomeFile='bilancio-massa-'+BM_NOME[tab].toLowerCase().replace(/ /g,'-')+'-'+oggi;
@@ -1330,7 +1533,7 @@ function bmExcel(tab){
     XLSX.writeFile(wb,nomeFile+'.xlsx');
   }catch(e){
     const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
-    const csv='\uFEFF'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
+    const csv='﻿'+[head,...body].map(r=>r.map(esc).join(';')).join('\r\n');
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob); a.download=nomeFile+'.csv';
@@ -1339,7 +1542,7 @@ function bmExcel(tab){
 }
 
 function bmStampa(tab){
-  if(!BM_DATA[BM_TIPO[tab]].length){ alert('Nessuna riga da stampare.'); return; }
+  if(!BM_GRUPPI[tab].length){ alert('Nessuna riga da stampare.'); return; }
   const app=document.querySelector('.app');
   const panel=document.getElementById('panel-'+tab);
   document.getElementById(tab+'-print-date').textContent='Stampato il '+new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -1349,40 +1552,7 @@ function bmStampa(tab){
   window.print();
 }
 
-function bmScegli(tab){
-  const sel=document.getElementById(tab+'-select');
-  if(sel.value){ document.getElementById(tab+'-matricola').value=sel.value; sel.value=''; document.getElementById(tab+'-mese').focus(); }
-}
-
-async function bmCarica(tab){
-  const matricola=document.getElementById(tab+'-matricola').value.trim();
-  const meseStr=document.getElementById(tab+'-mese').value;
-  const forme=parseInt(document.getElementById(tab+'-forme').value,10);
-  const note=up(document.getElementById(tab+'-note').value.trim());
-  const msg=document.getElementById(tab+'-msg');
-  if(!matricola){ msg.textContent='Inserisci la matricola.'; msg.className='msg err'; return; }
-  if(!meseStr){ msg.textContent='Inserisci la produzione (mese/anno).'; msg.className='msg err'; return; }
-  const mese=parseMese(meseStr);
-  if(!mese){ msg.textContent='Formato produzione non valido. Usa M/AA o MM/AA, es. 9/24.'; msg.className='msg err'; return; }
-  if(!forme || forme<=0){ msg.textContent='Inserisci un numero di forme valido.'; msg.className='msg err'; return; }
-  const btn=document.getElementById(tab+'-submit');
-  btn.disabled=true;
-  const {error}=await sb.from(BM_TABLE).insert({ tipo:BM_TIPO[tab], matricola, mese, forme, note });
-  btn.disabled=false;
-  if(error){ msg.textContent='Salvataggio non riuscito: '+error.message; msg.className='msg err'; return; }
-  msg.textContent=`Caricato: matricola ${matricola}, produzione ${fmtMeseTesto(mese)}, ${fmtNum(forme)} forme.`;
-  msg.className='msg ok';
-  ['matricola','mese','forme','note'].forEach(k=>document.getElementById(tab+'-'+k).value='');
-  document.getElementById(tab+'-matricola').focus();
-  await loadBilancio();
-}
-
-async function bmElimina(tab,id){
-  const {error}=await sb.from(BM_TABLE).delete().eq('id',id);
-  if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
-  await loadBilancio();
-}
-['bpr','bgp'].forEach(t=>{ attachMeseAutoFormat(t+'-mese'); attachUppercase(t+'-note'); });
+['bpr','bgp'].forEach(t=>{ bmMeseInput(t+'-mese'); attachUppercase(t+'-note'); attachUppercase(t+'-matricola'); });
 
 async function init(){
   ['sc','pg','pl'].forEach(paintSortHeaders);
