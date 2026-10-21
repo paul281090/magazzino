@@ -270,7 +270,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
         </div>
       </div>
       <div><label>Produzione</label><input id="bpr-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
-      <div><label>Numero forme</label><input id="bpr-forme" type="number" min="1" placeholder="es. 30"></div>
+      <div><label>Numero forme</label><input id="bpr-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div><label>Tipologia</label><input id="bpr-tipologia" type="text" list="bpr-tip-list" placeholder="es. BIO" autocomplete="off"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bpr-note" type="text" placeholder="facoltativo"></div>
     </div>
@@ -318,7 +318,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
         </div>
       </div>
       <div><label>Produzione</label><input id="bgp-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
-      <div><label>Numero forme</label><input id="bgp-forme" type="number" min="1" placeholder="es. 30"></div>
+      <div><label>Numero forme</label><input id="bgp-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="bgp-note" type="text" placeholder="facoltativo"></div>
     </div>
     <datalist id="bgp-list"></datalist>
@@ -359,7 +359,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <div><label>Scalera</label><input id="c-scalera" type="number" placeholder="es. 1"></div>
       <div><label>Matricola</label><input id="c-matricola" type="number" placeholder="es. 703"></div>
       <div><label>Mese/Anno</label><input id="c-mese" type="text" placeholder="es. 325 = mar-25" maxlength="8"></div>
-      <div><label>Forme</label><input id="c-forme" type="number" min="0" placeholder="es. 30"></div>
+      <div><label>Forme</label><input id="c-forme" class="calc" type="text" autocomplete="off" placeholder="es. 30 o =100+50"></div>
       <div><label>Tipologia</label><input id="c-tipologia" list="tip-list" placeholder="es. BIO"></div>
       <div style="grid-column:1/-1"><label>Note</label><input id="c-note" type="text" placeholder="facoltativo"></div>
     </div>
@@ -750,6 +750,55 @@ attachUppercase('c-tipologia');
 attachUppercase('c-note');
 
 function up(s){ return (s||'').toString().toUpperCase(); }
+// ====== Calcolo nel campo forme: =100+50 -> 150 (anche - * / e parentesi) ======
+function calcForme(testo){
+  let t=String(testo==null?'':testo).trim();
+  if(t.startsWith('=')) t=t.slice(1);
+  t=t.replace(/\s+/g,'').replace(/×/g,'*').replace(/÷/g,'/').replace(/,/g,'.');
+  if(!t || !/^[0-9+\-*/().]+$/.test(t)) return NaN;
+  let i=0;
+  const peek=()=>t[i];
+  function numero(){
+    let m=t.slice(i).match(/^\d+(\.\d+)?/);
+    if(!m) throw 0;
+    i+=m[0].length; return parseFloat(m[0]);
+  }
+  function fattore(){
+    if(peek()==='-'){ i++; return -fattore(); }
+    if(peek()==='+'){ i++; return fattore(); }
+    if(peek()==='('){ i++; const v=somma(); if(peek()!==')') throw 0; i++; return v; }
+    return numero();
+  }
+  function prodotto(){
+    let v=fattore();
+    while(peek()==='*'||peek()==='/'){ const op=t[i++]; const f=fattore(); if(op==='/'){ if(f===0) throw 0; v/=f; } else v*=f; }
+    return v;
+  }
+  function somma(){
+    let v=prodotto();
+    while(peek()==='+'||peek()==='-'){ const op=t[i++]; const f=prodotto(); v=op==='+'?v+f:v-f; }
+    return v;
+  }
+  try{
+    const v=somma();
+    if(i!==t.length || !isFinite(v) || !Number.isInteger(v)) return NaN;   // le forme sono numeri interi
+    return v;
+  }catch(e){ return NaN; }
+}
+function leggiForme(id){ const el=document.getElementById(id); return el?calcForme(el.value):NaN; }
+// quando si esce dal campo (o si preme Invio) l'operazione viene sostituita dal risultato
+function applicaCalcolo(el){
+  if(!el.classList.contains('calc')) return;
+  const v=el.value.trim();
+  if(!/[+\-*/=×÷()]/.test(v.replace(/^-/,''))) return;     // niente operazioni: nulla da fare
+  const n=calcForme(v);
+  if(!isNaN(n)){ el.value=String(n); el.title=''; el.style.outline=''; }
+  else { el.style.outline='2px solid var(--danger)'; el.title='Operazione non valida: usa solo numeri interi, + e -'; }
+}
+document.addEventListener('focusout',e=>{ if(e.target.classList) applicaCalcolo(e.target); });
+document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList) applicaCalcolo(e.target); });
+document.addEventListener('input',e=>{ if(e.target.classList && e.target.classList.contains('calc')){ e.target.style.outline=''; e.target.title=''; } });
+
 function fmtNum(n){ return Number(n||0).toLocaleString('it-IT'); }
 
 const MATRICOLA_OPTIONAL=['GRAN BON','SBIANCATO','RETINATO'];
@@ -761,7 +810,7 @@ async function caricaMerce(){
   const scalera=document.getElementById('c-scalera').value;
   const matricola=document.getElementById('c-matricola').value;
   const meseStr=document.getElementById('c-mese').value;
-  const forme=parseFloat(document.getElementById('c-forme').value);
+  const forme=leggiForme('c-forme');
   const tipologia=up(document.getElementById('c-tipologia').value.trim());
   const note=up(document.getElementById('c-note').value.trim());
   const msg=document.getElementById('c-msg');
@@ -830,7 +879,7 @@ async function saveInlineEdit(id){
   const scalera=document.getElementById('ir-scalera-'+id).value;
   const matricola=document.getElementById('ir-matricola-'+id).value;
   const meseStr=document.getElementById('ir-mese-'+id).value;
-  const forme=parseFloat(document.getElementById('ir-forme-'+id).value);
+  const forme=leggiForme('ir-forme-'+id);
   const tipologia=up(document.getElementById('ir-tipologia-'+id).value.trim());
   const note=up(document.getElementById('ir-note-'+id).value.trim());
 
@@ -899,7 +948,7 @@ function renderScaricoList(){
       <td>${fmtMese(r.mese)}</td>
       <td>${fmtNum(r.forme)}</td>
       <td>${tipologiaUp?`<span class="badge ${badgeClass(tipologiaUp)}">${escapeHtml(tipologiaUp)}</span>`:'—'}</td>
-      <td><input type="number" min="1" id="sc-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+      <td><input type="text" class="calc" autocomplete="off" id="sc-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
       <td><button class="edit-btn" onclick="scaricoSalva('${r.id}')" title="Salva scarico">💾</button><button class="del-btn" onclick="scaricoElimina('${r.id}')" title="Elimina riga">✕</button></td>
     </tr>`;
   }).join('');
@@ -911,7 +960,7 @@ async function scaricoSalva(id){
   const msg=document.getElementById('s-msg');
   if(!rec) return;
   const input=document.getElementById('sc-qty-'+id);
-  const qty=parseFloat(input.value);
+  const qty=calcForme(input.value);
   if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
   if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme disponibili (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
   const rimanenti=rec.forme-qty;
@@ -1062,7 +1111,7 @@ function renderEditableRow(r){
     <td><input type="number" id="ir-matricola-${r.id}" value="${r.matricola??''}" placeholder="—"></td>
     <td><input type="text" id="ir-mese-${r.id}" value="${r.mese?fmtMeseCorto(r.mese):''}" placeholder="es. 325" maxlength="8"></td>
     <td class="stag">${fmtStag(r.mese)}${stagionatura(r.mese)!==null?' <small class="mm">mesi</small>':''}</td>
-    <td><input type="number" id="ir-forme-${r.id}" value="${r.forme}"></td>
+    <td><input type="text" class="calc" autocomplete="off" id="ir-forme-${r.id}" value="${r.forme}"></td>
     <td><input type="text" id="ir-tipologia-${r.id}" value="${escapeHtml(up(r.tipologia))}" list="tip-list"></td>
     <td><input type="text" id="ir-note-${r.id}" value="${escapeHtml(up(r.note))}"></td>
     <td><button class="edit-btn" onclick="saveInlineEdit('${r.id}')" title="Salva">💾</button><button class="del-btn" onclick="cancelInlineEdit()" title="Annulla">✕</button></td>
@@ -1253,7 +1302,7 @@ function renderPegno(){
         <td>${fmtMese(r.mese)}</td>
         <td>${fmtNum(r.forme)}</td>
         <td>${highlightNote(r.note)}</td>
-        <td><input type="number" min="1" id="pg-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><input type="text" class="calc" autocomplete="off" id="pg-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
         <td><button class="edit-btn" onclick="pegnoScarica('${r.id}')" title="Scarica dal pegno">💾</button></td>
       </tr>`).join('');
 
@@ -1265,7 +1314,7 @@ function renderPegno(){
         <td>${fmtMese(r.mese)}</td>
         <td>${fmtNum(r.forme)}</td>
         <td>${highlightNote(r.note)}</td>
-        <td><input type="number" min="1" id="pl-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
+        <td><input type="text" class="calc" autocomplete="off" id="pl-qty-${r.id}" placeholder="quantità" style="width:100px"></td>
         <td><button class="edit-btn" onclick="pegnoCarica('${r.id}')" title="Metti in pegno">💾</button></td>
       </tr>`).join('');
 
@@ -1279,7 +1328,7 @@ async function pegnoScarica(id){
   const msg=document.getElementById('pg-msg');
   if(!rec) return;
   const input=document.getElementById('pg-qty-'+id);
-  const qty=parseFloat(input.value);
+  const qty=calcForme(input.value);
   if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
   if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme in pegno (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
   const {error}=await sb.rpc('rilascia_pegno',{p_id:id, p_qty:qty});
@@ -1298,7 +1347,7 @@ async function pegnoCarica(id){
   const msg=document.getElementById('pg-msg');
   if(!rec) return;
   const input=document.getElementById('pl-qty-'+id);
-  const qty=parseFloat(input.value);
+  const qty=calcForme(input.value);
   const banca=document.getElementById('pl-banca').value;
   if(!qty || qty<=0){ msg.textContent='Inserisci una quantità valida.'; msg.className='msg err'; return; }
   if(qty>rec.forme){ msg.textContent=`Quantità superiore alle forme libere (${fmtNum(rec.forme)}).`; msg.className='msg err'; return; }
@@ -1441,7 +1490,7 @@ function renderBilancio(tab){
       return `<tr class="editing-row">
         <td><input type="text" id="${tab}-e-matricola" value="${escapeHtml(g.matricola)}" list="${tab}-list" autocapitalize="characters"></td>
         <td><input type="text" id="${tab}-e-mese" value="${g.mese?fmtMeseCorto(g.mese):''}" placeholder="es. 325" maxlength="8"></td>
-        <td><input type="number" id="${tab}-e-forme" min="1" value="${g.forme}"></td>
+        <td><input type="text" class="calc" autocomplete="off" id="${tab}-e-forme" value="${g.forme}"></td>
         ${bmHasTip(tab)?`<td><input type="text" id="${tab}-e-tipologia" value="${escapeHtml(g.tipologia)}" list="${tab}-tip-list"></td>`:''}
         <td><input type="text" id="${tab}-e-note" value="${escapeHtml(g.note.replace(/ · /g,' '))}"></td>
         <td><button class="edit-btn" onclick="bmSalvaModifica('${tab}',${i})" title="Salva">💾</button><button class="del-btn" onclick="bmAnnullaModifica('${tab}')" title="Annulla">✕</button></td>
@@ -1474,7 +1523,7 @@ function bmLeggiForm(tab){
   const err=t=>{ msg.textContent=t; msg.className='msg err'; return null; };
   const matricola=bmNota(document.getElementById(tab+'-matricola').value);
   const meseStr=document.getElementById(tab+'-mese').value;
-  const forme=parseInt(document.getElementById(tab+'-forme').value,10);
+  const forme=leggiForme(tab+'-forme');
   const note=up(document.getElementById(tab+'-note').value.trim());
   if(!matricola) return err('Inserisci la matricola.');
   if(!meseStr) return err('Inserisci la produzione (mese/anno).');
@@ -1537,7 +1586,7 @@ async function bmSalvaModifica(tab,i){
   const g=BM_GRUPPI[tab][i]; if(!g) return;
   const matricola=bmNota(document.getElementById(tab+'-e-matricola').value);
   const mese=bmParseMese(document.getElementById(tab+'-e-mese').value);
-  const forme=parseInt(document.getElementById(tab+'-e-forme').value,10);
+  const forme=leggiForme(tab+'-e-forme');
   const note=up(document.getElementById(tab+'-e-note').value.trim());
   const tipologia=bmHasTip(tab)?up(document.getElementById(tab+'-e-tipologia').value.trim()):'';
   if(!matricola){ alert('Inserisci la matricola.'); return; }
