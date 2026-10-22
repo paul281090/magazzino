@@ -2103,6 +2103,20 @@ function bmqStampa(tab){
 const ARCH_TABLE='bilancio_massa_archivio';
 let ARCH_DATA=[], ARCH_ERRORE=null;
 const ARCH_APERTI=new Set();
+// ordinamento delle colonne nelle tabelle di Archivio bilanci e Inventari (clic = crescente, secondo clic = decrescente)
+const TAB_SORT={};
+function sortTh(label,key,col,fn,def){
+  const st=TAB_SORT[key]||def||{col:null,dir:1};
+  const cls=st.col===col?(st.dir===1?' sort-asc':' sort-desc'):'';
+  return `<th class="bm-th${cls}" onclick="${fn}('${key}','${col}')">${label}<span class="arrow">▲▼</span></th>`;
+}
+function sortToggle(key,col,def){
+  const st=TAB_SORT[key]||def||{col:null,dir:1};
+  TAB_SORT[key]=st.col===col?{col,dir:-st.dir}:{col,dir:1};
+}
+const cmpTxt=(a,b)=>String(a||'').toLowerCase().localeCompare(String(b||'').toLowerCase(),'it',{numeric:true});
+function archSort(key,col){ sortToggle(key,col,key.endsWith(':f')?{col:'matricola',dir:1}:null); renderArchivio(); }
+function invSort(key,col){ sortToggle(key,col,{col:'matricola',dir:1}); renderInventari(); }
 async function loadArchivio(){
   if(!sb) return;
   try{
@@ -2148,17 +2162,32 @@ function archTotali(a){
 }
 function archDettaglioHtml(a){
   const tab=a.tipo==='PR'?'bpr':'bgp', tip=bmHasTip(tab);
-  const g=bmGruppiDa(a.forme||[],tab,{col:'matricola',dir:1});
+  const kf=a.id+':f', kq=a.id+':q';
+  const sf=TAB_SORT[kf]||{col:'matricola',dir:1};
+  const g=bmGruppiDa(a.forme||[],tab,sf);
   const tot=archTotali(a);
+  const defF={col:'matricola',dir:1};
+  const th=(l,c)=>sortTh(l,kf,c,'archSort',defF);
   let h='<h4>Forme</h4>';
   if(!g.length) h+='<p class="bm-note">Nessuna riga di forme.</p>';
-  else h+=`<div class="table-wrap"><table><thead><tr><th>Matricola</th><th>Produzione</th><th>Forme</th>${tip?'<th>Tipologia</th>':''}<th>Note</th></tr></thead><tbody>`+
+  else h+=`<div class="table-wrap"><table><thead><tr>${th('Matricola','matricola')}${th('Produzione','mese')}${th('Forme','forme')}${tip?th('Tipologia','tipologia'):''}${th('Note','note')}</tr></thead><tbody>`+
     g.map(x=>`<tr><td>${escapeHtml(x.matricola)}</td><td>${x.mese?fmtMeseCorto(x.mese):'—'}</td><td>${fmtNum(x.forme)}${x.ids.length>1?`<span class="bm-n">(${x.ids.length} carichi)</span>`:''}</td>${tip?`<td>${x.tipologia?`<span class="badge ${badgeClass(x.tipologia)}">${escapeHtml(x.tipologia)}</span>`:'—'}</td>`:''}<td>${highlightNote(x.note)}</td></tr>`).join('')+
     `<tr class="bm-tot"><td>Totale</td><td></td><td>${fmtNum(tot.forme)}</td>${tip?'<td></td>':''}<td></td></tr></tbody></table></div>`;
   h+='<h4>Altri quantitativi</h4>';
-  if(!tot.righeQ.length) h+='<p class="bm-note">Nessun quantitativo.</p>';
-  else h+=`<div class="table-wrap"><table><thead><tr>${BMQ.map(q=>`<th>${q.h}</th>`).join('')}<th>Note</th></tr></thead><tbody>`+
-    tot.righeQ.map(r=>`<tr>${BMQ.map(q=>`<td class="bm-q">${r.cells[q.id]?bmqVal(q,r.cells[q.id].val):'—'}</td>`).join('')}<td>${highlightNote(r.note)}</td></tr>`).join('')+
+  const sq=TAB_SORT[kq];
+  let rq=[...tot.righeQ];
+  if(sq && sq.col){
+    rq.sort((x,y)=>{
+      if(sq.col==='note') return cmpTxt(x.note,y.note)*sq.dir;
+      const vx=x.cells[sq.col]?x.cells[sq.col].val:null, vy=y.cells[sq.col]?y.cells[sq.col].val:null;
+      if(vx===null&&vy===null) return 0; if(vx===null) return 1; if(vy===null) return -1;   // celle vuote sempre in fondo
+      return (vx-vy)*sq.dir;
+    });
+  }
+  const thq=(l,c)=>sortTh(l,kq,c,'archSort',null);
+  if(!rq.length) h+='<p class="bm-note">Nessun quantitativo.</p>';
+  else h+=`<div class="table-wrap"><table><thead><tr>${BMQ.map(q=>thq(q.h,q.id)).join('')}${thq('Note','note')}</tr></thead><tbody>`+
+    rq.map(r=>`<tr>${BMQ.map(q=>`<td class="bm-q">${r.cells[q.id]?bmqVal(q,r.cells[q.id].val):'—'}</td>`).join('')}<td>${highlightNote(r.note)}</td></tr>`).join('')+
     `<tr class="bm-tot">${BMQ.map(q=>`<td class="bm-q">${bmqVal(q,tot.q[q.id])}</td>`).join('')}<td>Totale</td></tr></tbody></table></div>`;
   return h;
 }
@@ -2288,11 +2317,24 @@ function renderInventari(){
 }
 function invRighe(a){
   const rif=new Date(String(a.data_conta).slice(0,10)+'T12:00:00');
-  return a.righe.map(r=>({...r,stag:r.mese?stagionatura(r.mese,rif):null})).sort((x,y)=>compareMatricolaAware(parseMatricola(x.matricola),parseMatricola(y.matricola),1)||(x.mese<y.mese?-1:x.mese>y.mese?1:0));
+  const st=TAB_SORT[a.id+':i']||{col:'matricola',dir:1}, d=st.dir;
+  const vuoto=v=>v===null||v===undefined||v==='';
+  const cmpMese=(x,y)=>x.mese<y.mese?-1:x.mese>y.mese?1:0;
+  return a.righe.map(r=>({...r,stag:r.mese?stagionatura(r.mese,rif):null})).sort((x,y)=>{
+    let c=0;
+    if(st.col==='matricola') c=vuoto(x.matricola)&&vuoto(y.matricola)?0:vuoto(x.matricola)?1*d:vuoto(y.matricola)?-1*d:compareMatricolaAware(parseMatricola(x.matricola),parseMatricola(y.matricola),1);
+    else if(st.col==='scalera') c=(Number(x.scalera)||0)-(Number(y.scalera)||0);
+    else if(st.col==='forme') c=(Number(x.forme)||0)-(Number(y.forme)||0);
+    else if(st.col==='mese') c=(!x.mese&&!y.mese)?0:!x.mese?1*d:!y.mese?-1*d:cmpMese(x,y);
+    else if(st.col==='stag') c=(x.stag===null&&y.stag===null)?0:x.stag===null?1*d:y.stag===null?-1*d:x.stag-y.stag;
+    else { const ex=!x[st.col], ey=!y[st.col]; if(ex&&ey) c=0; else if(ex) return 1; else if(ey) return -1; else c=cmpTxt(x[st.col],y[st.col]); }   // celle vuote sempre in fondo
+    if(c===0 && st.col!=='matricola') c=compareMatricolaAware(parseMatricola(x.matricola),parseMatricola(y.matricola),1);
+    return c*d;
+  });
 }
 function invDettaglioHtml(a){
   const righe=invRighe(a), t=invTot(a.righe);
-  return `<div class="table-wrap"><table><thead><tr><th>Scalera</th><th>Matricola</th><th>Mese/Anno</th><th>Stagionatura</th><th>Forme</th><th>Tipologia</th><th>Note</th></tr></thead><tbody>`+
+  return `<div class="table-wrap"><table><thead><tr>${[['Scalera','scalera'],['Matricola','matricola'],['Mese/Anno','mese'],['Stagionatura','stag'],['Forme','forme'],['Tipologia','tipologia'],['Note','note']].map(([l,c])=>sortTh(l,a.id+':i',c,'invSort',{col:'matricola',dir:1})).join('')}</tr></thead><tbody>`+
     righe.map(r=>`<tr><td>${r.scalera}</td><td>${r.matricola?escapeHtml(String(r.matricola)):'—'}</td><td>${r.mese?fmtMeseCorto(r.mese):'—'}</td><td>${r.stag===null?'—':r.stag+' mesi'}</td><td>${fmtNum(r.forme)}</td><td>${r.tipologia?`<span class="badge ${badgeClass(r.tipologia)}">${escapeHtml(r.tipologia)}</span>`:'—'}</td><td>${highlightNote(r.note||'')}</td></tr>`).join('')+
     `<tr class="bm-tot"><td>Totale</td><td></td><td></td><td></td><td>${fmtNum(t.forme)}</td><td></td><td></td></tr></tbody></table></div>`;
 }
