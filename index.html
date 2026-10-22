@@ -174,6 +174,9 @@ table.gx input{width:100%;min-width:0;padding:7px 8px;font-size:.92rem;}
 table.gx td:nth-child(2) input{width:70px;} table.gx td:nth-child(3) input{width:120px;} table.gx td:nth-child(4) input{width:100px;} table.gx td:nth-child(5) input{width:90px;}
 table.gx td:nth-child(6) input{width:140px;}
 table.gx td.gx-stag{font-size:.82rem;color:var(--muted);white-space:nowrap;}
+table.bg-t{min-width:700px;}
+table.bg-t td:nth-child(2) input{width:130px;} table.bg-t td:nth-child(3) input{width:110px;} table.bg-t td:nth-child(4) input{width:100px;}
+table.bg-t td:nth-child(5) input{width:100%;}
 table.gx input.gx-err{outline:2px solid var(--danger);}
 .gx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;}
 .gx-bar .gx-tot{margin-left:auto;font-size:.85rem;color:var(--muted);}
@@ -326,6 +329,26 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="btn ghost" onclick="bmChiudiAnnulla('bpr')">Annulla</button></div>
     </div>
     <div class="msg" id="bpr-chiudi-msg"></div>
+
+    <div class="seg" role="tablist">
+      <button type="button" id="bpr-seg-sing" class="on" onclick="bgModo('bpr','singolo')">Inserimento singolo</button>
+      <button type="button" id="bpr-seg-tab" onclick="bgModo('bpr','tabella')">Tabella veloce</button>
+    </div>
+    <div id="bpr-tabella" style="display:none">
+      <p class="bm-note" style="margin-top:0">Compila per colonna: <b>Invio</b> scende alla riga sotto, <b>Tab</b> va alla cella a destra. Puoi incollare più righe da Excel (Matricola, Produzione, Forme, Tipologia, Note). Le righe vuote vengono ignorate.</p>
+      <div class="table-wrap gx-wrap"><table class="gx bg-t">
+        <thead><tr><th>#</th><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Tipologia</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bpr-bg-body"></tbody>
+      </table></div>
+      <div class="gx-bar">
+        <button class="btn ghost" type="button" onclick="bgAggiungi('bpr',10)">+ 10 righe</button>
+        <button class="btn ghost" type="button" onclick="bgSvuota('bpr')">Svuota tabella</button>
+        <span class="gx-tot" id="bpr-bg-tot"></span>
+        <button class="btn" type="button" id="bpr-bg-submit" onclick="bgCarica('bpr')">Carica tutte le righe</button>
+      </div>
+      <div class="msg" id="bpr-bg-msg"></div>
+    </div>
+    <div id="bpr-singolo">
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
@@ -348,6 +371,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="btn ghost" onclick="bmConferma('bpr',false)">No, modifica la matricola</button>
     </div>
     <div class="msg" id="bpr-msg"></div>
+    </div>
 
     <div class="bm-quant">
       <div class="bm-quant-t">Altri quantitativi <span>(kg · si caricano da soli, senza matricola e produzione)</span></div>
@@ -412,6 +436,26 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="btn ghost" onclick="bmChiudiAnnulla('bgp')">Annulla</button></div>
     </div>
     <div class="msg" id="bgp-chiudi-msg"></div>
+
+    <div class="seg" role="tablist">
+      <button type="button" id="bgp-seg-sing" class="on" onclick="bgModo('bgp','singolo')">Inserimento singolo</button>
+      <button type="button" id="bgp-seg-tab" onclick="bgModo('bgp','tabella')">Tabella veloce</button>
+    </div>
+    <div id="bgp-tabella" style="display:none">
+      <p class="bm-note" style="margin-top:0">Compila per colonna: <b>Invio</b> scende alla riga sotto, <b>Tab</b> va alla cella a destra. Puoi incollare più righe da Excel (Matricola, Produzione, Forme, Note). Le righe vuote vengono ignorate.</p>
+      <div class="table-wrap gx-wrap"><table class="gx bg-t">
+        <thead><tr><th>#</th><th>Matricola</th><th>Produzione</th><th>Forme</th><th>Note</th><th></th></tr></thead>
+        <tbody id="bgp-bg-body"></tbody>
+      </table></div>
+      <div class="gx-bar">
+        <button class="btn ghost" type="button" onclick="bgAggiungi('bgp',10)">+ 10 righe</button>
+        <button class="btn ghost" type="button" onclick="bgSvuota('bgp')">Svuota tabella</button>
+        <span class="gx-tot" id="bgp-bg-tot"></span>
+        <button class="btn" type="button" id="bgp-bg-submit" onclick="bgCarica('bgp')">Carica tutte le righe</button>
+      </div>
+      <div class="msg" id="bgp-bg-msg"></div>
+    </div>
+    <div id="bgp-singolo">
     <div class="grid">
       <div class="bm-mat"><label>Matricola</label>
         <div class="mini-row">
@@ -432,6 +476,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="btn ghost" onclick="bmConferma('bgp',false)">No, modifica la matricola</button>
     </div>
     <div class="msg" id="bgp-msg"></div>
+    </div>
 
     <div class="bm-quant">
       <div class="bm-quant-t">Altri quantitativi <span>(kg · si caricano da soli, senza matricola e produzione)</span></div>
@@ -2516,6 +2561,121 @@ function gxElencoMatricole(){
   dl.innerHTML=[...new Set([...bmMatricole('bpr'),...bmMatricole('bgp'),...DATA.map(r=>r.matricola).filter(x=>x!==null&&x!=='').map(String)])].sort(bmNat).map(m=>`<option value="${escapeHtml(m)}">`).join('');
 }
 gxAggiungi(10);
+
+// ====== TABELLA VELOCE NEI BILANCI DI MASSA
+const BG_N={ bpr:0, bgp:0 };
+const bgCols=tab=>bmHasTip(tab)?['ma','me','fo','ti','no']:['ma','me','fo','no'];
+const bgId=(tab,i,c)=>`bg-${tab}${i}-${c}`;
+function bgModo(tab,m,focus=true){
+  document.getElementById(tab+'-tabella').style.display=m==='tabella'?'':'none';
+  document.getElementById(tab+'-singolo').style.display=m==='singolo'?'':'none';
+  document.getElementById(tab+'-seg-tab').classList.toggle('on',m==='tabella');
+  document.getElementById(tab+'-seg-sing').classList.toggle('on',m==='singolo');
+  try{ localStorage.setItem('magazzino_modo_'+tab,m); }catch(e){}
+  if(m==='tabella' && focus) bgVai(tab,1,0);
+}
+function bgAggiungi(tab,n){
+  const tb=document.getElementById(tab+'-bg-body'), cols=bgCols(tab);
+  const listTip=tab==='bpr';
+  for(let k=0;k<n;k++){
+    const i=++BG_N[tab];
+    const tr=document.createElement('tr'); tr.dataset.r=i;
+    tr.innerHTML=`<td>${i}</td>
+      <td><input id="${bgId(tab,i,'ma')}" type="text" autocomplete="off" autocapitalize="characters" list="${tab}-list"></td>
+      <td><input id="${bgId(tab,i,'me')}" type="text" autocomplete="off" maxlength="8" placeholder="325"></td>
+      <td><input id="${bgId(tab,i,'fo')}" class="calc" type="text" autocomplete="off"></td>
+      ${listTip?`<td><input id="${bgId(tab,i,'ti')}" type="text" autocomplete="off" list="${tab}-tip-list"></td>`:''}
+      <td><input id="${bgId(tab,i,'no')}" type="text" autocomplete="off"></td>
+      <td><button class="del-btn" type="button" tabindex="-1" onclick="bgRimuovi('${tab}',${i})" title="Svuota la riga">✕</button></td>`;
+    tb.appendChild(tr);
+    cols.filter(c=>c==='ma'||c==='ti'||c==='no').forEach(c=>attachUppercase(bgId(tab,i,c)));
+    meseInput(bgId(tab,i,'me'),null,null);
+    cols.forEach((c,ci)=>{
+      const el=document.getElementById(bgId(tab,i,c));
+      el.addEventListener('input',()=>{ el.classList.remove('gx-err'); bgTot(tab); });
+      el.addEventListener('keydown',e=>bgTasto(e,tab,i,ci));
+      el.addEventListener('paste',e=>bgIncolla(e,tab,i,ci));
+    });
+  }
+  bgTot(tab);
+}
+function bgVai(tab,i,ci){
+  if(i>BG_N[tab]) bgAggiungi(tab,5);
+  if(i<1) return;
+  const el=document.getElementById(bgId(tab,i,bgCols(tab)[ci])); if(el){ el.focus(); el.select(); }
+}
+function bgTasto(e,tab,i,ci){
+  if(e.key==='Enter'){
+    if(e.ctrlKey||e.metaKey){ e.preventDefault(); bgCarica(tab); return; }
+    e.preventDefault(); bgVai(tab,e.shiftKey?i-1:i+1,ci);
+  } else if((e.key==='ArrowDown'||e.key==='ArrowUp') && e.target.getAttribute('list')===null){ e.preventDefault(); bgVai(tab,e.key==='ArrowDown'?i+1:i-1,ci); }
+}
+function bgImposta(tab,i,c,v){
+  const el=document.getElementById(bgId(tab,i,c)); if(!el) return;
+  v=String(v).trim();
+  if(c==='ma'||c==='ti'||c==='no') v=v.toUpperCase();
+  if(c==='me'){ const m=parseMese(v); v=m?fmtMeseCorto(m):v.toLowerCase(); }
+  if(c==='fo' && /^\d{1,3}(\.\d{3})+$/.test(v)) v=v.replace(/\./g,'');
+  el.value=v; el.classList.remove('gx-err');
+}
+function bgIncolla(e,tab,i,ci){
+  const t=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(t.replace(/\r?\n$/,''))) return;
+  e.preventDefault();
+  const cols=bgCols(tab);
+  t.replace(/\r/g,'').replace(/\n+$/,'').split('\n').forEach((riga,k)=>{
+    const ri=i+k; if(ri>BG_N[tab]) bgAggiungi(tab,ri-BG_N[tab]);
+    riga.split('\t').forEach((v,j)=>{ if(ci+j<cols.length) bgImposta(tab,ri,cols[ci+j],v); });
+  });
+  bgTot(tab);
+}
+function bgRimuovi(tab,i){ bgCols(tab).forEach(c=>{ const el=document.getElementById(bgId(tab,i,c)); el.value=''; el.classList.remove('gx-err'); }); bgTot(tab); }
+function bgSvuota(tab){ document.getElementById(tab+'-bg-body').innerHTML=''; BG_N[tab]=0; bgAggiungi(tab,10); document.getElementById(tab+'-bg-msg').textContent=''; bgVai(tab,1,0); }
+const bgPiena=(tab,i)=>bgCols(tab).some(c=>document.getElementById(bgId(tab,i,c)).value.trim()!=='');
+function bgTot(tab){
+  let n=0,f=0;
+  for(let i=1;i<=BG_N[tab];i++){ if(!bgPiena(tab,i)) continue; n++; const v=gxForme(document.getElementById(bgId(tab,i,'fo')).value); if(!Number.isNaN(v)&&v>0) f+=v; }
+  const el=document.getElementById(tab+'-bg-tot'); if(el) el.textContent=n?`${n} righe · ${fmtNum(f)} forme`:'';
+}
+async function bgCarica(tab){
+  const msg=document.getElementById(tab+'-bg-msg');
+  const righe=[], errori=[], nuove=new Set();
+  for(let i=1;i<=BG_N[tab];i++){
+    if(!bgPiena(tab,i)) continue;
+    const el=c=>document.getElementById(bgId(tab,i,c));
+    const v=c=>el(c)?el(c).value.trim():'';
+    bgCols(tab).forEach(c=>el(c).classList.remove('gx-err'));
+    const bad=(c,t)=>{ el(c).classList.add('gx-err'); errori.push(`Riga ${i}: ${t}`); };
+    let ok=true;
+    const matricola=bmNota(v('ma'));
+    if(!matricola){ bad('ma','matricola mancante'); ok=false; }
+    const mese=bmParseMese(v('me'));
+    if(!v('me')){ bad('me','produzione mancante'); ok=false; } else if(!mese){ bad('me','produzione non valida'); ok=false; }
+    const forme=gxForme(v('fo'));
+    if(Number.isNaN(forme)||forme<=0){ bad('fo','numero di forme non valido'); ok=false; }
+    if(ok){
+      if(!bmEraNota(tab,matricola)) nuove.add(matricola);
+      const riga={ tipo:BM_TIPO[tab], matricola, mese, forme:Number(forme), note:up(v('no')) };
+      if(bmHasTip(tab) && v('ti')) riga.tipologia=up(v('ti'));
+      const ex=exprDi(el('fo')); if(ex) riga.calcolo=ex;
+      righe.push(riga);
+    }
+  }
+  if(errori.length){ msg.textContent=errori.slice(0,4).join(' · ')+(errori.length>4?` · … (altri ${errori.length-4})`:'')+' — nessuna riga è stata caricata.'; msg.className='msg err'; return; }
+  if(!righe.length){ msg.textContent='Non ci sono righe da caricare.'; msg.className='msg err'; return; }
+  if(nuove.size && !confirm(`Matricola non presente nell'elenco: ${[...nuove].join(', ')}. Sei sicuro di averla inserita correttamente?`)) return;
+  const btn=document.getElementById(tab+'-bg-submit'); btn.disabled=true;
+  let ins=await sb.from(BM_TABLE).insert(righe);
+  if(ins.error && /calcolo/i.test(ins.error.message||'')){ righe.forEach(r=>delete r.calcolo); ins=await sb.from(BM_TABLE).insert(righe); }
+  btn.disabled=false;
+  if(ins.error){ msg.textContent='Salvataggio non riuscito: '+bmErroreTxt(ins.error); msg.className='msg err'; return; }
+  const tot=righe.reduce((t,r)=>t+r.forme,0);
+  msg.textContent=`Caricate ${righe.length} righe (${fmtNum(tot)} forme).`; msg.className='msg ok';
+  document.getElementById(tab+'-bg-body').innerHTML=''; BG_N[tab]=0; bgAggiungi(tab,10);
+  await loadBilancio();
+  bgVai(tab,1,0);
+}
+['bpr','bgp'].forEach(t=>{ bgAggiungi(t,10); let m='singolo'; try{ m=localStorage.getItem('magazzino_modo_'+t)||'singolo'; }catch(e){} bgModo(t,m,false); });
 
 // Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
 const BM_LUNG_MATRICOLA={ bgp:5 };   // GP: 5 caratteri (es. BG508); PR ha matricole di 3 o 4 cifre
