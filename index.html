@@ -280,11 +280,13 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <p class="sub">Forme in stagionatura</p>
     </div>
     <nav class="tabs">
+      <div class="tabs-sep">Inventari</div>
+      <button class="tab-btn" data-tab="nuovo">Nuovo inventario</button>
+      <button class="tab-btn" data-tab="inv">Archivio inventari</button>
+      <div class="tabs-sep">Aggiornamenti</div>
       <button class="tab-btn active" data-tab="carico">Carico merce</button>
       <button class="tab-btn" data-tab="scarico">Scarico merce</button>
       <button class="tab-btn" data-tab="pegno">Pegno</button>
-      <button class="tab-btn" data-tab="nuovo">Nuovo inventario</button>
-      <button class="tab-btn" data-tab="inv">Inventari</button>
       <div class="tabs-sep">Bilancio di massa</div>
       <button class="tab-btn" data-tab="bpr">Parmigiano Reggiano</button>
       <button class="tab-btn" data-tab="bgp">Grana Padano</button>
@@ -530,7 +532,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
 
   <!-- INVENTARI CHIUSI -->
   <div class="panel" id="panel-inv">
-    <h2>Inventari</h2>
+    <h2>Archivio inventari</h2>
     <p class="bm-note" id="inv-info"></p>
     <div id="inv-lista"></div>
   </div>
@@ -582,7 +584,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <div class="msg" id="c-msg"></div>
 
     <div class="bm-quant inv-box">
-      <div class="bm-quant-t">Inventario di fine mese <span>(la conta resta qui per gli aggiornamenti; la «foto» va nella pagina Inventari)</span></div>
+      <div class="bm-quant-t">Inventario di fine mese <span>(la conta resta qui per gli aggiornamenti; la «foto» va nell'Archivio inventari)</span></div>
       <button class="btn" type="button" onclick="invChiudiApri()">🔒 Chiudi inventario</button>
       <button class="btn ghost" type="button" onclick="invPulisciApri()">🗑️ Cancella rilevazione</button>
       <p class="bm-note" id="inv-ultimo"></p>
@@ -2347,7 +2349,7 @@ function invChiudiApri(){
   const msg=document.getElementById('inv-msg'); msg.textContent=''; msg.className='msg';
   if(!DATA.length){ msg.textContent='L\'inventario è vuoto: non c\'è niente da chiudere.'; msg.className='msg err'; return; }
   const t=invTot(DATA);
-  document.getElementById('inv-chiudi-txt').textContent=`Chiudi l'inventario? Viene salvata una copia della conta (${fmtNum(DATA.length)} righe, ${fmtNum(t.forme)} forme, di cui ${fmtNum(t.pegno)} in pegno) nella pagina Inventari. I dati restano qui, per gli aggiornamenti degli spostamenti.`;
+  document.getElementById('inv-chiudi-txt').textContent=`Chiudi l'inventario? Viene salvata una copia della conta (${fmtNum(DATA.length)} righe, ${fmtNum(t.forme)} forme, di cui ${fmtNum(t.pegno)} in pegno) nell'Archivio inventari. I dati restano qui, per gli aggiornamenti degli spostamenti.`;
   const d=new Date(); document.getElementById('inv-chiudi-data').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   document.getElementById('inv-chiudi-nome').value='';
   document.getElementById('inv-pulisci').style.display='none';
@@ -2364,14 +2366,14 @@ async function invChiudiConferma(){
   document.getElementById('inv-chiudi').style.display='none';
   const {error}=await sb.from(INV_TABLE).insert({nome,data_conta:data,righe,totale_forme:t.forme,forme_pegno:t.pegno});
   if(error){ msg.textContent='Chiusura non riuscita: '+invErrTxt(error); msg.className='msg err'; return; }
-  msg.textContent=`Inventario «${nome}» salvato nella pagina Inventari (${fmtNum(righe.length)} righe, ${fmtNum(t.forme)} forme). I dati sono rimasti in inventario.`; msg.className='msg ok';
+  msg.textContent=`Inventario «${nome}» salvato nell'Archivio inventari (${fmtNum(righe.length)} righe, ${fmtNum(t.forme)} forme). I dati sono rimasti in inventario.`; msg.className='msg ok';
   await loadInventari();
 }
 function invPulisciApri(){
   const msg=document.getElementById('inv-msg'); msg.textContent=''; msg.className='msg';
   if(!DATA.length){ msg.textContent='L\'inventario è già vuoto.'; msg.className='msg err'; return; }
   const u=INV_DATA[0], t=invTot(DATA);
-  document.getElementById('inv-pulisci-txt').textContent=`Attenzione: vengono cancellate TUTTE le ${fmtNum(DATA.length)} righe dell'inventario (${fmtNum(t.forme)} forme, pegno compreso), per ripartire da una nuova conta. Gli inventari già chiusi nella pagina Inventari restano. `+(u?`Ultimo inventario chiuso: «${u.nome}» (conta del ${invData(u.data_conta)}).`:'Non hai ancora chiuso nessun inventario: se prosegui, questa conta andrà persa. Valuta prima «Chiudi inventario».');
+  document.getElementById('inv-pulisci-txt').textContent=`Attenzione: vengono cancellate TUTTE le ${fmtNum(DATA.length)} righe dell'inventario (${fmtNum(t.forme)} forme, pegno compreso), per ripartire da una nuova conta. Gli inventari già chiusi nell'Archivio inventari restano. `+(u?`Ultimo inventario chiuso: «${u.nome}» (conta del ${invData(u.data_conta)}).`:'Non hai ancora chiuso nessun inventario: se prosegui, questa conta andrà persa. Valuta prima «Chiudi inventario».');
   document.getElementById('inv-chiudi').style.display='none';
   document.getElementById('inv-pulisci').style.display='';
 }
@@ -2422,7 +2424,7 @@ function invDettaglioHtml(a){
 function invApri(id){ id=String(id); if(INV_APERTI.has(id)) INV_APERTI.delete(id); else INV_APERTI.add(id); renderInventari(); }
 async function invElimina(id){
   const a=INV_DATA.find(x=>String(x.id)===String(id)); if(!a) return;
-  if(!confirm(`Eliminare definitivamente «${a.nome}» dalla pagina Inventari? Non si può annullare.`)) return;
+  if(!confirm(`Eliminare definitivamente «${a.nome}» dall'Archivio inventari? Non si può annullare.`)) return;
   const {error}=await sb.from(INV_TABLE).delete().eq('id',a.id);
   if(error){ alert('Eliminazione non riuscita: '+error.message); return; }
   await loadInventari();
