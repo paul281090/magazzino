@@ -163,6 +163,20 @@ th.sortable.sort-asc .arrow,th.sortable.sort-desc .arrow{opacity:1;color:var(--l
 .bm-note{font-size:.78rem;color:var(--muted);margin-top:6px;}
 .bm-conferma.inv-warn{background:#F7D9DB;}
 .inv-box .btn{margin-right:6px;}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px;}
+.seg button{border:0;background:none;padding:8px 16px;font:inherit;font-size:.88rem;cursor:pointer;color:var(--ink);}
+.seg button.on{background:var(--amber);color:#1C2630;font-weight:700;}
+.gx-wrap{overflow-x:auto;}
+table.gx{min-width:880px;}
+table.gx th,table.gx td{padding:4px 5px;}
+table.gx td:first-child{color:var(--muted);font-size:.78rem;width:28px;}
+table.gx input{width:100%;min-width:0;padding:7px 8px;font-size:.92rem;}
+table.gx td:nth-child(2) input{width:70px;} table.gx td:nth-child(3) input{width:120px;} table.gx td:nth-child(4) input{width:100px;} table.gx td:nth-child(5) input{width:90px;}
+table.gx td:nth-child(6) input{width:140px;}
+table.gx td.gx-stag{font-size:.82rem;color:var(--muted);white-space:nowrap;}
+table.gx input.gx-err{outline:2px solid var(--danger);}
+.gx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;}
+.gx-bar .gx-tot{margin-left:auto;font-size:.85rem;color:var(--muted);}
 .bm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
 .bm-head h2{margin-bottom:10px;}
 .bm-chiudi-btn{padding:8px 14px;font-size:.85rem;}
@@ -266,6 +280,7 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
       <button class="tab-btn active" data-tab="carico">Carico merce</button>
       <button class="tab-btn" data-tab="scarico">Scarico merce</button>
       <button class="tab-btn" data-tab="pegno">Pegno</button>
+      <button class="tab-btn" data-tab="nuovo">Nuovo inventario</button>
       <button class="tab-btn" data-tab="inv">Inventari</button>
       <div class="tabs-sep">Bilancio di massa</div>
       <button class="tab-btn" data-tab="bpr">Parmigiano Reggiano</button>
@@ -473,6 +488,27 @@ th.bm-th.sort-asc .arrow,th.bm-th.sort-desc .arrow{opacity:1;color:var(--link);}
     <h2>Inventari</h2>
     <p class="bm-note" id="inv-info"></p>
     <div id="inv-lista"></div>
+  </div>
+
+  <!-- NUOVO INVENTARIO (tabella veloce) -->
+  <div class="panel" id="panel-nuovo">
+    <h2>Nuovo inventario</h2>
+    <datalist id="gx-mat-list"></datalist>
+    <div id="carico-tabella">
+      <p class="bm-note" style="margin-top:0">Compila per colonna: <b>Invio</b> scende alla riga sotto, <b>Tab</b> va alla cella a destra. Puoi anche incollare più righe copiate da Excel (Scalera, Matricola, Mese/Anno, Forme, Tipologia, Note). Le righe vuote vengono ignorate.</p>
+      <div class="table-wrap gx-wrap"><table class="gx">
+        <thead><tr><th>#</th><th>Scalera</th><th>Matricola</th><th>Mese/Anno</th><th>Forme</th><th>Tipologia</th><th>Note</th><th>Stag.</th><th></th></tr></thead>
+        <tbody id="gx-body"></tbody>
+      </table></div>
+      <div class="gx-bar">
+        <button class="btn ghost" type="button" onclick="gxAggiungi(10)">+ 10 righe</button>
+        <button class="btn ghost" type="button" onclick="gxSvuota()">Svuota tabella</button>
+        <span class="gx-tot" id="gx-tot"></span>
+        <button class="btn" type="button" id="gx-submit" onclick="gxCarica()">Carica tutte le righe</button>
+      </div>
+      <div class="msg" id="gx-msg"></div>
+    </div>
+
   </div>
 
   <!-- ARCHIVIO BILANCI -->
@@ -794,7 +830,7 @@ function dismissMigrate(){
 }
 
 function switchTab(tab){
-  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp'||tab==='arch'||tab==='inv');
+  document.querySelector('.app').classList.toggle('view-bilancio', tab==='bpr'||tab==='bgp'||tab==='arch'||tab==='inv'||tab==='nuovo');
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
   if(tab==='scarico') renderScaricoList();
@@ -1628,7 +1664,7 @@ async function loadBilancio(){
   }catch(e){
     BM_ERRORE=(e && e.message) ? e.message : String(e);
   }
-  renderBilancio('bpr'); renderBilancio('bgp'); caricoElenco();
+  renderBilancio('bpr'); renderBilancio('bgp'); caricoElenco(); gxElencoMatricole();
   loadBilancioQuant(); loadArchivio(); loadInventari();
 }
 
@@ -2363,6 +2399,123 @@ function invExcel(id){
     document.body.appendChild(el); el.click(); el.remove();
   }
 }
+
+// ====== TABELLA VELOCE (carico a colonne, stile Excel)
+const GX_COLS=['sc','ma','me','fo','ti','no'];
+let GX_N=0;
+function gxId(i,c){ return `gx${i}-${c}`; }
+function gxAggiungi(n){
+  const tb=document.getElementById('gx-body');
+  for(let k=0;k<n;k++){
+    const i=++GX_N;
+    const tr=document.createElement('tr'); tr.dataset.r=i;
+    tr.innerHTML=`<td>${i}</td>
+      <td><input id="${gxId(i,'sc')}" type="text" inputmode="numeric" autocomplete="off"></td>
+      <td><input id="${gxId(i,'ma')}" type="text" autocomplete="off" autocapitalize="characters" list="gx-mat-list"></td>
+      <td><input id="${gxId(i,'me')}" type="text" autocomplete="off" maxlength="8" placeholder="325"></td>
+      <td><input id="${gxId(i,'fo')}" class="calc" type="text" autocomplete="off"></td>
+      <td><input id="${gxId(i,'ti')}" type="text" autocomplete="off" list="tip-list"></td>
+      <td><input id="${gxId(i,'no')}" type="text" autocomplete="off"></td>
+      <td class="gx-stag" id="gx${i}-st"></td>
+      <td><button class="del-btn" type="button" tabindex="-1" onclick="gxRimuovi(${i})" title="Svuota la riga">✕</button></td>`;
+    tb.appendChild(tr);
+    ['ma','ti','no'].forEach(c=>attachUppercase(gxId(i,c)));
+    meseInput(gxId(i,'me'),()=>gxStag(i),null);
+    GX_COLS.forEach((c,ci)=>{
+      const el=document.getElementById(gxId(i,c));
+      el.addEventListener('input',()=>{ el.classList.remove('gx-err'); gxTot(); });
+      el.addEventListener('keydown',e=>gxTasto(e,i,ci));
+      el.addEventListener('paste',e=>gxIncolla(e,i,ci));
+    });
+  }
+  gxTot();
+}
+function gxStag(i){
+  const m=parseMese(document.getElementById(gxId(i,'me')).value);
+  const n=m?stagionatura(m):null;
+  document.getElementById(`gx${i}-st`).textContent=n===null?'':n+' mesi';
+}
+function gxVai(i,ci){
+  if(i>GX_N) gxAggiungi(5);
+  if(i<1) return;
+  const el=document.getElementById(gxId(i,GX_COLS[ci])); if(el){ el.focus(); el.select(); }
+}
+function gxTasto(e,i,ci){
+  if(e.key==='Enter'){
+    if(e.ctrlKey||e.metaKey){ e.preventDefault(); gxCarica(); return; }
+    e.preventDefault(); gxVai(e.shiftKey?i-1:i+1,ci);
+  } else if(e.key==='ArrowDown' && e.target.getAttribute('list')===null){ e.preventDefault(); gxVai(i+1,ci); }
+  else if(e.key==='ArrowUp' && e.target.getAttribute('list')===null){ e.preventDefault(); gxVai(i-1,ci); }
+}
+function gxImposta(i,c,v){
+  const el=document.getElementById(gxId(i,c)); if(!el) return;
+  v=String(v).trim();
+  if(c==='ma'||c==='ti'||c==='no') v=v.toUpperCase();
+  if(c==='me'){ const m=parseMese(v); v=m?fmtMeseCorto(m):v.toLowerCase(); }
+  if(c==='fo' && /^\d{1,3}(\.\d{3})+$/.test(v)) v=v.replace(/\./g,'');
+  if(c==='sc' && /^\d+(,0+)?$/.test(v)) v=v.replace(/,.*/,'');
+  el.value=v; el.classList.remove('gx-err');
+  if(c==='me') gxStag(i);
+}
+function gxIncolla(e,i,ci){
+  const t=(e.clipboardData||window.clipboardData).getData('text');
+  if(!/[\t\n]/.test(t.replace(/\r?\n$/,''))) return;      // un solo valore: incolla normale
+  e.preventDefault();
+  const righe=t.replace(/\r/g,'').replace(/\n+$/,'').split('\n');
+  righe.forEach((riga,k)=>{
+    const ri=i+k; if(ri>GX_N) gxAggiungi(ri-GX_N);
+    riga.split('\t').forEach((v,j)=>{ if(ci+j<GX_COLS.length) gxImposta(ri,GX_COLS[ci+j],v); });
+  });
+  gxTot();
+}
+function gxRimuovi(i){ GX_COLS.forEach(c=>{ const el=document.getElementById(gxId(i,c)); el.value=''; el.classList.remove('gx-err'); }); gxStag(i); gxTot(); }
+function gxSvuota(){ document.getElementById('gx-body').innerHTML=''; GX_N=0; gxAggiungi(10); document.getElementById('gx-msg').textContent=''; gxVai(1,0); }
+function gxRigaPiena(i){ return GX_COLS.some(c=>document.getElementById(gxId(i,c)).value.trim()!==''); }
+const gxForme=v=>calcForme(/^\d{1,3}(\.\d{3})+$/.test(String(v).trim())?String(v).trim().replace(/\./g,''):v);
+function gxTot(){
+  let n=0,f=0;
+  for(let i=1;i<=GX_N;i++){ if(!gxRigaPiena(i)) continue; n++; const v=gxForme(document.getElementById(gxId(i,'fo')).value); if(!Number.isNaN(v)&&v>0) f+=v; }
+  const el=document.getElementById('gx-tot'); if(el) el.textContent=n?`${n} righe · ${fmtNum(f)} forme`:'';
+}
+async function gxCarica(){
+  const msg=document.getElementById('gx-msg');
+  const righe=[], errori=[];
+  for(let i=1;i<=GX_N;i++){
+    if(!gxRigaPiena(i)) continue;
+    const v=c=>document.getElementById(gxId(i,c)).value.trim();
+    const bad=(c,t)=>{ document.getElementById(gxId(i,c)).classList.add('gx-err'); errori.push(`Riga ${i}: ${t}`); };
+    document.querySelectorAll(`#gx-body tr[data-r="${i}"] input`).forEach(x=>x.classList.remove('gx-err'));
+    const tipologia=up(v('ti'));
+    const matOpt=MATRICOLA_OPTIONAL.includes(tipologia), meseOpt=MESE_OPTIONAL.includes(tipologia);
+    const sc=v('sc'), forme=gxForme(v('fo'));
+    let ok=true;
+    if(!/^\d+$/.test(sc)){ bad('sc','scalera mancante o non valida'); ok=false; }
+    if(Number.isNaN(forme)||forme<=0){ bad('fo','numero di forme non valido'); ok=false; }
+    if(!matOpt && !v('ma')){ bad('ma','matricola obbligatoria'); ok=false; }
+    let mese=null;
+    if(v('me')){ mese=parseMese(v('me')); if(!mese){ bad('me','produzione non valida'); ok=false; } }
+    else if(!meseOpt){ bad('me','produzione obbligatoria'); ok=false; }
+    if(ok) righe.push({ scalera:Number(sc), matricola:parseMatricola(v('ma')), mese, forme:Number(forme), tipologia, note:up(v('no')) });
+  }
+  if(errori.length){ msg.textContent=errori.slice(0,4).join(' · ')+(errori.length>4?` · … (altri ${errori.length-4})`:'')+' — nessuna riga è stata caricata.'; msg.className='msg err'; return; }
+  if(!righe.length){ msg.textContent='Non ci sono righe da caricare.'; msg.className='msg err'; return; }
+  const btn=document.getElementById('gx-submit'); btn.disabled=true;
+  for(let k=0;k<righe.length;k+=500){
+    const {error}=await sb.from(TABLE).insert(righe.slice(k,k+500));
+    if(error){ btn.disabled=false; msg.textContent='Salvataggio non riuscito: '+error.message+(k?` (le prime ${k} righe sono state caricate)`:''); msg.className='msg err'; return; }
+  }
+  btn.disabled=false;
+  const tot=righe.reduce((t,r)=>t+r.forme,0);
+  msg.textContent=`Caricate ${righe.length} righe (${fmtNum(tot)} forme) in inventario.`; msg.className='msg ok';
+  document.getElementById('gx-body').innerHTML=''; GX_N=0; gxAggiungi(10);
+  await loadData();
+  gxVai(1,0);
+}
+function gxElencoMatricole(){
+  const dl=document.getElementById('gx-mat-list'); if(!dl) return;
+  dl.innerHTML=[...new Set([...bmMatricole('bpr'),...bmMatricole('bgp'),...DATA.map(r=>r.matricola).filter(x=>x!==null&&x!=='').map(String)])].sort(bmNat).map(m=>`<option value="${escapeHtml(m)}">`).join('');
+}
+gxAggiungi(10);
 
 // Passaggio automatico alla cella successiva: matricola completa -> produzione -> forme
 const BM_LUNG_MATRICOLA={ bgp:5 };   // GP: 5 caratteri (es. BG508); PR ha matricole di 3 o 4 cifre
